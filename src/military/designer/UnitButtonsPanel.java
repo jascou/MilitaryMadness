@@ -37,7 +37,7 @@ public class UnitButtonsPanel extends JPanel {
         while (!unitReader.next().equals("Shift")) {
         }
         while (unitReader.hasNext()) {
-            JButton butt = new JButton();
+            final JButton butt = new JButton();
             butt.setName(unitReader.next());
             butt.setIcon(new ImageIcon(ModelManager.getModel(butt.getName()).getImage(true).getScaledInstance( 20, 20,  java.awt.Image.SCALE_SMOOTH )));
             butt.addActionListener(new ActionListener() {
