@@ -20,7 +20,7 @@ public class MilitaryMadness {
             n = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
                     JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices, 2);
             if (n == 0) {
-                String levelName = JOptionPane.showInputDialog("What level would you like to load?");
+                String levelName = JOptionPane.showInputDialog("Which level would you like to load?");
                 new Thread(SoundUtility.getInstance()).start();
                 Game game = null;
                 try {
