@@ -1,0 +1,49 @@
+15
+10
+0 0 0 0 0 0 0 0 0 0 
+3 3 3 3 0 0 0 0 0 0 
+1 1 1 2 3 3 0 0 0 0 
+1 1 1 2 0 0 0 0 0 0 
+0 2 2 2 0 0 0 0 0 0 
+2 0 0 0 0 0 0 0 0 0 
+2 0 5 0 0 0 0 0 0 0 
+2 0 0 0 2 2 0 0 0 0 
+0 2 2 2 2 2 2 0 0 0 
+0 2 2 2 2 2 0 0 0 0 
+4 4 0 0 0 0 0 0 0 0 
+6 0 0 0 0 0 0 0 0 0 
+4 4 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+5 2 Charlie true
+5 1 Charlie true
+6 1 Charlie true
+7 1 Charlie true
+7 2 Charlie true
+7 3 Charlie true
+6 3 Charlie true
+6 2 Bison true
+10 4 Bison true
+11 4 Bison true
+12 4 Bison true
+13 3 Bison true
+13 2 Bison true
+13 1 Bison true
+13 0 Bison true
+5 3 Charlie true
+6 4 Charlie true
+11 0 Bison false
+11 1 Charlie false
+11 2 Charlie false
+10 3 Charlie false
+11 3 Charlie false
+12 3 Charlie false
+12 2 Charlie false
+10 2 Charlie false
+4 4 Bison false
+5 4 Bison false
+6 5 Bison false
+3 4 Bison false
+4 5 Bison false
+5 5 Bison false
+6 6 Bison false

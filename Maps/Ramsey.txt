@@ -1,0 +1,36 @@
+15
+20
+4 4 4 4 1 4 4 4 4 4 1 2 1 1 4 1 4 4 4 4 
+4 4 4 1 1 1 4 4 4 1 2 1 3 3 3 3 1 1 1 4 
+4 4 4 1 3 3 1 4 1 7 2 2 2 8 3 3 1 1 1 1 
+1 1 3 3 1 3 3 3 3 3 2 2 1 1 3 1 5 1 3 1 
+1 3 3 3 1 1 4 4 1 3 3 3 1 1 1 1 1 3 1 1 
+1 3 1 1 1 4 7 4 4 3 3 1 1 4 4 2 0 1 2 2 
+4 4 1 4 4 4 1 1 1 1 3 1 1 4 4 1 0 1 2 2 
+1 1 4 4 4 4 3 1 1 1 1 1 4 2 2 0 1 3 3 2 
+3 1 1 4 4 4 4 4 4 1 4 4 1 2 2 3 0 1 3 2 
+6 1 3 4 4 4 4 4 4 4 1 4 2 2 2 3 0 1 1 2 
+1 1 1 3 4 1 1 4 4 4 1 4 1 1 2 3 3 0 0 0 
+1 1 1 9 3 3 4 4 4 1 1 1 1 1 3 3 3 3 1 0 
+2 1 -1 1 1 3 3 4 4 1 1 1 1 1 1 1 3 3 3 0 
+2 1 -1 -1 -1 3 3 1 1 1 1 1 1 1 1 4 4 1 1 0 
+-1 -1 1 3 3 1 3 3 1 1 1 1 1 1 1 4 4 4 1 1 
+2 13 Grizzly true
+4 14 Seeker true
+3 11 Charlie true
+5 11 Kilroy true
+8 14 Kilroy true
+5 12 Bison true
+10 15 Polar true
+7 15 Hadrian true
+11 3 Bison true
+7 1 Bison false
+9 2 Kilroy false
+10 5 Charlie false
+10 6 Eagle false
+14 7 Slagger false
+13 8 Bison false
+5 6 Seeker false
+2 9 Bison false
+12 6 Bison false
+11 3 Hadrian false
