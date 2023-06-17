@@ -27,9 +27,24 @@ import military.gui.HexMech;
  *
  * @author Nate
  */
+
+
 public class Game implements Runnable {
 
-    private GUI gui;
+    final int KEY_SHIFT         = 16;
+    final int KEY_CTRL          = 17;
+    final int KEY_SPACE_BAR     = 32;
+    final int KEY_ARROW_LEFT    = 37;
+    final int KEY_ARROW_UP      = 38;
+    final int KEY_ARROW_RIGHT   = 39;
+    final int KEY_ARROW_DOWN    = 40;
+    final int KEY_LETTER_A      = 65;
+    final int KEY_LETTER_D      = 68;
+    final int KEY_LETTER_S      = 83;
+    final int KEY_LETTER_W      = 87;
+
+
+    private final GUI gui;
     private boolean turn;
     private Point cursor;
     private Point buttonCursor;
@@ -64,19 +79,19 @@ public class Game implements Runnable {
             if (evt instanceof KeyEvent) {
                 kevt = (KeyEvent) evt;
                 if (buttonCursor.y != -1) {
-                    if (kevt.getKeyCode() == 38 || kevt.getKeyCode() == 87) {
+                    if (kevt.getKeyCode() == KEY_ARROW_UP || kevt.getKeyCode() == KEY_LETTER_W) {
                         buttonCursor.y--;
                         if (buttonCursor.y == -1) {
                             buttonCursor.y = 3;
                         }
                     }
-                    if (kevt.getKeyCode() == 40 || kevt.getKeyCode() == 83) {
+                    if (kevt.getKeyCode() == KEY_ARROW_DOWN || kevt.getKeyCode() == KEY_LETTER_S) {
                         buttonCursor.y++;
                         if (buttonCursor.y == 4) {
                             buttonCursor.y = 0;
                         }
                     }
-                    if (kevt.getKeyCode() == 10) {
+                    if (kevt.getKeyCode() == KEY_CTRL) {      // Changed from 10 (June 16, '23)
                         if (buttonCursor.y == 0) {
                             shift();
                         } else if (buttonCursor.y == 1) {
@@ -87,13 +102,13 @@ public class Game implements Runnable {
                             end();
                         }
                     }
-                    if (kevt.getKeyCode() == 16) {
+                    if (kevt.getKeyCode() == KEY_SHIFT) {
                         buttonCursor.y = -1;
                     }
                     continue;
                 }
-                while (kevt.getKeyCode() >= 37 && kevt.getKeyCode() <= 40 || kevt.getKeyCode() >= 65 && kevt.getKeyCode() <= 87) {
-                    if ((kevt.getKeyCode() == 38 || kevt.getKeyCode() == 87) && cursor.y != 0) {
+                while (kevt.getKeyCode() >= KEY_ARROW_LEFT && kevt.getKeyCode() <= KEY_ARROW_DOWN || kevt.getKeyCode() >= KEY_LETTER_D && kevt.getKeyCode() <= KEY_LETTER_W) {
+                    if ((kevt.getKeyCode() == KEY_ARROW_UP || kevt.getKeyCode() == KEY_LETTER_W) && cursor.y != 0) {
                         cursor.y--;
                     }
                     if ((kevt.getKeyCode() == 40 || kevt.getKeyCode() == 83)
