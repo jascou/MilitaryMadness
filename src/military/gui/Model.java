@@ -9,6 +9,7 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
@@ -48,23 +49,26 @@ public class Model {
     }
     
     private void loadImage() {
+        InputStream inStream = null;
         try {
-            InputStream inStream = this.getClass().getClassLoader()
-                    .getResourceAsStream(name + ".gif");
+//            InputStream inStream = this.getClass().getClassLoader()
+//                    .getResourceAsStream(name + ".gif");
+            inStream = new FileInputStream("Resources//" + name + ".gif");
             image = ImageIO.read(inStream);
             inStream.close();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.out.println("no Image");
         }
         
         BufferedImage temp = null;
-        
+        inStream = null;
         try {
-            InputStream inStream = this.getClass().getClassLoader()
-                    .getResourceAsStream(name + ".gif");
+//            InputStream inStream = this.getClass().getClassLoader()
+//                    .getResourceAsStream(name + ".gif");
+            inStream = new FileInputStream("Resources//" + name + ".gif");
             temp = ImageIO.read(inStream);
             inStream.close();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.out.println("no Image");
         }
         

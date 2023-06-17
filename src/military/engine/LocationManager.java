@@ -112,8 +112,9 @@ public class LocationManager {
         entries = new ArrayList<>();
         InputStream inStream = null;
         try {
-            inStream = new FileInputStream("Maps\\" + filename + ".txt");
+            inStream = new FileInputStream("Maps//" + filename + ".txt");
         } catch (Exception e) {
+            e.printStackTrace();
         }
         Scanner reader = new Scanner(inStream);
         int numColumns = reader.nextInt();
@@ -149,7 +150,13 @@ public class LocationManager {
             int y = reader.nextInt();
             String name = reader.next();
             boolean team = reader.nextBoolean();
-            InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
+//            InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
+            InputStream unitStream = null;
+            try{
+                unitStream = new FileInputStream("Resources//Units.txt");
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
             Scanner unitReader = new Scanner(unitStream);
             while (!unitReader.next().equals(name)) {
             }

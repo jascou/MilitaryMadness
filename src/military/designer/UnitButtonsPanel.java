@@ -6,6 +6,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -31,7 +32,13 @@ public class UnitButtonsPanel extends JPanel {
         grid.setHgap(5);
         grid.setVgap(5);
         this.setLayout(grid);
-        InputStream unitStream = getClass().getClassLoader().getResourceAsStream("Units.txt");
+        InputStream unitStream = null;
+        try {
+           unitStream = new FileInputStream("Resources//Units.txt");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        InputStream unitStream = getClass().getClassLoader().getResourceAsStream("Units.txt");
         Scanner unitReader = new Scanner(unitStream);
         
         while (!unitReader.next().equals("Shift")) {
