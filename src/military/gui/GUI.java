@@ -133,7 +133,7 @@ public class GUI extends JFrame {
         bottom.setPreferredSize(new Dimension(hex.getWidth(), 75));
         bottom.setBackground(Color.red);
         fact = new FactoryPanel();
-        fact.setPreferredSize(new Dimension(18 + 15* 53, 25 + 10 * 50));
+        fact.setPreferredSize(new Dimension(18 + 15 * 53, 25 + 10 * 50));
         fact.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
                 GUIMiddleMan.getInstance().putEvent(evt);
