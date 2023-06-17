@@ -43,6 +43,10 @@ public class Game implements Runnable {
     final int KEY_LETTER_S      = 83;
     final int KEY_LETTER_W      = 87;
 
+    final int MOUSE_LEFT_BTN    = 1;
+    final int MOUSE_MIDDLE_BTN  = 3;
+    final int MOUSE_RIGHT_BTN   = 2;
+
 
     private final GUI gui;
     private boolean turn;
@@ -50,7 +54,7 @@ public class Game implements Runnable {
     private Point buttonCursor;
     private Point factoryLoc;
     private int factoryUnit;
-    private Factory fact;
+    private Factory mFactory;
     private Point unitLoc;
     private ArrayList<Point> selectLocs;
     private boolean shifting;
@@ -111,14 +115,14 @@ public class Game implements Runnable {
                     if ((kevt.getKeyCode() == KEY_ARROW_UP || kevt.getKeyCode() == KEY_LETTER_W) && cursor.y != 0) {
                         cursor.y--;
                     }
-                    if ((kevt.getKeyCode() == 40 || kevt.getKeyCode() == 83)
+                    if ((kevt.getKeyCode() == KEY_ARROW_DOWN || kevt.getKeyCode() == KEY_LETTER_S)
                             && (cursor.y < 2 || (!factory && cursor.y < LocationManager.getSize().y - 1))) {
                         cursor.y++;
                     }
-                    if ((kevt.getKeyCode() == 37 || kevt.getKeyCode() == 65) && cursor.x != 0) {
+                    if ((kevt.getKeyCode() == KEY_ARROW_LEFT || kevt.getKeyCode() == KEY_LETTER_A) && cursor.x != 0) {
                         cursor.x--;
                     }
-                    if ((kevt.getKeyCode() == 39 || kevt.getKeyCode() == 68)
+                    if ((kevt.getKeyCode() == KEY_ARROW_RIGHT || kevt.getKeyCode() == KEY_LETTER_D)
                             && (cursor.x < 3 || (!factory && cursor.x < LocationManager.getSize().x - 1))) {
                         cursor.x++;
                     }
@@ -132,7 +136,7 @@ public class Game implements Runnable {
                 if (kevt.getKeyCode() == 10) {
                     if (!shifting && !attacking && !factory) {
                         if (LocationManager.getLoc(cursor) instanceof Factory) {
-                            fact = (Factory) LocationManager.getLoc(cursor);
+                            mFactory = (Factory) LocationManager.getLoc(cursor);
                             factory = true;
                             factoryLoc = cursor;
                             cursor = new Point(0, 0);
@@ -169,7 +173,7 @@ public class Game implements Runnable {
                             shifting = false;
                             selectLocs.clear();
                             Unit u = newLoc.getUnit();
-                            fact.removeUnit(u);
+                            mFactory.removeUnit(u);
                             u.attack();
                         }
                         if (LocationManager.getLoc(cursor) instanceof Base && ((Base) newLoc).getTeam() != turn) {
@@ -216,12 +220,12 @@ public class Game implements Runnable {
                                 && ((KeyEvent) GUIMiddleMan.getInstance().getEvent()).getKeyCode() != 10) {
                         }
                     } else if (factory) {
-                        if (fact.isControlled() && fact.getTeam() == turn) {
-                            if (fact.getUnits().size() > cursor.x + (4 * cursor.y)) {
-                                if (!fact.getUnit(cursor.x + (4 * cursor.y)).isAttackDone()) {
+                        if (mFactory.isControlled() && mFactory.getTeam() == turn) {
+                            if (mFactory.getUnits().size() > cursor.x + (4 * cursor.y)) {
+                                if (!mFactory.getUnit(cursor.x + (4 * cursor.y)).isAttackDone()) {
                                     shifting = true;
                                     selectLocs.clear();
-                                    for (Location loc : fact.getAjacent()) {
+                                    for (Location loc : mFactory.getAjacent()) {
                                         if (loc.getTerrain() < 40 && loc.getTerrain() != -1) {
                                             selectLocs.add(loc.getLoc());
                                         }
@@ -265,7 +269,7 @@ public class Game implements Runnable {
                     cursor.x = HexMech.pxtoHex(mevt.getX(), mevt.getY()).x;
                     cursor.y = HexMech.pxtoHex(mevt.getX(), mevt.getY()).y;
                     if (LocationManager.getLoc(cursor) instanceof Factory) {
-                        fact = (Factory) LocationManager.getLoc(cursor);
+                        mFactory = (Factory) LocationManager.getLoc(cursor);
                         factory = true;
                         factoryLoc = cursor;
                         cursor = new Point(0, 0);
@@ -301,7 +305,7 @@ public class Game implements Runnable {
                         shifting = false;
                         selectLocs.clear();
                         Unit u = newLoc.getUnit();
-                        fact.removeUnit(u);
+                        mFactory.removeUnit(u);
                         u.attack();
                     }
                     if (LocationManager.getLoc(cursor) instanceof Base && ((Base) newLoc).getTeam() != turn) {

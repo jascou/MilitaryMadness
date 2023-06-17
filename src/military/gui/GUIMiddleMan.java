@@ -28,7 +28,7 @@ public class GUIMiddleMan {
         ready = false;
     }
 
-    public synchronized InputEvent getEvent() {//used by consumer: engine
+    public synchronized InputEvent getEvent() {         //used by consumer: engine
         if (!ready) {
             try {
                 wait();
