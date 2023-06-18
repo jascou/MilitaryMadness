@@ -1,20 +1,47 @@
 package military;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
+
 import military.designer.DesignGUI;
 import military.gui.SoundUtility;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
  * @author Nate
  */
 public class MilitaryMadness {
+    static List<String> levels = new ArrayList();
+
+    InputStream levelInputStream = null;
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        //loadMapList();
+        List<Path> fileList = listFiles(Path.of("Maps"));
+        fileList.forEach(System.out::println);
+        for (Path path: fileList) {
+            levels.add(path.toFile().getName() );
+        }
+
+        //findByFileExtensions("Maps", "txt");
         String choices[] = {"Play Game", "Create Level", "Exit"};
+
         int n = 0;
         while (n != 2) {
             n = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
@@ -59,6 +86,86 @@ public class MilitaryMadness {
             }
         }
         System.exit(0);
+    }
+
+    static void loadMapList() throws IOException {
+        InputStream inStream = null;
+
+        List<File> maps = new ArrayList<>();
+        try(Stream<Path> paths = Files.walk(Paths.get("Maps"))) {
+            paths
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .collect(Collectors.toList())
+                    .forEach(System.out::println);
+//            paths.forEach(path -> {
+//                File file = path.toFile();
+//                maps.add(file);
+//                System.out.println(file.getName());
+//            });
+        }
+
+    }
+
+    public static void mapFileComboBox(List<Path> fileList) {
+        JComboBox comboBox = new JComboBox(fileList.toArray());
+        comboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+        BasicComboBoxRenderer renderer = new BasicComboBoxRenderer();
+        renderer.setPreferredSize(new Dimension(200, 130));
+        renderer.setHorizontalAlignment(SwingConstants.CENTER);
+        renderer.setVerticalAlignment(SwingConstants.CENTER);
+        comboBox.setRenderer(renderer);
+        comboBox.setMaximumRowCount(12);
+    }
+
+    public static List<Path> findByFileExtensions(Path path, String fileExtension) throws IOException {
+
+        if (!Files.isDirectory(path)) {
+            throw new IllegalArgumentException("Path must be a directory!");
+        }
+
+            List<Path> result;
+            try (Stream<Path> walk = Files.walk(path)) {
+                result = walk
+                        .filter(Files::isRegularFile) // is a file
+                        .filter(p -> p.getFileName().toString().endsWith(fileExtension))
+                        .collect(Collectors.toList());
+            }
+            return result;
+    }
+
+    public static List<Path> listFiles(Path path) throws IOException {
+
+        List<Path> result;
+        try (Stream<Path> walk = Files.walk(path)) {
+            result = walk.filter(Files::isRegularFile)
+                    .collect(Collectors.toList());
+        }
+        return result;
+    }
+
+    static void printFileNames(File[] a, int i, int lvl)
+    {
+        // base case of the recursion
+        // i == a.length means the directory has
+        // no more files. Hence, the recursion has to stop
+        if(i == a.length)
+        {
+            return;
+        }
+        // checking if the encountered object is a file or not
+        if(a[i].isFile())
+        {
+            System.out.println(a[i].getName());
+        }
+        // recursively printing files from the directory
+        // i + 1 means look for the next file
+        printFileNames(a, i + 1, lvl);
     }
 
 }
