@@ -10,3 +10,14 @@
 1 1 1 1 1 2 1 1 1 1 
 1 1 2 2 2 2 3 1 1 1 
 1 3 3 2 2 2 3 1 1 1 
+2 6 Hadrian true
+1 1 Falcon true
+0 7 Lynx true
+2 8 Panther true
+0 3 Hunter true
+1 7 Rabbit true
+7 1 Octopus false
+7 6 Lynx false
+6 5 Slagger false
+5 1 Hawkeye false
+9 8 Octopus false

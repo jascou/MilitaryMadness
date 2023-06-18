@@ -177,7 +177,16 @@ public class LocationManager {
         }
         int x = p.x;
         int y = p.y;
-        InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
+//        InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
+
+        InputStream unitStream = null;
+
+        try {
+            unitStream = new FileInputStream("Resources//Units.txt");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
         assert unitStream != null;          // Added June 16, 2023
         Scanner unitReader = new Scanner(unitStream);
         while (!unitReader.next().equals(name)) {
