@@ -111,7 +111,7 @@ public class Game implements Runnable {
                     }
                     continue;
                 }
-                while (kevt.getKeyCode() >= KEY_ARROW_LEFT && kevt.getKeyCode() <= KEY_ARROW_DOWN || kevt.getKeyCode() >= KEY_LETTER_D && kevt.getKeyCode() <= KEY_LETTER_W) {
+                while (kevt.getKeyCode() >= KEY_ARROW_LEFT && kevt.getKeyCode() <= KEY_ARROW_DOWN || kevt.getKeyCode() >= KEY_LETTER_A && kevt.getKeyCode() <= KEY_LETTER_W) {
                     if ((kevt.getKeyCode() == KEY_ARROW_UP || kevt.getKeyCode() == KEY_LETTER_W) && cursor.y != 0) {
                         cursor.y--;
                     }
