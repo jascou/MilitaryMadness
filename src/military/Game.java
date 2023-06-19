@@ -216,8 +216,13 @@ public class Game implements Runnable {
                             gui.dispose();
                             return;
                         }
-                        while ((GUIMiddleMan.getInstance().getEvent() instanceof KeyEvent)
-                                && ((KeyEvent) GUIMiddleMan.getInstance().getEvent()).getKeyCode() != 10) {
+                        try {
+                            while ((GUIMiddleMan.getInstance().getEvent() instanceof KeyEvent)
+                                    && ((KeyEvent) GUIMiddleMan.getInstance().getEvent()).getKeyCode() != 10) {
+                            }
+                        } catch (ClassCastException e) {
+                            // Added exception June 18, 2023 to catch casting MouseEvent to KeyEvent
+                            e.printStackTrace();
                         }
                     } else if (factory) {
                         if (mFactory.isControlled() && mFactory.getTeam() == turn) {

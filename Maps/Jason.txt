@@ -16,6 +16,7 @@
 2 8 Panther true
 0 3 Hunter true
 1 7 Rabbit true
+1 3 Atlas true
 7 1 Octopus false
 7 6 Lynx false
 6 5 Slagger false

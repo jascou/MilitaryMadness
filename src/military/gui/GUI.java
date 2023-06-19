@@ -90,7 +90,11 @@ public class GUI extends JFrame {
     public void moveCursor(Point cursor) {
         if(display == hex){
             hex.grabFocus();
-            hex.drawCursor(new Point(cursor.x, cursor.y), turn);
+            try {
+                hex.drawCursor(new Point(cursor.x, cursor.y), turn);
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();  // TODO: Limit cursor movement to within game map bounds
+            }
             bottom.render(cursor);
         }
         if(display == fact){
