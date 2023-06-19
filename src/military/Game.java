@@ -360,7 +360,13 @@ public class Game implements Runnable {
                 return;
             } else {
                 cursor = HexMech.pxtoHex(mevt.getX(), mevt.getY());
-                gui.moveCursor(cursor);
+                try {
+                    gui.moveCursor(cursor);
+                } catch (IndexOutOfBoundsException e) {
+                    // Added June 18, 2023 to catch Index-1 out of bounds for length <num>
+                    // TODO: Provide a better solution
+                    e.printStackTrace();
+                }
                 InputEvent evt = GUIMiddleMan.getInstance().getEvent();
                 if (evt instanceof KeyEvent) {
                     break;
