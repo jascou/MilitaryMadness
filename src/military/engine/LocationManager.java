@@ -32,7 +32,16 @@ public class LocationManager {
     }
 
     public static Location getLoc(int x, int y) {
+        System.out.println("getLoc(" + x + ", " + y +")");
         return entries.get(x).get(y);
+    }
+
+    public static boolean isInBounds(int x, int y) {
+        boolean result = false;
+        if (getSize().x > x && getSize().y > y) {
+            result = true;
+        }
+        return result;
     }
 
     public static Location getLoc(Point p) {
@@ -156,8 +165,7 @@ public class LocationManager {
                 throw new RuntimeException(e);
             }
             Scanner unitReader = new Scanner(unitStream);
-            while (!unitReader.next().equals(name)) {
-            }
+            while (!unitReader.next().equals(name)) {}
             Unit u = new Unit(name, unitReader.next(), unitReader.nextBoolean(),
                     unitReader.nextBoolean(), team, unitReader.nextInt(),
                     unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt());
@@ -165,7 +173,6 @@ public class LocationManager {
             UnitManager.getInstance().addUnit(u);
             unitReader.close();
         }
-
         calcAdjacent();
     }
 
@@ -187,8 +194,7 @@ public class LocationManager {
 
         assert unitStream != null;          // Added June 16, 2023
         Scanner unitReader = new Scanner(unitStream);
-        while (!unitReader.next().equals(name)) {
-        }
+        while (!unitReader.next().equals(name)) {}
         Unit u = new Unit(name, unitReader.next(), unitReader.nextBoolean(),
                 unitReader.nextBoolean(), team, unitReader.nextInt(),
                 unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt());

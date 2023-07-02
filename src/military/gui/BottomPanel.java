@@ -36,19 +36,22 @@ public class BottomPanel extends JPanel{
         Graphics2D g2 = (Graphics2D) g;
         g2.setFont(new Font("Consolas", 0, 24));
         g2.setColor(Color.LIGHT_GRAY);
-        Location loc = LocationManager.getLoc(cursor);
-        if(!loc.isEmpty()){
-            g2.drawImage(ModelManager.getModel(
-                    loc.getUnit().getModelName()).
-                    getImage(loc.getUnit().getTeam())
-                    , 30, 15, 50, 50, this);
-            g2.drawString(loc.getUnit().getName()+" x"+loc.getUnit().getHealth(), 90, 50);
-            g2.drawString("Exp: " + loc.getUnit().getExp(), 250, 50);
-        }
-        if(loc.getTerrain()!=-1){
-            g2.drawString("Terrain: " + loc.getTerrain()+"%", 500, 50);
+        if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
+            Location loc = LocationManager.getLoc(cursor);
+            if (!loc.isEmpty()) {
+                g2.drawImage(ModelManager.getModel(
+                                        loc.getUnit().getModelName()).
+                                getImage(loc.getUnit().getTeam())
+                        , 30, 15, 50, 50, this);
+                g2.drawString(loc.getUnit().getName() + " x" + loc.getUnit().getHealth(), 90, 50);
+                g2.drawString("Exp: " + loc.getUnit().getExp(), 250, 50);
+            }
+            if (loc.getTerrain() != -1) {
+                g2.drawString("Terrain: " + loc.getTerrain() + "%", 500, 50);
+            }
         }
     }
+
     public void displayCombat(CombatStats cstat){
         boolean turn = cstat.getAttacker().getTeam();
         Graphics2D g2 = (Graphics2D) this.getGraphics();
