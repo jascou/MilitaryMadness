@@ -15,8 +15,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -43,7 +41,7 @@ public class LocationManager {
 
     public static void create(ArrayList<ArrayList<Location>> locs) {
         entries = locs;
-        calcAjacent();
+        calcAdjacent();
     }
 
     public static void generateMap(int w, int h) {
@@ -57,16 +55,15 @@ public class LocationManager {
         }
         blueBase = null;
         redBase = null;
-        calcAjacent();
+        calcAdjacent();
         int x = (w*h)/35;
         Random rand = new Random();
-        
-        
+
         for (int i = 0; i < x; i++) {
             Point p = new Point(rand.nextInt(w), rand.nextInt(h));
             for (int j = 0; j < 20; j++) {
                 getLoc(p).setTerrain(30);
-                p = getLoc(p).getAjacent()[rand.nextInt(getLoc(p).getAjacent().length)].getLoc();
+                p = getLoc(p).getAdjacent()[rand.nextInt(getLoc(p).getAdjacent().length)].getLoc();
             }
         }
         
@@ -74,7 +71,7 @@ public class LocationManager {
             Point p = new Point(rand.nextInt(w), rand.nextInt(h));
             for (int j = 0; j < 15; j++) {
                 getLoc(p).setTerrain(20);
-                p = getLoc(p).getAjacent()[rand.nextInt(getLoc(p).getAjacent().length)].getLoc();
+                p = getLoc(p).getAdjacent()[rand.nextInt(getLoc(p).getAdjacent().length)].getLoc();
             }
         }
         
@@ -82,7 +79,7 @@ public class LocationManager {
             Point p = new Point(rand.nextInt(w), rand.nextInt(h));
             for (int j = 0; j < 20; j++) {
                 getLoc(p).setTerrain(40);
-                p = getLoc(p).getAjacent()[rand.nextInt(getLoc(p).getAjacent().length)].getLoc();
+                p = getLoc(p).getAdjacent()[rand.nextInt(getLoc(p).getAdjacent().length)].getLoc();
             }
         }
         
@@ -116,6 +113,7 @@ public class LocationManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        assert inStream != null;
         Scanner reader = new Scanner(inStream);
         int numColumns = reader.nextInt();
         int numRows = reader.nextInt();
@@ -151,7 +149,7 @@ public class LocationManager {
             String name = reader.next();
             boolean team = reader.nextBoolean();
 //            InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
-            InputStream unitStream = null;
+            InputStream unitStream;
             try{
                 unitStream = new FileInputStream("Resources//Units.txt");
             } catch (FileNotFoundException e) {
@@ -168,7 +166,7 @@ public class LocationManager {
             unitReader.close();
         }
 
-        calcAjacent();
+        calcAdjacent();
     }
 
     public static void addUnit(Point p, String name, boolean team) {
@@ -277,7 +275,7 @@ public class LocationManager {
         return team ? blueBase : redBase;
     }
 
-    private static void calcAjacent() {
+    private static void calcAdjacent() {
         int numColumns = entries.size();
         int numRows = entries.get(0).size();
         for (int x = 0; x < numColumns; x++) {
@@ -285,56 +283,56 @@ public class LocationManager {
                 if (x == 0) {
                     if (y == 0) {
                         Location[] ajacent = {entries.get(x).get(y + 1), entries.get(x + 1).get(y)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     } else if (y == numRows - 1) {
                         Location[] ajacent = {entries.get(x).get(y - 1), entries.get(x + 1).get(y)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     } else {
                         Location[] ajacent = {entries.get(x).get(y + 1), entries.get(x + 1).get(y + 1),
                             entries.get(x + 1).get(y), entries.get(x).get(y - 1)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     }
                 } else if (x == numColumns - 1) {
                     if (y == 0) {
                         Location[] ajacent = {entries.get(x).get(y + 1), entries.get(x - 1).get(y)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     } else if (y == numRows - 1) {
                         Location[] ajacent = {entries.get(x).get(y - 1), entries.get(x - 1).get(y)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     } else {
                         Location[] ajacent = {entries.get(x).get(y + 1), entries.get(x - 1).get(y + 1),
                             entries.get(x - 1).get(y), entries.get(x).get(y - 1)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     }
                 } else if (y == 0) {
                     if (x % 2 == 0) {
                         Location[] ajacent = {entries.get(x - 1).get(y), entries.get(x).get(y),
                             entries.get(x + 1).get(y)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     } else {
                         Location[] ajacent = {entries.get(x - 1).get(y + 1), entries.get(x - 1).get(y), entries.get(x).get(y + 1),
                             entries.get(x + 1).get(y), entries.get(x + 1).get(y + 1)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     }
                 } else if (y == numRows - 1) {
                     if (x % 2 == 0) {
                         Location[] ajacent = {entries.get(x - 1).get(y - 1), entries.get(x - 1).get(y), entries.get(x).get(y - 1),
                             entries.get(x + 1).get(y), entries.get(x + 1).get(y - 1)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     } else {
                         Location[] ajacent = {entries.get(x - 1).get(y), entries.get(x).get(y),
                             entries.get(x + 1).get(y)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     }
                 } else {
                     if (x % 2 == 0) {
                         Location[] ajacent = {entries.get(x - 1).get(y - 1), entries.get(x - 1).get(y), entries.get(x).get(y - 1),
                             entries.get(x).get(y + 1), entries.get(x + 1).get(y - 1), entries.get(x + 1).get(y)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     } else {
                         Location[] ajacent = {entries.get(x - 1).get(y + 1), entries.get(x - 1).get(y), entries.get(x).get(y - 1),
                             entries.get(x).get(y + 1), entries.get(x + 1).get(y + 1), entries.get(x + 1).get(y)};
-                        entries.get(x).get(y).setAjacent(ajacent);
+                        entries.get(x).get(y).setAdjacent(ajacent);
                     }
                 }
             }

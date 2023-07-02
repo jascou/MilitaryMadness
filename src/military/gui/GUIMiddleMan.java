@@ -33,6 +33,7 @@ public class GUIMiddleMan {
             try {
                 wait();
             } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
         ready = false;
@@ -40,11 +41,12 @@ public class GUIMiddleMan {
         return event;
     }
 
-    public synchronized void putEvent(InputEvent event) {//used by producer: GUI
+    public synchronized void putEvent(InputEvent event) { //used by producer: GUI
         if (ready) {
             try {
                 wait();
             } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
         this.event = event;
@@ -56,6 +58,7 @@ public class GUIMiddleMan {
         try {
             Thread.sleep(20);
         } catch (InterruptedException ex) {
+            ex.printStackTrace();
         }
     }
 

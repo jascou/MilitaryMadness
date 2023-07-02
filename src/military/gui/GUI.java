@@ -29,6 +29,7 @@ import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import military.engine.Factory;
+import military.engine.LocationManager;
 import military.engine.UnitManager;
 
 /**
@@ -83,8 +84,12 @@ public class GUI extends JFrame {
         if (!hex.hasFocus()) {
             hex.grabFocus();
         }
-        hex.render(select, new Point(cursor.x, cursor.y));
-        bottom.render(cursor);
+        if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
+            hex.render(select, new Point(cursor.x, cursor.y));
+            bottom.render(cursor);
+        } else {
+            System.out.println("Cursor exceeds map bounds");
+        }
     }
 
     public void moveCursor(Point cursor) {

@@ -15,8 +15,10 @@ import java.util.ArrayList;
  * @author Nate
  */
 public class Location {
+    // TODO: Define location constants
+
     private final Point loc;
-    private Location ajacent[]; // like a clock
+    private Location adjacent[]; // like a clock
     private int terrain;
 
     public void setTerrain(int terrain) {
@@ -31,13 +33,13 @@ public class Location {
         unit = null;
     }
     
-    public void setAjacent(Location ajacent[]){
-        this.ajacent = ajacent;
+    public void setAdjacent(Location adjacent[]){
+        this.adjacent = adjacent;
     }
     
     public ArrayList<Unit> getAjacentUnits(){
         ArrayList<Unit> ajunits = new ArrayList<>();
-        for(Location l: ajacent){
+        for(Location l: adjacent){
             if(l.getUnit()!=null){
                 ajunits.add(l.getUnit());
             }
@@ -49,8 +51,8 @@ public class Location {
         return unit == null;
     }
     
-    public Location[] getAjacent() {
-        return ajacent;
+    public Location[] getAdjacent() {
+        return adjacent;
     }
 
     public int getTerrain() {

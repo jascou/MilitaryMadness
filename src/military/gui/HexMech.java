@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.util.logging.Logger;
+
 import military.engine.Base;
 import military.engine.Factory;
 import military.engine.LocationManager;
@@ -76,34 +78,39 @@ public class HexMech {
      * *******************************************************************
      */
     public static void drawHex(int i, int j, Graphics2D g2) {
-        g2.setStroke(new BasicStroke(2));
-        int x = (i-corner.x) * (s + t);
-        int y = (j-corner.y) * h + (i % 2) * h / 2;
-        Polygon poly = hex((i), (j));
-        g2.setColor(LocationManager.getLoc(i, j).getColor());
-        g2.fillPolygon(poly);
-        g2.setColor(Color.black);
-        g2.drawPolygon(poly);
-        
-        if(LocationManager.getLoc(i, j) instanceof Factory){
-            g2.drawImage(ModelManager.getModel("Factory").getImage(), 
-                    x + (s + t + t - 32) / 2-5, y + (h - 32) / 2, null);
-        }
-        
-        if(LocationManager.getLoc(i, j) instanceof Base){
-            boolean team = ((Base)LocationManager.getLoc(i, j)).getTeam();
-            g2.drawImage(ModelManager.getModel((team ? "BlueBase": "RedBase")).getImage(), 
-                    x + (s + t + t - 32) / 2-5, y + (h - 32) / 2, null);
-        }
-        if (!LocationManager.getLoc(i, j).isEmpty()) {
-            Unit u = LocationManager.getLoc(i, j).getUnit();
-            if (u.isAttackDone() && u.isShiftDone()) {
-                g2.drawImage(ModelManager.getModel(u.getName()).getGreyImage(u.getTeam()),
-                        x + (s + t + t - 32) / 2, y + (h - 32) / 2, null);
-            } else {
-                g2.drawImage(ModelManager.getModel(u.getName()).getImage(u.getTeam()),
-                        x + (s + t + t - 32) / 2, y + (h - 32) / 2, null);
+        try { // TODO: Avoid exception by first checking to ensure if hex is in map bounds
+            g2.setStroke(new BasicStroke(2));
+            int x = (i - corner.x) * (s + t);
+            int y = (j - corner.y) * h + (i % 2) * h / 2;
+            //System.out.println("drawHex(), i:" + i + ", j:" + j);
+            Polygon poly = hex((i), (j));
+            g2.setColor(LocationManager.getLoc(i, j).getColor());
+            g2.fillPolygon(poly);
+            g2.setColor(Color.black);
+            g2.drawPolygon(poly);
+
+            if (LocationManager.getLoc(i, j) instanceof Factory) {
+                g2.drawImage(ModelManager.getModel("Factory").getImage(),
+                        x + (s + t + t - 32) / 2 - 5, y + (h - 32) / 2, null);
             }
+
+            if (LocationManager.getLoc(i, j) instanceof Base) {
+                boolean team = ((Base) LocationManager.getLoc(i, j)).getTeam();
+                g2.drawImage(ModelManager.getModel((team ? "BlueBase" : "RedBase")).getImage(),
+                        x + (s + t + t - 32) / 2 - 5, y + (h - 32) / 2, null);
+            }
+            if (!LocationManager.getLoc(i, j).isEmpty()) {
+                Unit u = LocationManager.getLoc(i, j).getUnit();
+                if (u.isAttackDone() && u.isShiftDone()) {
+                    g2.drawImage(ModelManager.getModel(u.getName()).getGreyImage(u.getTeam()),
+                            x + (s + t + t - 32) / 2, y + (h - 32) / 2, null);
+                } else {
+                    g2.drawImage(ModelManager.getModel(u.getName()).getImage(u.getTeam()),
+                            x + (s + t + t - 32) / 2, y + (h - 32) / 2, null);
+                }
+            }
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
         }
     }
 

@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
+
 import military.engine.Base;
 import military.engine.Location;
 import military.engine.LocationManager;
@@ -24,28 +25,27 @@ import military.gui.HexGridPanel;
 import military.gui.HexMech;
 
 /**
- *
  * @author Nate
  */
 
 
 public class Game implements Runnable {
 
-    final int KEY_SHIFT         = 16;
-    final int KEY_CTRL          = 17;
-    final int KEY_SPACE_BAR     = 32;
-    final int KEY_ARROW_LEFT    = 37;
-    final int KEY_ARROW_UP      = 38;
-    final int KEY_ARROW_RIGHT   = 39;
-    final int KEY_ARROW_DOWN    = 40;
-    final int KEY_LETTER_A      = 65;
-    final int KEY_LETTER_D      = 68;
-    final int KEY_LETTER_S      = 83;
-    final int KEY_LETTER_W      = 87;
+    final int KEY_SHIFT = 16;
+    final int KEY_CTRL = 17;
+    final int KEY_SPACE_BAR = 32;
+    final int KEY_ARROW_LEFT = 37;
+    final int KEY_ARROW_UP = 38;
+    final int KEY_ARROW_RIGHT = 39;
+    final int KEY_ARROW_DOWN = 40;
+    final int KEY_LETTER_A = 65;
+    final int KEY_LETTER_D = 68;
+    final int KEY_LETTER_S = 83;
+    final int KEY_LETTER_W = 87;
 
-    final int MOUSE_LEFT_BTN    = 1;
-    final int MOUSE_MIDDLE_BTN  = 3;
-    final int MOUSE_RIGHT_BTN   = 2;
+    final int MOUSE_LEFT_BTN = 1;
+    final int MOUSE_MIDDLE_BTN = 3;
+    final int MOUSE_RIGHT_BTN = 2;
 
 
     private final GUI gui;
@@ -230,7 +230,7 @@ public class Game implements Runnable {
                                 if (!mFactory.getUnit(cursor.x + (4 * cursor.y)).isAttackDone()) {
                                     shifting = true;
                                     selectLocs.clear();
-                                    for (Location loc : mFactory.getAjacent()) {
+                                    for (Location loc : mFactory.getAdjacent()) {
                                         if (loc.getTerrain() < 40 && loc.getTerrain() != -1) {
                                             selectLocs.add(loc.getLoc());
                                         }
@@ -273,12 +273,16 @@ public class Game implements Runnable {
                 if (!shifting && !attacking) {
                     cursor.x = HexMech.pxtoHex(mevt.getX(), mevt.getY()).x;
                     cursor.y = HexMech.pxtoHex(mevt.getX(), mevt.getY()).y;
-                    if (LocationManager.getLoc(cursor) instanceof Factory) {
-                        mFactory = (Factory) LocationManager.getLoc(cursor);
-                        factory = true;
-                        factoryLoc = cursor;
-                        cursor = new Point(0, 0);
-                        gui.displayFactory((Factory) LocationManager.getLoc(factoryLoc));
+                    try {   // TODO: First ensure that the location is within the map bounds
+                        if (LocationManager.getLoc(cursor) instanceof Factory) {
+                            mFactory = (Factory) LocationManager.getLoc(cursor);
+                            factory = true;
+                            factoryLoc = cursor;
+                            cursor = new Point(0, 0);
+                            gui.displayFactory((Factory) LocationManager.getLoc(factoryLoc));
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        e.printStackTrace();
                     }
                     return;
                 }
@@ -399,7 +403,7 @@ public class Game implements Runnable {
             return;
         }
         if (LocationManager.getLoc(cursor).getUnit().isShiftDone()) {
-            JOptionPane.showMessageDialog(gui, "Unit alread moved this turn");
+            JOptionPane.showMessageDialog(gui, "Unit already moved this turn");
             return;
         }
         shifting = true;
@@ -426,7 +430,7 @@ public class Game implements Runnable {
     }
 
     private void movesRecur(Point p, int[][] movesLeftAtPoint, Unit unit) {
-        Location locs[] = LocationManager.getLoc(p).getAjacent();
+        Location locs[] = LocationManager.getLoc(p).getAdjacent();
         for (Location loc : locs) {
             if (loc.getTerrain() == -1 || (!loc.isEmpty() && loc.getUnit().getTeam() != turn)) {
                 continue;
@@ -437,7 +441,7 @@ public class Game implements Runnable {
             }
             int newMovesLeft = movesLeftAtPoint[p.x][p.y] - terrain;
             boolean flanked = false;
-            for (Location flank : loc.getAjacent()) {
+            for (Location flank : loc.getAdjacent()) {
                 if (!flank.isEmpty() && flank.getUnit().getTeam() != turn) {
                     flanked = true;
                 }
@@ -475,11 +479,11 @@ public class Game implements Runnable {
 
         Unit attacker = LocationManager.getLoc(cursor).getUnit();
         if (attacker.isRanged()) {
-            for (Location loc : LocationManager.getLoc(cursor).getAjacent()) {
+            for (Location loc : LocationManager.getLoc(cursor).getAdjacent()) {
                 rangedRecur(loc, attacker.getRange() - 1);
             }
         } else {
-            for (Location loc : LocationManager.getLoc(cursor).getAjacent()) {
+            for (Location loc : LocationManager.getLoc(cursor).getAdjacent()) {
                 if (!loc.isEmpty()) {
                     Unit defender = loc.getUnit();
                     if (defender.getTeam() != turn) {
@@ -498,7 +502,7 @@ public class Game implements Runnable {
     }
 
     private void rangedRecur(Location center, int attackLeft) {
-        for (Location loc : center.getAjacent()) {
+        for (Location loc : center.getAdjacent()) {
             if (!loc.isEmpty()) {
                 Unit defender = loc.getUnit();
                 if (defender.getTeam() != turn) {
