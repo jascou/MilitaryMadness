@@ -36,18 +36,20 @@ public class BottomPanel extends JPanel{
         Graphics2D g2 = (Graphics2D) g;
         g2.setFont(new Font("Consolas", 0, 24));
         g2.setColor(Color.LIGHT_GRAY);
-        if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
-            Location loc = LocationManager.getLoc(cursor);
-            if (!loc.isEmpty()) {
-                g2.drawImage(ModelManager.getModel(
-                                        loc.getUnit().getModelName()).
-                                getImage(loc.getUnit().getTeam())
-                        , 30, 15, 50, 50, this);
-                g2.drawString(loc.getUnit().getName() + " x" + loc.getUnit().getHealth(), 90, 50);
-                g2.drawString("Exp: " + loc.getUnit().getExp(), 250, 50);
-            }
-            if (loc.getTerrain() != -1) {
-                g2.drawString("Terrain: " + loc.getTerrain() + "%", 500, 50);
+        if ( cursor.x > 0 && cursor.y > 0) {
+            if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
+                Location loc = LocationManager.getLoc(cursor);
+                if (!loc.isEmpty()) {
+                    g2.drawImage(ModelManager.getModel(
+                                            loc.getUnit().getModelName()).
+                                    getImage(loc.getUnit().getTeam())
+                            , 30, 15, 50, 50, this);
+                    g2.drawString(loc.getUnit().getName() + " x" + loc.getUnit().getHealth(), 90, 50);
+                    g2.drawString("Exp: " + loc.getUnit().getExp(), 250, 50);
+                }
+                if (loc.getTerrain() != -1) {
+                    g2.drawString("Terrain: " + loc.getTerrain() + "%", 500, 50);
+                }
             }
         }
     }
@@ -69,9 +71,7 @@ public class BottomPanel extends JPanel{
         g2.drawString("Terrain", getWidth()/2-30, 20);
         g2.drawString((turn ? cstat.getAttackerTerrain():cstat.getAttackerTerrain())+ "%", getWidth()/2 -35, 50);
         g2.drawString((!turn ? cstat.getAttackerTerrain():cstat.getAttackerTerrain())+ "%", getWidth()/2 +20, 50);
-        
-        
-        
+
         int surrMod[] = {0, 20, 30, 40, 50, 75};
         g2.drawString("Surround Effect", 200, 20);
         g2.drawString("-" + surrMod[cstat.getSurround()] + "% to defender", 200, 50);

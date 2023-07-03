@@ -84,12 +84,15 @@ public class HexMech {
             int y = (j - corner.y) * h + (i % 2) * h / 2;
             //System.out.println("drawHex(), i:" + i + ", j:" + j);
             Polygon poly = hex((i), (j));
-            if (LocationManager.getSize().x > i && LocationManager.getSize().y > j) {
+
+            if (x > 0 && y > 0) {
+                if (LocationManager.getSize().x > i && LocationManager.getSize().y > j) {
 //            if (LocationManager.isInBounds(x, y)) {
-                g2.setColor(LocationManager.getLoc(i, j).getColor());
-                g2.fillPolygon(poly);
-                g2.setColor(Color.black);
-                g2.drawPolygon(poly);
+                    g2.setColor(LocationManager.getLoc(i, j).getColor());
+                    g2.fillPolygon(poly);
+                    g2.setColor(Color.black);
+                    g2.drawPolygon(poly);
+                }
             }
 
             if (LocationManager.getSize().x > i && LocationManager.getSize().y > j) {

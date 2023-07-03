@@ -273,17 +273,17 @@ public class Game implements Runnable {
                 if (!shifting && !attacking) {
                     cursor.x = HexMech.pxtoHex(mevt.getX(), mevt.getY()).x;
                     cursor.y = HexMech.pxtoHex(mevt.getX(), mevt.getY()).y;
-                    try {   // TODO: First ensure that the location is within the map bounds
-                        if (LocationManager.getLoc(cursor) instanceof Factory) {
-                            mFactory = (Factory) LocationManager.getLoc(cursor);
-                            factory = true;
-                            factoryLoc = cursor;
-                            cursor = new Point(0, 0);
-                            gui.displayFactory((Factory) LocationManager.getLoc(factoryLoc));
+                        if (cursor.x > 0 && cursor.y > 0) {
+                            if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
+                                if (LocationManager.getLoc(cursor) instanceof Factory) {
+                                    mFactory = (Factory) LocationManager.getLoc(cursor);
+                                    factory = true;
+                                    factoryLoc = cursor;
+                                    cursor = new Point(0, 0);
+                                    gui.displayFactory((Factory) LocationManager.getLoc(factoryLoc));
+                                }
+                            }
                         }
-                    } catch (IndexOutOfBoundsException e) {
-                        e.printStackTrace();
-                    }
                     return;
                 }
                 if (shifting) {
@@ -368,7 +368,6 @@ public class Game implements Runnable {
                     gui.moveCursor(cursor);
                 } catch (IndexOutOfBoundsException e) {
                     // Added June 18, 2023 to catch Index-1 out of bounds for length <num>
-                    // TODO: Provide a better solution
                     e.printStackTrace();
                 }
                 InputEvent evt = GUIMiddleMan.getInstance().getEvent();
@@ -494,7 +493,9 @@ public class Game implements Runnable {
             }
         }
         if (selectLocs.isEmpty()) {
-            JOptionPane.showMessageDialog(gui, "No attacks available");
+            // JOptionPane.showMessageDialog(gui, "No attacks available");
+            // TODO: Send message to Bottom Panel
+            System.out.println("No attacks available");
             return;
         }
         attacking = true;

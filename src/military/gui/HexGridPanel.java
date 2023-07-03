@@ -52,7 +52,6 @@ public class HexGridPanel extends JPanel {
                 HexMech.drawHex(i, j, g2img);
             }
         }
-        
         if(corner.x > 0){
             for (int j = corner.y; j < corner.y + 10; j++) {
                 HexMech.drawHex(corner.x-1, j, g2img);
@@ -78,6 +77,7 @@ public class HexGridPanel extends JPanel {
             HexMech.selectHex(p.x, p.y, g2img);
         }
         HexMech.cursor(cursorLoc.x, cursorLoc.y, g2img);
+        // Draw map with grid.  If this event occured on mouse-click, center map on click
         g2.drawImage(bimg, 0, 0, null);
     }
 
@@ -102,11 +102,13 @@ public class HexGridPanel extends JPanel {
             return;
         }
         if (cursorLoc.x == corner.x + 13 && cursorLoc.x < LocationManager.getSize().x - 2) {
+            // Re-center map
             corner.x += 2;
             paintComponent(this.getGraphics());
             return;
         }
         if (cursorLoc.y == corner.y + 8 && cursorLoc.y < LocationManager.getSize().y - 2) {
+            // Re-center map
             corner.y += 2;
             paintComponent(this.getGraphics());
             return;

@@ -25,7 +25,8 @@ import java.util.stream.Stream;
  */
 public class MilitaryMadness {
     static List<String> levels = new ArrayList();
-
+    static JComboBox scenarioComboBox;
+    static String levelName;
     InputStream levelInputStream = null;
 
     /**
@@ -33,11 +34,29 @@ public class MilitaryMadness {
      */
     public static void main(String[] args) throws IOException {
         //loadMapList();
+        scenarioComboBox = new JComboBox();
         List<Path> fileList = listFiles(Path.of("Maps"));
         fileList.forEach(System.out::println);
         for (Path path: fileList) {
-            levels.add(path.toFile().getName() );
+            String levelName = path.toFile().getName();
+            levelName = levelName.replace(".txt", "");
+            //levels.add(path.toFile().getName() );
+            scenarioComboBox.addItem(levelName);
+//            scenarioComboBox.addItem(path.toFile().getName());
         }
+        scenarioComboBox.setSelectedIndex(0);
+
+        scenarioComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println(e);
+                String action = e.getActionCommand().toString();
+                System.out.println("Action: " + action);
+                if (action.toString() == "comboBoxChanged") {
+                    levelName = (String) scenarioComboBox.getSelectedItem();
+                }
+            }
+        });
 
         //findByFileExtensions("Maps", "txt");
         String choices[] = {"Play Game", "Create Level", "Exit"};
@@ -47,7 +66,8 @@ public class MilitaryMadness {
             n = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
                     JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices, 2);
             if (n == 0) {
-                String levelName = JOptionPane.showInputDialog("Which level would you like to load?");
+                JOptionPane.showMessageDialog(null, scenarioComboBox, "Choose a scenario to load", JOptionPane.QUESTION_MESSAGE);
+               // levelName = JOptionPane.showInputDialog("Which level would you like to load?");
                 new Thread(SoundUtility.getInstance()).start();
                 Game game = null;
                 try {
@@ -80,8 +100,7 @@ public class MilitaryMadness {
                 } else {
                     String levelName = JOptionPane.showInputDialog("What level would you like to load?");
                     DesignGUI dgui = new DesignGUI(levelName);
-                    while (dgui.isVisible()) {
-                    }
+                    while (dgui.isVisible()) {}
                 }
             }
         }

@@ -93,12 +93,18 @@ public class GUI extends JFrame {
     }
 
     public void moveCursor(Point cursor) {
+        int x, y;
+        x = cursor.x;
+        y = cursor.y;
+        if (x < 0 && y < 0) { // Ensure click is within map bounds
+            return;
+        }
         if(display == hex){
             hex.grabFocus();
             try {
                 hex.drawCursor(new Point(cursor.x, cursor.y), turn);
             } catch (IndexOutOfBoundsException e) {
-                e.printStackTrace();  // TODO: Limit cursor movement to within game map bounds
+                e.printStackTrace();
             }
             bottom.render(cursor);
         }
