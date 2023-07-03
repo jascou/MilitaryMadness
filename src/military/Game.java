@@ -65,7 +65,7 @@ public class Game implements Runnable {
         LocationManager.loadMap(levelName);
         gui = new GUI(levelName);
         turn = true;
-        cursor = new Point(0, 0);
+        cursor = new Point(1, 0);
         buttonCursor = new Point(-1, -1);
         selectLocs = new ArrayList<>();
         factoryUnit = -1;
@@ -119,7 +119,7 @@ public class Game implements Runnable {
                             && (cursor.y < 2 || (!factory && cursor.y < LocationManager.getSize().y - 1))) {
                         cursor.y++;
                     }
-                    if ((kevt.getKeyCode() == KEY_ARROW_LEFT || kevt.getKeyCode() == KEY_LETTER_A) && cursor.x != 0) {
+                    if ((kevt.getKeyCode() == KEY_ARROW_LEFT || kevt.getKeyCode() == KEY_LETTER_A) && cursor.x != 1) {
                         cursor.x--;
                     }
                     if ((kevt.getKeyCode() == KEY_ARROW_RIGHT || kevt.getKeyCode() == KEY_LETTER_D)
@@ -363,7 +363,13 @@ public class Game implements Runnable {
                 }
                 return;
             } else {
-                cursor = HexMech.pxtoHex(mevt.getX(), mevt.getY());
+                Point newHex = HexMech.pxtoHex(mevt.getX(), mevt.getY());
+                int x = newHex.x;
+                int y = newHex.y;
+                if (x < 1 || ((x % 2 == 0) && (y == 0))) { // Ensure click is within map bounds
+                    return;
+                }
+                cursor = newHex;
                 try {
                     gui.moveCursor(cursor);
                 } catch (IndexOutOfBoundsException e) {

@@ -96,7 +96,7 @@ public class GUI extends JFrame {
         int x, y;
         x = cursor.x;
         y = cursor.y;
-        if (x < 0 && y < 0) { // Ensure click is within map bounds
+        if (x < 0 || ((x % 2 == 0) && (y == 0))) { // Ensure click is within map bounds
             return;
         }
         if(display == hex){

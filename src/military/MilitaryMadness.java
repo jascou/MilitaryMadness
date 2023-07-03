@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- *
  * @author Nate
  */
 public class MilitaryMadness {
@@ -37,7 +36,7 @@ public class MilitaryMadness {
         scenarioComboBox = new JComboBox();
         List<Path> fileList = listFiles(Path.of("Maps"));
         fileList.forEach(System.out::println);
-        for (Path path: fileList) {
+        for (Path path : fileList) {
             String levelName = path.toFile().getName();
             levelName = levelName.replace(".txt", "");
             //levels.add(path.toFile().getName() );
@@ -50,11 +49,11 @@ public class MilitaryMadness {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println(e);
-                String action = e.getActionCommand().toString();
-                System.out.println("Action: " + action);
-                if (action.toString() == "comboBoxChanged") {
-                    levelName = (String) scenarioComboBox.getSelectedItem();
-                }
+//                String action = e.getActionCommand().toString();
+//                System.out.println("Action: " + action);
+//                if (action.toString() == "comboBoxChanged") {
+                levelName = (String) scenarioComboBox.getSelectedItem();
+//                }
             }
         });
 
@@ -66,8 +65,8 @@ public class MilitaryMadness {
             n = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
                     JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices, 2);
             if (n == 0) {
-                JOptionPane.showMessageDialog(null, scenarioComboBox, "Choose a scenario to load", JOptionPane.QUESTION_MESSAGE);
-               // levelName = JOptionPane.showInputDialog("Which level would you like to load?");
+                JOptionPane.showMessageDialog(null, scenarioComboBox, "Choose a scenario to load:", JOptionPane.QUESTION_MESSAGE);
+                // levelName = JOptionPane.showInputDialog("Which level would you like to load?");
                 new Thread(SoundUtility.getInstance()).start();
                 Game game = null;
                 try {
@@ -100,7 +99,8 @@ public class MilitaryMadness {
                 } else {
                     String levelName = JOptionPane.showInputDialog("What level would you like to load?");
                     DesignGUI dgui = new DesignGUI(levelName);
-                    while (dgui.isVisible()) {}
+                    while (dgui.isVisible()) {
+                    }
                 }
             }
         }
@@ -111,7 +111,7 @@ public class MilitaryMadness {
         InputStream inStream = null;
 
         List<File> maps = new ArrayList<>();
-        try(Stream<Path> paths = Files.walk(Paths.get("Maps"))) {
+        try (Stream<Path> paths = Files.walk(Paths.get("Maps"))) {
             paths
                     .filter(Files::isRegularFile)
                     .map(Path::toFile)
@@ -148,14 +148,14 @@ public class MilitaryMadness {
             throw new IllegalArgumentException("Path must be a directory!");
         }
 
-            List<Path> result;
-            try (Stream<Path> walk = Files.walk(path)) {
-                result = walk
-                        .filter(Files::isRegularFile) // is a file
-                        .filter(p -> p.getFileName().toString().endsWith(fileExtension))
-                        .collect(Collectors.toList());
-            }
-            return result;
+        List<Path> result;
+        try (Stream<Path> walk = Files.walk(path)) {
+            result = walk
+                    .filter(Files::isRegularFile) // is a file
+                    .filter(p -> p.getFileName().toString().endsWith(fileExtension))
+                    .collect(Collectors.toList());
+        }
+        return result;
     }
 
     public static List<Path> listFiles(Path path) throws IOException {
@@ -168,18 +168,15 @@ public class MilitaryMadness {
         return result;
     }
 
-    static void printFileNames(File[] a, int i, int lvl)
-    {
+    static void printFileNames(File[] a, int i, int lvl) {
         // base case of the recursion
         // i == a.length means the directory has
         // no more files. Hence, the recursion has to stop
-        if(i == a.length)
-        {
+        if (i == a.length) {
             return;
         }
         // checking if the encountered object is a file or not
-        if(a[i].isFile())
-        {
+        if (a[i].isFile()) {
             System.out.println(a[i].getName());
         }
         // recursively printing files from the directory

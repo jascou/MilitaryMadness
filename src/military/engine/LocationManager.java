@@ -32,7 +32,7 @@ public class LocationManager {
     }
 
     public static Location getLoc(int x, int y) {
-        System.out.println("getLoc(" + x + ", " + y +")");
+//        System.out.println("getLoc(" + x + ", " + y +")");
         return entries.get(x).get(y);
     }
 
