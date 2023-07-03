@@ -32,30 +32,8 @@ public class MilitaryMadness {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        //loadMapList();
-        scenarioComboBox = new JComboBox();
-        List<Path> fileList = listFiles(Path.of("Maps"));
-        fileList.forEach(System.out::println);
-        for (Path path : fileList) {
-            String levelName = path.toFile().getName();
-            levelName = levelName.replace(".txt", "");
-            //levels.add(path.toFile().getName() );
-            scenarioComboBox.addItem(levelName);
-//            scenarioComboBox.addItem(path.toFile().getName());
-        }
-        scenarioComboBox.setSelectedIndex(0);
+        loadMapList();
 
-        scenarioComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println(e);
-//                String action = e.getActionCommand().toString();
-//                System.out.println("Action: " + action);
-//                if (action.toString() == "comboBoxChanged") {
-                levelName = (String) scenarioComboBox.getSelectedItem();
-//                }
-            }
-        });
 
         //findByFileExtensions("Maps", "txt");
         String choices[] = {"Play Game", "Create Level", "Exit"};
@@ -108,22 +86,23 @@ public class MilitaryMadness {
     }
 
     static void loadMapList() throws IOException {
-        InputStream inStream = null;
-
-        List<File> maps = new ArrayList<>();
-        try (Stream<Path> paths = Files.walk(Paths.get("Maps"))) {
-            paths
-                    .filter(Files::isRegularFile)
-                    .map(Path::toFile)
-                    .collect(Collectors.toList())
-                    .forEach(System.out::println);
-//            paths.forEach(path -> {
-//                File file = path.toFile();
-//                maps.add(file);
-//                System.out.println(file.getName());
-//            });
+        scenarioComboBox = new JComboBox();
+        List<Path> fileList = listFiles(Path.of("Maps"));
+        fileList.forEach(System.out::println);
+        for (Path path : fileList) {
+            String levelName = path.toFile().getName();
+            levelName = levelName.replace(".txt", "");
+            scenarioComboBox.addItem(levelName);
         }
+        scenarioComboBox.setSelectedIndex(0);
 
+        scenarioComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println(e);
+                levelName = (String) scenarioComboBox.getSelectedItem();
+            }
+        });
     }
 
     public static void mapFileComboBox(List<Path> fileList) {
