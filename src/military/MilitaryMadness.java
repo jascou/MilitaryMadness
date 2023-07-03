@@ -33,8 +33,6 @@ public class MilitaryMadness {
      */
     public static void main(String[] args) throws IOException {
         loadMapList();
-
-
         //findByFileExtensions("Maps", "txt");
         String choices[] = {"Play Game", "Create Level", "Exit"};
 
@@ -43,7 +41,12 @@ public class MilitaryMadness {
             n = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
                     JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices, 2);
             if (n == 0) {
-                JOptionPane.showMessageDialog(null, scenarioComboBox, "Choose a scenario to load:", JOptionPane.QUESTION_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        null,
+                        scenarioComboBox,
+                        "Choose a scenario to load:",
+                        JOptionPane.QUESTION_MESSAGE
+                );
                 // levelName = JOptionPane.showInputDialog("Which level would you like to load?");
                 new Thread(SoundUtility.getInstance()).start();
                 Game game = null;

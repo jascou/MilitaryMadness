@@ -111,7 +111,8 @@ public class Game implements Runnable {
                     }
                     continue;
                 }
-                while (kevt.getKeyCode() >= KEY_ARROW_LEFT && kevt.getKeyCode() <= KEY_ARROW_DOWN || kevt.getKeyCode() >= KEY_LETTER_A && kevt.getKeyCode() <= KEY_LETTER_W) {
+                while (kevt.getKeyCode() >= KEY_ARROW_LEFT && kevt.getKeyCode() <= KEY_ARROW_DOWN
+                        || kevt.getKeyCode() >= KEY_LETTER_A && kevt.getKeyCode() <= KEY_LETTER_W) {
                     if ((kevt.getKeyCode() == KEY_ARROW_UP || kevt.getKeyCode() == KEY_LETTER_W) && cursor.y != 0) {
                         cursor.y--;
                     }
@@ -423,7 +424,7 @@ public class Game implements Runnable {
         }
         Unit unit = LocationManager.getLoc(cursor).getUnit();
         movesLeftAtPoint[cursor.x][cursor.y] = LocationManager.getLoc(cursor).getUnit().getShift();
-        movesRecur(cursor, movesLeftAtPoint, unit);
+        movesRecursive(cursor, movesLeftAtPoint, unit);
         selectLocs.clear();
         for (int i = 0; i < movesLeftAtPoint.length; i++) {
             for (int j = 0; j < movesLeftAtPoint[0].length; j++) {
@@ -434,7 +435,7 @@ public class Game implements Runnable {
         }
     }
 
-    private void movesRecur(Point p, int[][] movesLeftAtPoint, Unit unit) {
+    private void movesRecursive(Point p, int[][] movesLeftAtPoint, Unit unit) {
         Location locs[] = LocationManager.getLoc(p).getAdjacent();
         for (Location loc : locs) {
             if (loc.getTerrain() == -1 || (!loc.isEmpty() && loc.getUnit().getTeam() != turn)) {
@@ -456,10 +457,9 @@ public class Game implements Runnable {
                 if (!((loc instanceof Factory) && ((Factory) loc).getTeam() != unit.getTeam() && !unit.getType().equals("Infantry"))) {
                     movesLeftAtPoint[loc.getLoc().x][loc.getLoc().y] = newMovesLeft;
                     if (!flanked) {
-                        movesRecur(loc.getLoc(), movesLeftAtPoint, unit);
+                        movesRecursive(loc.getLoc(), movesLeftAtPoint, unit);
                     }
                 }
-
             }
         }
         if (!LocationManager.getLoc(p).isEmpty()) {
@@ -485,7 +485,7 @@ public class Game implements Runnable {
         Unit attacker = LocationManager.getLoc(cursor).getUnit();
         if (attacker.isRanged()) {
             for (Location loc : LocationManager.getLoc(cursor).getAdjacent()) {
-                rangedRecur(loc, attacker.getRange() - 1);
+                rangedRecursive(loc, attacker.getRange() - 1);
             }
         } else {
             for (Location loc : LocationManager.getLoc(cursor).getAdjacent()) {
@@ -494,7 +494,6 @@ public class Game implements Runnable {
                     if (defender.getTeam() != turn) {
                         selectLocs.add(new Point(loc.getLoc()));
                     }
-
                 }
             }
         }
@@ -508,17 +507,16 @@ public class Game implements Runnable {
         unitLoc = new Point(cursor.x, cursor.y);
     }
 
-    private void rangedRecur(Location center, int attackLeft) {
+    private void rangedRecursive(Location center, int attackLeft) {
         for (Location loc : center.getAdjacent()) {
             if (!loc.isEmpty()) {
                 Unit defender = loc.getUnit();
                 if (defender.getTeam() != turn) {
                     selectLocs.add(new Point(loc.getLoc()));
                 }
-
             }
             if (attackLeft > 1) {
-                rangedRecur(loc, attackLeft - 1);
+                rangedRecursive(loc, attackLeft - 1);
             }
         }
     }

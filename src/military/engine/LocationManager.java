@@ -163,6 +163,7 @@ public class LocationManager {
                 unitStream = new FileInputStream("Resources//Units.txt");
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
+                // TODO: Provide notification to user
             }
             Scanner unitReader = new Scanner(unitStream);
             while (!unitReader.next().equals(name)) {}
