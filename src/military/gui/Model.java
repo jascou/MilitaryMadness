@@ -54,6 +54,7 @@ public class Model {
 //            InputStream inStream = this.getClass().getClassLoader()
 //                    .getResourceAsStream(name + ".gif");
             inStream = new FileInputStream("Resources//" + name + ".gif");
+            //inStream = new FileInputStream("Resources//maps/bd01.gif");
             image = ImageIO.read(inStream);
             inStream.close();
         } catch (Exception ex) {

@@ -145,6 +145,7 @@ public class HexGridPanel extends JPanel {
                 }
                 g2.fillRect(x - 1, 18 + i * getHeight() / bluehb, 3, 3);
                 g2.setColor(Color.black);
+                g2.setPaintMode();
                 g2.fillRect(x, 18 + i * getHeight() / bluehb, 3, 3);
             }
             for (int i = 0; i < redhb; i++) {
@@ -182,6 +183,6 @@ public class HexGridPanel extends JPanel {
         for (int i = 0; i < redhb - red.getHealth(); i++) {
             g2.fillRect(getWidth() - 90, i * getHeight() / redhb, 40, 40);
         }
-
     }
+
 }

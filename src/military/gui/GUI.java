@@ -6,13 +6,8 @@
 package military.gui;
 
 import military.engine.CombatStats;
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Point;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -21,13 +16,15 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import static javax.swing.JFrame.EXIT_ON_CLOSE;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+
 import military.engine.Factory;
 import military.engine.LocationManager;
 import military.engine.UnitManager;
@@ -38,11 +35,12 @@ import military.engine.UnitManager;
  */
 public class GUI extends JFrame {
 
-    private HexGridPanel hex;
-    private FactoryPanel fact;
-    private JPanel display;
-    private BottomPanel bottom;
-    private JPanel buttons;
+    private HexGridPanel hexGridPanel;
+    private FactoryPanel factoryPanel;
+    private JPanel displayPanel;
+    private BottomPanel bottomPanel;
+    private JPanel buttonsPanel;
+    private JPanel mapPanel;
     private JButton shift;
     private JButton attack;
     private JButton info;
@@ -59,13 +57,13 @@ public class GUI extends JFrame {
         initComponents();
         mapName.setText("<html>Map:<br>" + map + "</html>");
         turnNumberLabel.setText("Turn " + turnNumber);
-        hex.grabFocus();
-        buttons.setVisible(true);
+        hexGridPanel.grabFocus();
+        buttonsPanel.setVisible(true);
         this.setVisible(true);
     }
 
     public void render(boolean turn, ArrayList<Point> select, Point cursor) {
-        display = hex;
+        displayPanel = hexGridPanel;
         this.turn = turn;
         player1.setText("<html>Player 1<br>Units: " + UnitManager.getInstance().getUnits(true).size() + "</html>");
         player2.setText("<html>Player 2<br>Units: " + UnitManager.getInstance().getUnits(false).size() + "</html>");
@@ -81,12 +79,12 @@ public class GUI extends JFrame {
             }
             return;
         }
-        if (!hex.hasFocus()) {
-            hex.grabFocus();
+        if (!hexGridPanel.hasFocus()) {
+            hexGridPanel.grabFocus();
         }
         if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
-            hex.render(select, new Point(cursor.x, cursor.y));
-            bottom.render(cursor);
+            hexGridPanel.render(select, new Point(cursor.x, cursor.y));
+            bottomPanel.render(cursor);
         } else {
             System.out.println("Cursor exceeds map bounds");
         }
@@ -99,27 +97,27 @@ public class GUI extends JFrame {
         if (x < 0 || ((x % 2 == 0) && (y == 0))) { // Ensure click is within map bounds
             return;
         }
-        if(display == hex){
-            hex.grabFocus();
+        if(displayPanel == hexGridPanel){
+            hexGridPanel.grabFocus();
             try {
-                hex.drawCursor(new Point(cursor.x, cursor.y), turn);
+                hexGridPanel.drawCursor(new Point(cursor.x, cursor.y), turn);
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }
-            bottom.render(cursor);
+            bottomPanel.render(cursor);
         }
-        if(display == fact){
-            fact.drawCursor(new Point(cursor.x, cursor.y));
-            bottom.factoryUnit(fact.getUnit());
+        if(displayPanel == factoryPanel){
+            factoryPanel.drawCursor(new Point(cursor.x, cursor.y));
+            bottomPanel.factoryUnit(factoryPanel.getUnit());
         }
         
     }
 
     public void displayCombat(CombatStats cstat) {
-        bottom.displayCombat(cstat);
-        hex.displayCombat(cstat);
+        bottomPanel.displayCombat(cstat);
+        hexGridPanel.displayCombat(cstat);
         boolean turn = cstat.getAttacker().getTeam();
-        bottom.updateExp((turn ? cstat.getAttacker().getExp() : cstat.getDefender().getExp()),
+        bottomPanel.updateExp((turn ? cstat.getAttacker().getExp() : cstat.getDefender().getExp()),
                 (!turn ? cstat.getAttacker().getExp() : cstat.getDefender().getExp()));
     }
 
@@ -130,26 +128,27 @@ public class GUI extends JFrame {
 
     private void initComponents() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        
-        hex = new HexGridPanel();
-        hex.setPreferredSize(new Dimension(18 + 15* 53, 25 + 10 * 50));
-        hex.addKeyListener(new KeyAdapter() {
+        hexGridPanel = new HexGridPanel();
+        hexGridPanel.setPreferredSize(new Dimension(18 + 15* 53, 25 + 10 * 50));
+        hexGridPanel.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
                 GUIMiddleMan.getInstance().putEvent(evt);
             }
         });
-        hex.addMouseListener(new MouseAdapter() {
+        hexGridPanel.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 GUIMiddleMan.getInstance().putEvent(evt);
             }
         });
-        display = hex;
-        bottom = new BottomPanel();
-        bottom.setPreferredSize(new Dimension(hex.getWidth(), 75));
-        bottom.setBackground(Color.red);
-        fact = new FactoryPanel();
-        fact.setPreferredSize(new Dimension(18 + 15 * 53, 25 + 10 * 50));
-        fact.addKeyListener(new KeyAdapter() {
+        displayPanel = hexGridPanel;
+
+        loadMap(null);
+        bottomPanel = new BottomPanel();
+        bottomPanel.setPreferredSize(new Dimension(hexGridPanel.getWidth(), 75));
+        bottomPanel.setBackground(Color.red);
+        factoryPanel = new FactoryPanel();
+        factoryPanel.setPreferredSize(new Dimension(18 + 15 * 53, 25 + 10 * 50));
+        factoryPanel.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
                 GUIMiddleMan.getInstance().putEvent(evt);
             }
@@ -161,9 +160,9 @@ public class GUI extends JFrame {
     }
 
     private void initButtons() {
-        buttons = new JPanel();
-        buttons.setPreferredSize(new Dimension(110, 600));
-        buttons.setBackground(Color.black);
+        buttonsPanel = new JPanel();
+        buttonsPanel.setPreferredSize(new Dimension(110, 600));
+        buttonsPanel.setBackground(Color.black);
         shift = new JButton();
         shift.setBackground(new Color(0, 0, 255));
         shift.setForeground(Color.LIGHT_GRAY);
@@ -290,20 +289,20 @@ public class GUI extends JFrame {
         
         c.gridx = 0;
         c.gridy = 0;
-        pane.add(display, c);
+        pane.add(displayPanel, c);
         
         c.gridx = 0;
         c.gridy = 1;
-        pane.add(bottom, c);
+        pane.add(bottomPanel, c);
         
         c.gridx = 1;
         c.gridy = 0;
         c.gridheight = 2;
-        pane.add(buttons, c);
+        pane.add(buttonsPanel, c);
     }
 
     private void layoutButtons() {
-        GroupLayout layout = new GroupLayout(buttons);
+        GroupLayout layout = new GroupLayout(buttonsPanel);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
         GroupLayout.ParallelGroup hGroup = layout.createParallelGroup(GroupLayout.Alignment.LEADING, false);
@@ -333,15 +332,45 @@ public class GUI extends JFrame {
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         layout.setHorizontalGroup(hGroup);
         layout.setVerticalGroup(vGroup);
-        buttons.setLayout(layout);
+        buttonsPanel.setLayout(layout);
 
     }
 
     public void displayFactory(Factory factory) {
-        display = fact;
+        displayPanel = factoryPanel;
         layoutComponents();
         setVisible(true);
-        bottom.factoryUnit(factory.getUnit(0));
-        fact.displayFactory(factory);
+        bottomPanel.factoryUnit(factory.getUnit(0));
+        factoryPanel.displayFactory(factory);
+    }
+
+    public void loadMap(String mapImageName) {
+        //mapPanel = new JPanel();
+        InputStream inStream = null;
+        try {
+            inStream = new FileInputStream("Resources//maps/bd01.gif");
+            BufferedImage bimg = ImageIO.read(new File("Resources//maps/bd01.gif"));
+            int width = bimg.getWidth();
+            int height = bimg.getHeight();
+//            Image image = ImageIO.read(inStream);
+//            final Dimension jpanelDimensions = new Dimension(new ImageIcon(image).getIconWidth(), new ImageIcon(image).getIconHeight());
+            final Dimension jpanelDimensions = new Dimension(width, height);
+            inStream.close();
+            displayPanel.add(new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    g.drawImage(bimg, 0, 0, null);
+                }
+
+                @Override
+                public Dimension getPreferredSize() {
+                    //return super.getPreferredSize();
+                    return jpanelDimensions;
+                }
+            });
+        } catch (Exception ex) {
+            System.out.println("no Image");
+        }
     }
 }
