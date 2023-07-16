@@ -1,10 +1,6 @@
 package military.gui;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Polygon;
+import java.awt.*;
 import java.util.logging.Logger;
 
 import military.engine.Base;

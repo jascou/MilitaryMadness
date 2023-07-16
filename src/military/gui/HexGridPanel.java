@@ -11,7 +11,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import military.engine.CombatStats;
 import military.engine.LocationManager;
@@ -44,8 +46,9 @@ public class HexGridPanel extends JPanel {
         g2.setStroke(new BasicStroke(6));
         BufferedImage bimg = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2img = (Graphics2D)bimg.getGraphics();
-        g2img.setColor(Color.black);
+        g2img.setColor(Color.black); // Set background
         g2img.fillRect(0,0,bimg.getWidth(), bimg.getHeight());
+        loadMapImage(null);
         HexMech.setCorner(corner);
         for (int i = corner.x; i < corner.x + 15; i++) {
             for (int j = corner.y; j < corner.y + 10; j++) {
@@ -77,12 +80,12 @@ public class HexGridPanel extends JPanel {
             HexMech.selectHex(p.x, p.y, g2img);
         }
         HexMech.cursor(cursorLoc.x, cursorLoc.y, g2img);
-        // Draw map with grid.  If this event occured on mouse-click, center map on click
+        // Draw map with grid.  If this event occurred on mouse-click, center map on click
         g2.drawImage(bimg, 0, 0, null);
     }
 
     public void drawCursor(Point cursor, boolean turn) {
-
+        loadMapImage(null);
         Graphics2D g2 = (Graphics2D) this.getGraphics();
         HexMech.drawHex(cursorLoc.x, cursorLoc.y, g2);
         for (Point p : selectLocs) {
@@ -182,6 +185,20 @@ public class HexGridPanel extends JPanel {
         g2.setColor(red.getLoc().getColor());
         for (int i = 0; i < redhb - red.getHealth(); i++) {
             g2.fillRect(getWidth() - 90, i * getHeight() / redhb, 40, 40);
+        }
+    }
+
+    public void loadMapImage(String mapImageName) {
+
+        try {
+            BufferedImage bimg = ImageIO.read(new File("Resources//maps/bd01v2.gif"));
+            int width = bimg.getWidth();
+            int height = bimg.getHeight();
+            int transparency = bimg.getTransparency();
+            Graphics2D g2 = (Graphics2D) this.getGraphics();
+            g2.drawImage(bimg, 60, 20, null);
+        } catch (Exception ex) {
+            System.out.println("Error loading map image: " + ex);
         }
     }
 

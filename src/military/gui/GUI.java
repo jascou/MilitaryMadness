@@ -129,7 +129,7 @@ public class GUI extends JFrame {
     private void initComponents() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         hexGridPanel = new HexGridPanel();
-        hexGridPanel.setPreferredSize(new Dimension(18 + 15* 53, 25 + 10 * 50));
+        hexGridPanel.setPreferredSize(new Dimension(18 + 15 * 53, 25 + 10 * 50));
         hexGridPanel.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
                 GUIMiddleMan.getInstance().putEvent(evt);
@@ -140,9 +140,9 @@ public class GUI extends JFrame {
                 GUIMiddleMan.getInstance().putEvent(evt);
             }
         });
+        //loadMap(null);
         displayPanel = hexGridPanel;
 
-        loadMap(null);
         bottomPanel = new BottomPanel();
         bottomPanel.setPreferredSize(new Dimension(hexGridPanel.getWidth(), 75));
         bottomPanel.setBackground(Color.red);
@@ -346,21 +346,22 @@ public class GUI extends JFrame {
 
     public void loadMap(String mapImageName) {
         //mapPanel = new JPanel();
-        InputStream inStream = null;
+       // InputStream inStream = null;
         try {
-            inStream = new FileInputStream("Resources//maps/bd01.gif");
-            BufferedImage bimg = ImageIO.read(new File("Resources//maps/bd01.gif"));
+           // inStream = new FileInputStream("Resources//maps/bd01v2.gif");
+            BufferedImage bimg = ImageIO.read(new File("Resources//maps/bd01v2.gif"));
             int width = bimg.getWidth();
             int height = bimg.getHeight();
 //            Image image = ImageIO.read(inStream);
 //            final Dimension jpanelDimensions = new Dimension(new ImageIcon(image).getIconWidth(), new ImageIcon(image).getIconHeight());
             final Dimension jpanelDimensions = new Dimension(width, height);
-            inStream.close();
-            displayPanel.add(new JPanel() {
+//            final Dimension jpanelDimensions = new Dimension(18 + 15* 53, 25 + 10 * 50);
+           // inStream.close();
+            hexGridPanel.add(new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
                     super.paintComponent(g);
-                    g.drawImage(bimg, 0, 0, null);
+                    g.drawImage(bimg, 45, 25, null);
                 }
 
                 @Override
@@ -372,5 +373,14 @@ public class GUI extends JFrame {
         } catch (Exception ex) {
             System.out.println("no Image");
         }
+    }
+
+    public static BufferedImage resize(final Image image, final int width, final int height){
+        assert image != null;
+        final BufferedImage bi = new BufferedImage(width, height, image instanceof BufferedImage ? ((BufferedImage)image).getType() : BufferedImage.TYPE_INT_ARGB);
+        final Graphics2D g = bi.createGraphics();
+        g.drawImage(image, 0, 0, width, height, null);
+        g.dispose();
+        return bi;
     }
 }
