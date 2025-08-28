@@ -188,15 +188,16 @@ public class HexGridPanel extends JPanel {
         }
     }
 
+    // August 28, 2025 - commented out the contents because the board image is loading on top of the units and hex map.
     public void loadMapImage(String mapImageName) {
 
         try {
-            BufferedImage bimg = ImageIO.read(new File("Resources//maps/bd01v2.gif"));
-            int width = bimg.getWidth();
-            int height = bimg.getHeight();
-            int transparency = bimg.getTransparency();
-            Graphics2D g2 = (Graphics2D) this.getGraphics();
-            g2.drawImage(bimg, 60, 20, null);
+//            BufferedImage bimg = ImageIO.read(new File("Resources//maps/bd01v2.gif"));
+//            int width = bimg.getWidth();
+//            int height = bimg.getHeight();
+//            int transparency = bimg.getTransparency();
+//            Graphics2D g2 = (Graphics2D) this.getGraphics();
+//            g2.drawImage(bimg, 60, 20, null);
         } catch (Exception ex) {
             System.out.println("Error loading map image: " + ex);
         }
