@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class LocationManagerRoundTripTest {
@@ -19,7 +20,7 @@ public class LocationManagerRoundTripTest {
         mapsDir = Config.mapsDir();
         Files.createDirectories(mapsDir);
         // Copy sample map into Maps directory
-        Path sample = Path.of("test", "resources", "Maps", "Sample_small.txt");
+        Path sample = Paths.get("test", "resources", "Maps", "Sample_small.txt");
         Files.copy(sample, mapsDir.resolve("Sample_small.txt"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 

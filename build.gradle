@@ -1,6 +1,8 @@
 plugins {
     id 'java'
     id 'application'
+    id 'checkstyle'
+    id 'jacoco'
 }
 
 group = 'com.example'
@@ -10,6 +12,8 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
     }
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 application {
@@ -23,6 +27,52 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.hamcrest:hamcrest-core:1.3'
 }
+
+checkstyle {
+    toolVersion = '10.12.5'
+    config = resources.text.fromFile('config/checkstyle/checkstyle.xml')
+    ignoreFailures = true // keep CI green initially, report issues
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        html.required = true
+        xml.required = false
+    }
+}
+
+jacoco {
+    toolVersion = '0.8.11'
+}
+
+test {
+    useJUnit()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        html.required = true
+        xml.required = true
+        csv.required = false
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            element = 'BUNDLE'
+            // Focus on engine/map logic; keep a modest threshold to avoid flakiness
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = 0.05
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification
 
 sourceSets {
     main {

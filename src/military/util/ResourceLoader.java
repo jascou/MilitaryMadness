@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,9 +37,9 @@ public final class ResourceLoader {
             return in;
         }
         // Fallback to filesystem
-        Path fsPath = Path.of(relativePath);
+        Path fsPath = Paths.get(relativePath);
         if (!fsPath.isAbsolute()) {
-            fsPath = Path.of(relativePath);
+            fsPath = Paths.get(relativePath);
         }
         return Files.newInputStream(fsPath);
     }
@@ -64,7 +65,7 @@ public final class ResourceLoader {
                 }
             }
             // Fallback to filesystem
-            Path fsPath = Path.of(relativePath);
+            Path fsPath = Paths.get(relativePath);
             BufferedImage img = ImageIO.read(fsPath.toFile());
             if (img != null) {
                 imageCache.put(relativePath, img);

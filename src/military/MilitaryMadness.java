@@ -32,6 +32,50 @@ public class MilitaryMadness {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
+        // Command-line options:
+        // --play <mapName>
+        // --design <width> <height>
+        // --design <mapName>
+        if (args != null && args.length > 0) {
+            try {
+                if ("--play".equalsIgnoreCase(args[0]) && args.length >= 2) {
+                    String map = args[1];
+                    if (!military.util.Validator.isValidMapName(map)) {
+                        showMessageEDT("Invalid map name: " + map);
+                        return;
+                    }
+                    new Thread(SoundUtility.getInstance()).start();
+                    Game game = new Game(map);
+                    game.run();
+                    SoundUtility.getInstance().shutdown();
+                    return;
+                } else if ("--design".equalsIgnoreCase(args[0]) && args.length >= 2) {
+                    if (args.length == 2) {
+                        String map = args[1];
+                        if (!military.util.Validator.isValidMapName(map)) {
+                            showMessageEDT("Invalid map name: " + map);
+                            return;
+                        }
+                        new DesignGUI(map);
+                        return;
+                    } else if (args.length >= 3) {
+                        java.util.OptionalInt w = military.util.Validator.parsePositiveIntWithin(args[1], 1, 1000);
+                        java.util.OptionalInt h = military.util.Validator.parsePositiveIntWithin(args[2], 1, 1000);
+                        if (!w.isPresent() || !h.isPresent()) {
+                            showMessageEDT("Invalid width/height for --design. Use integers between 1 and 1000.");
+                            return;
+                        }
+                        new DesignGUI(w.getAsInt(), h.getAsInt());
+                        return;
+                    }
+                }
+            } catch (Exception ex) {
+                java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+                logger.severe("Command-line option failed: " + ex.getMessage());
+                // fall through to UI
+            }
+        }
+
         boolean hasMaps = loadMapList();
         // Build choices dynamically based on map availability
         String[] choices = hasMaps ? new String[]{"Play Game", "Create Level", "Exit"}
@@ -43,7 +87,7 @@ public class MilitaryMadness {
             if (hasMaps && n == 0) {
                 // Use improved map selection dialog with metadata
                 String chosen = military.gui.MapSelectionDialog.showDialog(null);
-                if (chosen == null || chosen.isBlank()) {
+                if (chosen == null || chosen.trim().isEmpty()) {
                     showMessageEDT("Please select a valid map to play.");
                     continue;
                 }

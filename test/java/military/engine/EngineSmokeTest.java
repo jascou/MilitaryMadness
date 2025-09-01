@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.awt.Point;
 
 public class EngineSmokeTest {
@@ -15,7 +16,7 @@ public class EngineSmokeTest {
     public void ensureMaps() throws Exception {
         Files.createDirectories(Config.mapsDir());
         // Ensure a simple map exists
-        Path sample = Path.of("test", "resources", "Maps", "Sample_small.txt");
+        Path sample = Paths.get("test", "resources", "Maps", "Sample_small.txt");
         Files.copy(sample, Config.mapsDir().resolve("Sample_small.txt"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 

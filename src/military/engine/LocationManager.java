@@ -142,8 +142,27 @@ public class LocationManager {
         java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
         try (java.io.InputStream inStream = java.nio.file.Files.newInputStream(mapPath);
              java.util.Scanner reader = new java.util.Scanner(new java.io.InputStreamReader(inStream, java.nio.charset.StandardCharsets.UTF_8))) {
-            int numColumns = reader.nextInt();
-            int numRows = reader.nextInt();
+            // Support optional version header: MMAPv1
+            int numColumns;
+            int numRows;
+            String firstToken = reader.hasNext() ? reader.next() : null;
+            if (firstToken == null) {
+                throw new IllegalArgumentException("Empty map file");
+            }
+            try {
+                // If first token is an integer, it's the legacy format (dims first)
+                numColumns = Integer.parseInt(firstToken);
+                numRows = reader.nextInt();
+            } catch (NumberFormatException nfe) {
+                // Otherwise expect a version header token then dims
+                if (!firstToken.startsWith("MMAPv")) {
+                    LOGGER.severe("Unknown map header: " + firstToken);
+                    throw new IllegalArgumentException("Unknown map header: " + firstToken);
+                }
+                numColumns = reader.nextInt();
+                numRows = reader.nextInt();
+            }
+
             if (numColumns <= 0 || numRows <= 0 || numColumns > 500 || numRows > 500) {
                 LOGGER.severe("Invalid map dimensions: " + numColumns + "x" + numRows);
                 throw new IllegalArgumentException("Invalid map dimensions");
