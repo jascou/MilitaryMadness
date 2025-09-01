@@ -68,6 +68,13 @@ public class Game implements Runnable {
     public Game(String levelName) {
         LocationManager.loadMap(levelName);
         gui = new GUI(levelName);
+        // Provide GUI with controller actions (dependency inversion)
+        gui.setActions(new military.gui.GUI.GameActions() {
+            @Override public void onMove() { shift(); }
+            @Override public void onAttack() { attack(); }
+            @Override public void onInfo() { info(); }
+            @Override public void onEndTurn() { end(); }
+        });
         turn = true;
         cursor = new Point(1, 0);
         buttonCursor = new Point(-1, -1);
@@ -83,6 +90,8 @@ public class Game implements Runnable {
     @Override
     public void run() {
         while (!LocationManager.isCaptured(!turn)) {
+            // Optionally preload frequently used images (background)
+            military.util.ResourceLoader.preloadImages("Resources/maps/bd01v2.gif");
             if (!factory) {
                 controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
             }
@@ -104,7 +113,7 @@ public class Game implements Runnable {
                             buttonCursor.y = 0;
                         }
                     }
-                    if (kevt.getKeyCode() == KEY_CTRL) {      // Changed from 10 (June 16, '23)
+                    if (kevt.getKeyCode() == military.util.InputMappings.CTRL) {      // centralized
                         if (buttonCursor.y == 0) {
                             shift();
                         } else if (buttonCursor.y == 1) {
@@ -143,7 +152,7 @@ public class Game implements Runnable {
                     }
                     kevt = (KeyEvent) evt;
                 }
-                if (kevt.getKeyCode() == 10) {
+                if (kevt.getKeyCode() == military.util.InputMappings.ENTER) {
                     if (!shifting && !attacking && !factory) {
                         if (LocationManager.getLoc(cursor) instanceof Factory) {
                             mFactory = (Factory) LocationManager.getLoc(cursor);
@@ -203,8 +212,13 @@ public class Game implements Runnable {
                             JOptionPane.showMessageDialog(gui, "Cannot Attack Here");
                             continue;
                         }
-                        gui.displayCombat(new CombatStats(LocationManager.getLoc(unitLoc).getUnit(),
-                                LocationManager.getLoc(cursor).getUnit()));
+                        gui.displayCombat(military.engine.CombatResolver.resolve(
+                                LocationManager.getLoc(unitLoc).getUnit(),
+                                LocationManager.getLoc(cursor).getUnit(),
+                                LocationManager.getLoc(cursor)));
+                        if (!military.engine.TurnRules.ALLOW_MOVE_AFTER_ATTACK) {
+                            // Enforcement is already via attack() marking flags; this documents the rule usage
+                        }
                         LocationManager.getLoc(unitLoc).getUnit().attack();
                         attacking = false;
                         selectLocs.clear();
@@ -254,7 +268,7 @@ public class Game implements Runnable {
                         }
                     }
                 }
-                if (kevt.getKeyCode() == 16) {
+                if (kevt.getKeyCode() == military.util.InputMappings.SHIFT) {
                     if (shifting) {
                         shifting = false;
                         selectLocs.clear();

@@ -20,6 +20,11 @@ import javax.swing.GrayFilter;
  * Image loading uses ResourceLoader; missing images are logged and a null image is tolerated.
  */
 public class Model {
+    private boolean doFlip = true;
+    private boolean doColorSwap = true;
+
+    public void setFlipEnabled(boolean value) { this.doFlip = value; }
+    public void setColorSwapEnabled(boolean value) { this.doColorSwap = value; }
     private String name;
     private Image image;
     private Image image2;
@@ -66,17 +71,32 @@ public class Model {
         class BlueRedSwapFilter extends RGBImageFilter {
 
             public int filterRGB(int x, int y, int rgb) {
-                if (((rgb >> 16) & 0xff) == ((rgb >> 8) & 0xff) && ((rgb >> 16) & 0xff) == ((rgb) & 0xff)) {
+                if (((rgb >> 16) & 0xff) == ((rgb >> 8) & 0xff) && ((rgb >> 16) & 0xff) == (rgb & 0xff)) {
                     return rgb;
                 }
-                return ((((rgb & 0xff00 >> 8) / 8) << 8) | (((rgb & 0xff0000) >> 16) / 4) | ((rgb & 0xff) << 16) | 0xff000000);
+                // Fix operator precedence and make intent explicit
+                int r = (rgb >> 16) & 0xff;
+                int g = (rgb >> 8) & 0xff;
+                int b = (rgb) & 0xff;
+                int newG = (b) / 8; // reduce blue into green channel slightly
+                int newB = (r) / 4; // reduce red into blue channel
+                int out = (0xff << 24) | (r << 16) | (newG << 8) | (newB);
+                return out;
             }
         }
-        AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-        tx.translate(-temp.getWidth(null), 0);
-        AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-        image2 = op.filter(temp, null);
-        image2 = Toolkit.getDefaultToolkit().createImage(new FilteredImageSource(image2.getSource(), new BlueRedSwapFilter()));
+        if (doFlip && temp != null) {
+            AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+            tx.translate(-temp.getWidth(null), 0);
+            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+            image2 = op.filter(temp, null);
+        } else if (temp != null) {
+            image2 = temp;
+        } else {
+            image2 = image;
+        }
+        if (doColorSwap && image2 != null) {
+            image2 = Toolkit.getDefaultToolkit().createImage(new FilteredImageSource(image2.getSource(), new BlueRedSwapFilter()));
+        }
         ImageFilter filter = new GrayFilter(true, 35);  
         ImageProducer producer = new FilteredImageSource(image.getSource(), filter);  
         greyImage = Toolkit.getDefaultToolkit().createImage(producer);  

@@ -41,11 +41,13 @@ public class MilitaryMadness {
         do {
             n = showOptionDialogEDT("What Would you Like to Do?", choices, choices[choices.length - 1]);
             if (hasMaps && n == 0) {
-                showComponentDialogEDT("Choose a scenario to load:", scenarioComboBox);
-                if (levelName == null || levelName.isBlank()) {
+                // Use improved map selection dialog with metadata
+                String chosen = military.gui.MapSelectionDialog.showDialog(null);
+                if (chosen == null || chosen.isBlank()) {
                     showMessageEDT("Please select a valid map to play.");
                     continue;
                 }
+                levelName = chosen;
                 new Thread(SoundUtility.getInstance()).start();
                 try {
                     Game game = new Game(levelName);

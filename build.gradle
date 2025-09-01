@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+application {
+    mainClass = 'military.MilitaryMadness'
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+    // No external runtime dependencies
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.hamcrest:hamcrest-core:1.3'
+}
+
+sourceSets {
+    main {
+        java { srcDirs = ['src'] }
+        resources { srcDirs = ['Resources', 'Maps', 'sounds'] }
+    }
+    test {
+        java { srcDirs = ['test/java'] }
+        resources { srcDirs = ['test/resources'] }
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
+    from('Resources') { into 'Resources' }
+    from('Maps') { into 'Maps' }
+    from('sounds') { into 'sounds' }
+}

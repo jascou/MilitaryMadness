@@ -109,4 +109,18 @@
         </java>
     </target>
 
+    <!-- Fat JAR packaging including resources and maps/sounds -->
+    <target name="fat-jar" depends="jar">
+        <mkdir dir="dist"/>
+        <jar destfile="dist/MilitaryMadness-fat.jar" basedir="${build.classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="military.MilitaryMadness"/>
+            </manifest>
+            <fileset dir="Resources" erroronmissingdir="false"/>
+            <fileset dir="Maps" erroronmissingdir="false"/>
+            <fileset dir="sounds" erroronmissingdir="false"/>
+        </jar>
+        <echo message="Fat JAR created at dist/MilitaryMadness-fat.jar"/>
+    </target>
+
 </project>

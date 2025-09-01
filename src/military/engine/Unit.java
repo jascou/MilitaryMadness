@@ -129,6 +129,17 @@ public class Unit{
         return team;
     }
 
+    /**
+     * Adapter to migrate from boolean team to Team enum.
+     */
+    public Team getTeamEnum() {
+        return team ? Team.BLUE : Team.RED;
+    }
+
+    public void setTeam(Team t) {
+        this.team = (t == Team.BLUE);
+    }
+
     public Location getLoc() {
         return loc;
     }

@@ -39,6 +39,16 @@ import military.engine.UnitManager;
  */
 public class GUI extends JFrame {
 
+    public interface GameActions {
+        void onMove();
+        void onAttack();
+        void onInfo();
+        void onEndTurn();
+    }
+
+    private GameActions actions; 
+    public void setActions(GameActions actions) { this.actions = actions; }
+
     private HexGridPanel hexGridPanel;
     private FactoryPanel factoryPanel;
     private JPanel displayPanel;
@@ -163,18 +173,28 @@ public class GUI extends JFrame {
         pack();
     }
 
+    // Layout constants
+    private static final int BUTTONS_PANEL_WIDTH = 110;
+    private static final int FONT_SIZE = 16;
+
     private void initButtons() {
         buttonsPanel = new JPanel();
-        buttonsPanel.setPreferredSize(new Dimension(110, 600));
+        buttonsPanel.setPreferredSize(new Dimension(BUTTONS_PANEL_WIDTH, 600));
         buttonsPanel.setBackground(Color.black);
         shift = new JButton();
         shift.setBackground(new Color(0, 0, 255));
         shift.setForeground(Color.LIGHT_GRAY);
         shift.setText("Shift");
-        shift.setFont(new Font("Consolas", 0, 16));
+        shift.setFont(new Font("Consolas", 0, FONT_SIZE));
+        shift.setToolTipText("Move a selected unit");
+        shift.getAccessibleContext().setAccessibleName("Shift Button");
         shift.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 0, 1, false));
+                if (actions != null) {
+                    actions.onMove();
+                } else {
+                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 0, 1, false));
+                }
             }
         });
         shift.addFocusListener(new FocusAdapter() {
@@ -195,10 +215,16 @@ public class GUI extends JFrame {
         attack.setBackground(new Color(0, 0, 255));
         attack.setForeground(Color.LIGHT_GRAY);
         attack.setText("Attack");
-        attack.setFont(new Font("Consolas", 0, 16));
+        attack.setFont(new Font("Consolas", 0, FONT_SIZE));
+        attack.setToolTipText("Attack an adjacent enemy");
+        attack.getAccessibleContext().setAccessibleName("Attack Button");
         attack.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 1, 1, false));
+                if (actions != null) {
+                    actions.onAttack();
+                } else {
+                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 1, 1, false));
+                }
             }
         });
         attack.addFocusListener(new FocusAdapter() {
@@ -219,10 +245,16 @@ public class GUI extends JFrame {
         info.setBackground(new Color(0, 0, 255));
         info.setForeground(Color.LIGHT_GRAY);
         info.setText("Info");
-        info.setFont(new Font("Consolas", 0, 16));
+        info.setFont(new Font("Consolas", 0, FONT_SIZE));
+        info.setToolTipText("Show information");
+        info.getAccessibleContext().setAccessibleName("Info Button");
         info.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 2, 1, false));
+                if (actions != null) {
+                    actions.onInfo();
+                } else {
+                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 2, 1, false));
+                }
             }
         });
         info.addFocusListener(new FocusAdapter() {
@@ -242,11 +274,17 @@ public class GUI extends JFrame {
         end = new JButton();
         end.setBackground(new Color(0, 0, 255));
         end.setForeground(Color.LIGHT_GRAY);
-        end.setFont(new Font("Consolas", 0, 16));
+        end.setFont(new Font("Consolas", 0, FONT_SIZE));
+        end.setToolTipText("End current player's turn");
+        end.getAccessibleContext().setAccessibleName("End Turn Button");
         end.setText("End");
         end.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 3, 1, false));
+                if (actions != null) {
+                    actions.onEndTurn();
+                } else {
+                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 3, 1, false));
+                }
             }
         });
         end.addFocusListener(new FocusAdapter() {

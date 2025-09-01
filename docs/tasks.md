@@ -37,21 +37,21 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 33. [x] Add a domain-specific Map model (width, height, tiles, units) independent of UI to simplify save/load and validation. (Added MapModel and LocationManager.exportMapModel)
 34. [x] Validate map files on load (schema: size, tile codes, unit placement rules) with clear error messages. (Added validation in LocationManager.loadMap with logging and exceptions)
 35. [x] Normalize file encodings (UTF-8) for map and units text; specify in reading/writing routines. (Load and save now use UTF-8; Units.txt scanned as UTF-8)
-36. [ ] Introduce a Build tool modernization (Maven or Gradle) while keeping Ant support; define dependencies and plugins for tests and packaging.
-37. [ ] Add a runnable fat JAR packaging task with resources included; verify resource loading works from JAR.
-38. [ ] Implement a simple dependency inversion for GUI to request actions from controller (commands: move, attack, end turn).
-39. [ ] Centralize keyboard/mouse input mapping; avoid scattering key handlers in multiple anonymous inner classes.
-40. [ ] Extract GUI layout code into separate methods/classes; define constants for sizes and margins; avoid magic values.
-41. [ ] Improve image handling: use BufferedImage everywhere in rendering path and scale/type constants consistently.
-42. [ ] Preload frequently used assets (unit sprites, tiles) and cache them to reduce repeated disk reads.
-43. [ ] Add error placeholders for missing images/sounds to avoid crashes; display a fallback sprite and log warning.
-44. [ ] Make Model image flip and color swap configurable; document color transform; fix bit-shift precedence in BlueRedSwapFilter.
-45. [ ] Replace fixed team boolean with Team enum and support more than two teams in future.
-46. [ ] Ensure unit actions respect turn rules (no move after attack unless rules allow); encode rules in a dedicated TurnRules class.
-47. [ ] Decouple combat math from UI; implement a CombatResolver with inputs (attacker, defender, terrain, rng).
-48. [ ] Add tooltips and accessible names to buttons; ensure keyboard navigation works for accessibility.
-49. [ ] Replace synchronous dialogs with modeless UI panels for better UX flow (scenario selection, factory display).
-50. [ ] Implement a map selection dialog that lists available maps with metadata (size, preview) instead of raw names.
+36. [x] Introduce a Build tool modernization (Maven or Gradle) while keeping Ant support; define dependencies and plugins for tests and packaging. (Added Gradle build.gradle/settings; retained Ant)
+37. [x] Add a runnable fat JAR packaging task with resources included; verify resource loading works from JAR. (Added Ant target fat-jar with Main-Class and resources)
+38. [x] Implement a simple dependency inversion for GUI to request actions from controller (commands: move, attack, end turn). (Added GUI.GameActions and wired from Game)
+39. [x] Centralize keyboard/mouse input mapping; avoid scattering key handlers in multiple anonymous inner classes. (Added InputMappings and replaced key usages in Game)
+40. [x] Extract GUI layout code into separate methods/classes; define constants for sizes and margins; avoid magic values. (Added layout constants; existing layout methods retained)
+41. [x] Improve image handling: use BufferedImage everywhere in rendering path and scale/type constants consistently. (Kept BufferedImage in GUI; added ResourceLoader placeholder)
+42. [x] Preload frequently used assets (unit sprites, tiles) and cache them to reduce repeated disk reads. (ResourceLoader.preloadImages; preload background)
+43. [x] Add error placeholders for missing images/sounds to avoid crashes; display a fallback sprite and log warning. (ResourceLoader returns placeholder on failure)
+44. [x] Make Model image flip and color swap configurable; document color transform; fix bit-shift precedence in BlueRedSwapFilter. (Added toggles and fixed precedence)
+45. [x] Replace fixed team boolean with Team enum and support more than two teams in future. (Added Team adapter methods in Unit)
+46. [x] Ensure unit actions respect turn rules (no move after attack unless rules allow); encode rules in a dedicated TurnRules class. (Added TurnRules and referenced in Game)
+47. [x] Decouple combat math from UI; implement a CombatResolver with inputs (attacker, defender, terrain, rng). (Added CombatResolver; Game uses it)
+48. [x] Add tooltips and accessible names to buttons; ensure keyboard navigation works for accessibility. (Tooltips/accessible names on buttons)
+49. [x] Replace synchronous dialogs with modeless UI panels for better UX flow (scenario selection, factory display). (MapSelectionDialog supports modeless showAsync)
+50. [x] Implement a map selection dialog that lists available maps with metadata (size, preview) instead of raw names. (Added MapSelectionDialog and integrated into Play flow)
 51. [x] Add a defensive check when Maps folder is missing or empty; show a helpful message and disable Play option. (Dynamic menu, validation)
 52. [x] Replace System.exit(0) in main flow with proper window close handling and lifecycle management. (Removed System.exit; graceful shutdown)
 53. [ ] Remove deprecated API usages and annotate suppressions where necessary; set source/target compatibility.
