@@ -70,4 +70,43 @@
     nbproject/build-impl.xml file. 
 
     -->
+    <!-- Junie: Minimal JUnit support (conditional) -->
+    <property name="lib.dir" value="lib"/>
+    <property name="test.src.dir" value="test/java"/>
+    <property name="test.resources.dir" value="test/resources"/>
+    <property name="test.build.dir" value="build/test-classes"/>
+
+    <available file="${lib.dir}/junit-4.13.2.jar" property="have.junit"/>
+    <available file="${lib.dir}/hamcrest-core-1.3.jar" property="have.hamcrest"/>
+
+    <path id="test.classpath" >
+        <pathelement path="${build.classes.dir}"/>
+        <pathelement path="${test.build.dir}"/>
+        <pathelement path="${lib.dir}/junit-4.13.2.jar"/>
+        <pathelement path="${lib.dir}/hamcrest-core-1.3.jar"/>
+    </path>
+
+    <target name="test-compile" depends="compile" if="have.junit">
+        <mkdir dir="${test.build.dir}"/>
+        <!-- Copy test resources -->
+        <copy todir="${test.build.dir}">
+            <fileset dir="${test.resources.dir}" erroronmissingdir="false"/>
+        </copy>
+        <javac srcdir="${test.src.dir}" destdir="${test.build.dir}" includeantruntime="false" debug="true" source="1.8" target="1.8" erroronmissingdir="false">
+            <classpath refid="test.classpath"/>
+        </javac>
+    </target>
+
+    <target name="test" depends="test-compile" if="have.junit">
+        <echo message="Running JUnit tests..."/>
+        <java classname="org.junit.runner.JUnitCore" fork="true" failonerror="false">
+            <classpath refid="test.classpath"/>
+            <!-- Discover tests via a simple list; for now, run all classes under military.* -->
+            <arg value="military.engine.LocationManagerRoundTripTest"/>
+            <arg value="military.engine.EngineSmokeTest"/>
+            <arg value="military.gui.GuiLayoutTest"/>
+            <arg value="military.util.SoundAbstractionTest"/>
+        </java>
+    </target>
+
 </project>

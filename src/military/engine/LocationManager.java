@@ -17,6 +17,10 @@ import java.util.Random;
 import java.util.Scanner;
 
 /**
+ * Manages the map grid (locations), base/factory placements, and unit placement.
+ *
+ * Thread-safety: all methods are intended to be used from the game thread; no synchronization is provided.
+ * IO: loadMap/saveMap perform filesystem access via Config paths; callers should ensure valid filenames.
  *
  * @author Nate
  */
@@ -98,7 +102,11 @@ public class LocationManager {
         newLoc(p, 6);
     }
 
-    public static boolean isCaptured(boolean team) {
+    /**
+         * Returns true if the specified team's base has been captured.
+         * @param team true for blue team, false for red team
+         */
+        public static boolean isCaptured(boolean team) {
         if (team) {
             if (!blueBase.isEmpty()) {
                 return !blueBase.getUnit().getTeam();
@@ -111,7 +119,11 @@ public class LocationManager {
         return false;
     }
 
-    public static void loadMap(String filename) {
+    /**
+         * Loads a map from Maps/{filename}.txt and initializes locations and units.
+         * @param filename map name without extension
+         */
+        public static void loadMap(String filename) {
         if (instance == null) {
             instance = new LocationManager();
         }
@@ -120,7 +132,8 @@ public class LocationManager {
         try {
             inStream = java.nio.file.Files.newInputStream(military.Config.mapsDir().resolve(filename + ".txt"));
         } catch (Exception e) {
-            e.printStackTrace();
+            java.util.logging.Logger logger = military.util.Logs.getLogger(LocationManager.class);
+            logger.severe("Failed to open map file: " + filename + ".txt - " + e.getMessage());
         }
         assert inStream != null;
         Scanner reader = new Scanner(inStream);
@@ -177,7 +190,10 @@ public class LocationManager {
         calcAdjacent();
     }
 
-    public static void addUnit(Point p, String name, boolean team) {
+    /**
+         * Adds a unit with the given name and team at the specified coordinate.
+         */
+        public static void addUnit(Point p, String name, boolean team) {
         if (instance == null) {
             instance = new LocationManager();
         }
@@ -188,7 +204,8 @@ public class LocationManager {
         try {
             unitStream = military.util.ResourceLoader.openTextFromResources("Units.txt");
         } catch (Exception e) {
-            e.printStackTrace();
+            java.util.logging.Logger logger = military.util.Logs.getLogger(LocationManager.class);
+            logger.severe("Failed to load Units.txt: " + e.getMessage());
         }
 
         assert unitStream != null;          // Added June 16, 2023
@@ -202,7 +219,10 @@ public class LocationManager {
         unitReader.close();
     }
 
-    public static void newLoc(Point p, int type) {
+    /**
+         * Changes the terrain or structure at the given coordinate to the specified type code.
+         */
+        public static void newLoc(Point p, int type) {
         if (blueBase != null && p.equals(blueBase.getLoc())) {
             blueBase = null;
         }
@@ -234,7 +254,11 @@ public class LocationManager {
         }
     }
 
-    public static void saveMap(String filename) {
+    /**
+         * Saves the current map layout and units to Maps/{filename}.txt.
+         * Writing is best-effort; caller is responsible for error handling.
+         */
+        public static void saveMap(String filename) {
         if (instance == null) {
             instance = new LocationManager();
         }
@@ -276,7 +300,11 @@ public class LocationManager {
         }
     }
 
-    public static Location getBase(boolean team) {
+    /**
+         * Returns the base location for the given team.
+         * @param team true for blue, false for red
+         */
+        public static Location getBase(boolean team) {
         return team ? blueBase : redBase;
     }
 

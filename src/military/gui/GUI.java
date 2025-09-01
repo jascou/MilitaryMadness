@@ -33,6 +33,10 @@ import military.engine.UnitManager;
  *
  * @author Nate
  */
+/**
+ * Main Swing window for the game. All UI updates should occur on the EDT.
+ * Rendering is triggered by the game loop but Swing components are managed safely.
+ */
 public class GUI extends JFrame {
 
     private HexGridPanel hexGridPanel;
@@ -336,7 +340,10 @@ public class GUI extends JFrame {
 
     }
 
-    public void displayFactory(Factory factory) {
+    /**
+         * Switches the display to the factory panel for the given factory.
+         */
+        public void displayFactory(Factory factory) {
         displayPanel = factoryPanel;
         layoutComponents();
         setVisible(true);
@@ -344,7 +351,10 @@ public class GUI extends JFrame {
         factoryPanel.displayFactory(factory);
     }
 
-    public void loadMap(String mapImageName) {
+    /**
+         * Loads and displays a background map image; failure is logged and non-fatal.
+         */
+        public void loadMap(String mapImageName) {
         //mapPanel = new JPanel();
        // InputStream inStream = null;
         try {
@@ -370,7 +380,8 @@ public class GUI extends JFrame {
                 }
             });
         } catch (Exception ex) {
-            System.out.println("no Image");
+            java.util.logging.Logger logger = military.util.Logs.getLogger(GUI.class);
+            logger.info("Background image not found: Resources/maps/bd01v2.gif");
         }
     }
 

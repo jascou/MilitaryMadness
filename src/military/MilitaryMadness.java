@@ -39,17 +39,11 @@ public class MilitaryMadness {
 
         int n = -1;
         do {
-            n = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
-                    JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices, choices[choices.length - 1]);
+            n = showOptionDialogEDT("What Would you Like to Do?", choices, choices[choices.length - 1]);
             if (hasMaps && n == 0) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        scenarioComboBox,
-                        "Choose a scenario to load:",
-                        JOptionPane.QUESTION_MESSAGE
-                );
+                showComponentDialogEDT("Choose a scenario to load:", scenarioComboBox);
                 if (levelName == null || levelName.isBlank()) {
-                    JOptionPane.showMessageDialog(null, "Please select a valid map to play.");
+                    showMessageEDT("Please select a valid map to play.");
                     continue;
                 }
                 new Thread(SoundUtility.getInstance()).start();
@@ -57,31 +51,33 @@ public class MilitaryMadness {
                     Game game = new Game(levelName);
                     game.run();
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, "Failed to start the game: " + e.getMessage());
+                    showMessageEDT("Failed to start the game: " + e.getMessage());
                 }
             } else if ((hasMaps && n == 1) || (!hasMaps && n == 0)) {
                 String[] choices2 = {"New Level", "Old Level"};
-                int m = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
-                        JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices2, choices2[0]);
+                int m = showOptionDialogEDT("What Would you Like to Do?", choices2, choices2[0]);
                 if (m == 0) {
-                    int width = 0;
-                    int height = 0;
-                    try {
-                        String w = JOptionPane.showInputDialog("Width?");
-                        width = Integer.parseInt(w);
-                        String h = JOptionPane.showInputDialog("Height?");
-                        height = Integer.parseInt(h);
-                    } catch (NumberFormatException numberFormatException) {
-                        JOptionPane.showMessageDialog(null, "Invalid Number");
+                    int width;
+                    int height;
+                    String w = showInputDialogEDT("Width? (1-100)");
+                    String h = showInputDialogEDT("Height? (1-100)");
+                    java.util.OptionalInt wv = military.util.Validator.parsePositiveIntWithin(w, 1, 100);
+                    java.util.OptionalInt hv = military.util.Validator.parsePositiveIntWithin(h, 1, 100);
+                    if (!wv.isPresent() || !hv.isPresent()) {
+                        showMessageEDT("Invalid width or height. Please enter numbers between 1 and 100.");
                         continue;
                     }
+                    width = wv.getAsInt();
+                    height = hv.getAsInt();
                     DesignGUI dgui = new DesignGUI(width, height);
                     // Removed busy-wait; the designer window manages its own lifecycle
                 } else if (m == 1) {
-                    String levelToLoad = JOptionPane.showInputDialog("What level would you like to load?");
-                    if (levelToLoad != null && !levelToLoad.isBlank()) {
+                    String levelToLoad = showInputDialogEDT("What level would you like to load?");
+                    if (military.util.Validator.isValidMapName(levelToLoad)) {
                         DesignGUI dgui = new DesignGUI(levelToLoad);
                         // Removed busy-wait
+                    } else if (levelToLoad != null) {
+                        showMessageEDT("Invalid map name. Use letters, numbers, dash or underscore.");
                     }
                 }
             }
@@ -97,16 +93,16 @@ public class MilitaryMadness {
         try {
             Path mapsPath = military.Config.mapsDir();
             if (!Files.isDirectory(mapsPath)) {
-                JOptionPane.showMessageDialog(null, "Maps folder is missing. You can still create a new level.");
+                showMessageEDT("Maps folder is missing. You can still create a new level.");
                 return false;
             }
             fileList = listFiles(mapsPath);
         } catch (IOException io) {
-            JOptionPane.showMessageDialog(null, "Unable to read Maps folder: " + io.getMessage());
+            showMessageEDT("Unable to read Maps folder: " + io.getMessage());
             return false;
         }
         if (fileList == null || fileList.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "No maps found in Maps folder. You can create a new level.");
+            showMessageEDT("No maps found in Maps folder. You can create a new level.");
             return false;
         }
         for (Path path : fileList) {
@@ -185,4 +181,46 @@ public class MilitaryMadness {
         printFileNames(a, i + 1, lvl);
     }
 
+    private static int showOptionDialogEDT(String message, Object[] options, Object initial) {
+        final int[] result = new int[]{-1};
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(() -> {
+                result[0] = javax.swing.JOptionPane.showOptionDialog(null, message, null,
+                        javax.swing.JOptionPane.OK_OPTION, javax.swing.JOptionPane.PLAIN_MESSAGE, null, options, initial);
+            });
+        } catch (Exception e) {
+            java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+            logger.severe("Failed to show option dialog: " + e.getMessage());
+        }
+        return result[0];
+    }
+
+    private static void showMessageEDT(String message) {
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(() -> javax.swing.JOptionPane.showMessageDialog(null, message));
+        } catch (Exception e) {
+            java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+            logger.severe("Failed to show message dialog: " + e.getMessage());
+        }
+    }
+
+    private static String showInputDialogEDT(String prompt) {
+        final String[] result = new String[]{null};
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(() -> result[0] = javax.swing.JOptionPane.showInputDialog(prompt));
+        } catch (Exception e) {
+            java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+            logger.severe("Failed to show input dialog: " + e.getMessage());
+        }
+        return result[0];
+    }
+
+    private static void showComponentDialogEDT(String title, java.awt.Component component) {
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(() -> javax.swing.JOptionPane.showMessageDialog(null, component, title, javax.swing.JOptionPane.QUESTION_MESSAGE));
+        } catch (Exception e) {
+            java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+            logger.severe("Failed to show component dialog: " + e.getMessage());
+        }
+    }
 }

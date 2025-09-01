@@ -507,9 +507,9 @@ public class Game implements Runnable {
             }
         }
         if (selectLocs.isEmpty()) {
-            // JOptionPane.showMessageDialog(gui, "No attacks available");
-            // TODO: Send message to Bottom Panel
-            System.out.println("No attacks available");
+            // TODO: Surface via GUI bottom panel message
+            java.util.logging.Logger logger = military.util.Logs.getLogger(Game.class);
+            logger.info("No attacks available");
             return;
         }
         attacking = true;
@@ -531,7 +531,8 @@ public class Game implements Runnable {
     }
 
     private void info() {
-        System.out.println("Info");
+        java.util.logging.Logger logger = military.util.Logs.getLogger(Game.class);
+        logger.info("Info requested");
     }
 
     private void end() {

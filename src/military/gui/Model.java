@@ -16,8 +16,8 @@ import javax.imageio.ImageIO;
 import javax.swing.GrayFilter;
 
 /**
- *
- * @author Nate
+ * Represents a drawable unit model and its team variants (flipped/color-swapped) and greyscale images.
+ * Image loading uses ResourceLoader; missing images are logged and a null image is tolerated.
  */
 public class Model {
     private String name;
@@ -52,13 +52,15 @@ public class Model {
         try {
             image = military.util.ResourceLoader.loadImage("Resources/" + name + ".gif");
         } catch (IOException ex) {
-            System.out.println("no Image");
+            java.util.logging.Logger logger = military.util.Logs.getLogger(Model.class);
+            logger.info("Image not found: Resources/" + name + ".gif");
         }
         BufferedImage temp = null;
         try {
             temp = military.util.ResourceLoader.loadImage("Resources/" + name + ".gif");
         } catch (IOException ex) {
-            System.out.println("no Image");
+            java.util.logging.Logger logger = military.util.Logs.getLogger(Model.class);
+            logger.info("Image not found (temp): Resources/" + name + ".gif");
         }
         
         class BlueRedSwapFilter extends RGBImageFilter {

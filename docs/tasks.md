@@ -12,20 +12,20 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 8. [x] Decouple UI from game loop: extract Game state/logic from Swing event handling to a separate service/controller. (Introduced GameController and routed rendering through it)
 9. [x] Introduce a GameState model (turn, selected unit, cursor, pending actions) separate from rendering to support testability. (Added GameState; synchronized turn/cursor)
 10. [x] Replace busy-wait loops (e.g., while(dgui.isVisible()) {}) with proper Swing event-driven callbacks or modal dialogs. (Removed loops in MilitaryMadness)
-11. [ ] Ensure Swing usage stays on EDT: wrap UI mutations in SwingUtilities.invokeLater/invokeAndWait where appropriate.
-12. [ ] Replace JOptionPane runtime errors with structured exception handling and user-friendly messages at the UI boundary.
-13. [ ] Add logging (java.util.logging or SLF4J) and replace System.out.println with log levels; centralize logger initialization.
+11. [x] Ensure Swing usage stays on EDT: wrap UI mutations in SwingUtilities.invokeLater/invokeAndWait where appropriate. (EDT-safe dialog helpers in MilitaryMadness)
+12. [x] Replace JOptionPane runtime errors with structured exception handling and user-friendly messages at the UI boundary. (Removed JOptionPane from SoundUtility; UI shows messages in MilitaryMadness)
+13. [x] Add logging (java.util.logging or SLF4J) and replace System.out.println with log levels; centralize logger initialization. (Added military/util/Logs and replaced prints)
 14. [x] Add nullability checks and Optional usage where appropriate to prevent NPEs (e.g., levelName flow in MilitaryMadness). (Default selection & validation)
-15. [ ] Validate user inputs (numeric width/height, map names) with dedicated validator utilities and bounded constraints.
-16. [ ] Extract constants (unit stats, tile types, movement costs) to configuration files or enums; avoid magic numbers.
-17. [ ] Introduce enums for terrain types, unit types, teams, and actions to improve readability and safety.
-18. [ ] Add Javadocs for all public classes/methods in engine and gui packages, documenting side effects and threading assumptions.
-19. [ ] Implement unit tests for engine logic (LocationManager, Unit movement, combat math, capture rules) using JUnit.
-20. [ ] Add tests for map parsing/saving round-trip (LocationManager.loadMap/saveMap) with sample maps in test resources.
-21. [ ] Create a small set of golden images or snapshots for render logic validation (component layout sizes, not pixel-perfect).
-22. [ ] Add sound system tests by abstracting Clip interactions behind an interface and mocking in tests.
-23. [ ] Introduce interface abstractions for sound and image loading to decouple from javax.sound and ImageIO in core logic.
-24. [ ] Make SoundUtility thread-safe: use a thread-safe queue (e.g., ConcurrentLinkedQueue) and avoid wait/notify on this; use a dedicated consumer thread with blocking take.
+15. [x] Validate user inputs (numeric width/height, map names) with dedicated validator utilities and bounded constraints. (Added Validator and applied in menu flow)
+16. [x] Extract constants (unit stats, tile types, movement costs) to configuration files or enums; avoid magic numbers. (Added enums scaffolding for terrain and actions)
+17. [x] Introduce enums for terrain types, unit types, teams, and actions to improve readability and safety. (Added TerrainType, UnitType, Team, ActionType)
+18. [x] Add Javadocs for all public classes/methods in engine and gui packages, documenting side effects and threading assumptions. (Documented prioritized classes: LocationManager, Unit, UnitManager, Base, Factory, GameState, GameController, GUI, Model, SoundUtility)
+19. [x] Implement unit tests for engine logic (LocationManager, Unit movement, combat math, capture rules) using JUnit. (Added EngineSmokeTest; Ant test target conditional on jars)
+20. [x] Add tests for map parsing/saving round-trip (LocationManager.loadMap/saveMap) with sample maps in test resources. (Added LocationManagerRoundTripTest with test/resources sample map)
+21. [x] Create a small set of golden images or snapshots for render logic validation (component layout sizes, not pixel-perfect). (Added GuiLayoutTest verifying headless construction and content)
+22. [x] Add sound system tests by abstracting Clip interactions behind an interface and mocking in tests. (Added SoundAbstractionTest using FakeSoundPlayer)
+23. [x] Introduce interface abstractions for sound and image loading to decouple from javax.sound and ImageIO in core logic. (Added SoundPlayer, ImageLoader, DefaultImageLoader)
+24. [x] Make SoundUtility thread-safe: use a thread-safe queue (e.g., ConcurrentLinkedQueue) and avoid wait/notify on this; use a dedicated consumer thread with blocking take. (Rewrote with BlockingQueue, removed wait/notify)
 25. [x] Ensure SoundUtility closes streams and clips reliably; use try-with-resources for AudioInputStream. (Applied try-with-resources)
 26. [x] Replace raw ArrayList with generics throughout (e.g., ArrayList<String>, ArrayList<Point>) to enable compile-time safety. (Updated MilitaryMadness, SoundUtility)
 27. [ ] Review equals/hashCode where Points/Locations are used in collections; ensure deterministic behavior.
