@@ -104,6 +104,22 @@ public class Location {
         unit = null;
         return u;
     }
-    
-    
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Location that = (Location) o;
+        return loc != null && loc.equals(that.loc);
+    }
+
+    @Override
+    public int hashCode() {
+        return loc != null ? loc.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "Location{" + "x=" + loc.x + ", y=" + loc.y + ", terrain=" + terrain + '}';
+    }
 }

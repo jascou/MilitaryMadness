@@ -30,6 +30,8 @@ public class LocationManager {
     private static ArrayList<ArrayList<Location>> entries;
     private static Location blueBase;
     private static Location redBase;
+    private static final java.util.logging.Logger LOGGER = military.util.Logs.getLogger(LocationManager.class);
+    private static final Random RNG = new Random();
 
     public static Point getSize() {
         return new Point(entries.size(), entries.get(0).size());
@@ -37,24 +39,33 @@ public class LocationManager {
 
     public static Location getLoc(int x, int y) {
 //        System.out.println("getLoc(" + x + ", " + y +")");
+        if (!isInBounds(x, y)) {
+            java.util.logging.Logger logger = military.util.Logs.getLogger(LocationManager.class);
+            logger.warning("getLoc out of bounds: (" + x + "," + y + ") size=" + (entries == null ? "null" : getSize()));
+            throw new IllegalArgumentException("Location out of bounds: (" + x + "," + y + ")");
+        }
         return entries.get(x).get(y);
     }
 
     public static boolean isInBounds(int x, int y) {
-        boolean result = false;
-        if (getSize().x > x && getSize().y > y) {
-            result = true;
-        }
-        return result;
+        if (entries == null || entries.isEmpty()) return false;
+        if (x < 0 || y < 0) return false;
+        int width = entries.size();
+        int height = entries.get(0).size();
+        return x < width && y < height;
     }
 
     public static Location getLoc(Point p) {
-        return entries.get(p.x).get(p.y);
+        return getLoc(p.x, p.y);
     }
 
     public static void create(ArrayList<ArrayList<Location>> locs) {
         entries = locs;
         calcAdjacent();
+    }
+
+    public static void setRandomSeed(long seed) {
+        RNG.setSeed(seed);
     }
 
     public static void generateMap(int w, int h) {
@@ -70,7 +81,7 @@ public class LocationManager {
         redBase = null;
         calcAdjacent();
         int x = (w*h)/35;
-        Random rand = new Random();
+        Random rand = RNG;
 
         for (int i = 0; i < x; i++) {
             Point p = new Point(rand.nextInt(w), rand.nextInt(h));
@@ -128,64 +139,71 @@ public class LocationManager {
             instance = new LocationManager();
         }
         entries = new ArrayList<>();
-        InputStream inStream = null;
-        try {
-            inStream = java.nio.file.Files.newInputStream(military.Config.mapsDir().resolve(filename + ".txt"));
-        } catch (Exception e) {
-            java.util.logging.Logger logger = military.util.Logs.getLogger(LocationManager.class);
-            logger.severe("Failed to open map file: " + filename + ".txt - " + e.getMessage());
-        }
-        assert inStream != null;
-        Scanner reader = new Scanner(inStream);
-        int numColumns = reader.nextInt();
-        int numRows = reader.nextInt();
+        java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
+        try (java.io.InputStream inStream = java.nio.file.Files.newInputStream(mapPath);
+             java.util.Scanner reader = new java.util.Scanner(new java.io.InputStreamReader(inStream, java.nio.charset.StandardCharsets.UTF_8))) {
+            int numColumns = reader.nextInt();
+            int numRows = reader.nextInt();
+            if (numColumns <= 0 || numRows <= 0 || numColumns > 500 || numRows > 500) {
+                LOGGER.severe("Invalid map dimensions: " + numColumns + "x" + numRows);
+                throw new IllegalArgumentException("Invalid map dimensions");
+            }
 
-        for (int x = 0; x < numColumns; x++) {
-            ArrayList<Location> column = new ArrayList<>();
-            for (int y = 0; y < numRows; y++) {
-                int terrain = reader.nextInt();
-                if (terrain == -1) {
-                    column.add(new Location(new Point(x, y), -1));
-                } else if (terrain >= 0 && terrain <= 4) {
-                    column.add(new Location(new Point(x, y), terrain * 10));
-                } else if (terrain == 5) {
-                    column.add(new Base(new Point(x, y), true));
-                    blueBase = column.get(y);
-                } else if (terrain == 6) {
-                    column.add(new Base(new Point(x, y), false));
-                    redBase = column.get(y);
-                } else if (terrain == 7) {
-                    column.add(new Factory(new Point(x, y)));
-                } else if (terrain == 8) {
-                    column.add(new Factory(new Point(x, y), true));
-                } else if (terrain == 9) {
-                    column.add(new Factory(new Point(x, y), false));
+            for (int x = 0; x < numColumns; x++) {
+                ArrayList<Location> column = new ArrayList<>();
+                for (int y = 0; y < numRows; y++) {
+                    if (!reader.hasNextInt()) {
+                        LOGGER.severe("Unexpected end of tiles at (" + x + "," + y + ")");
+                        throw new IllegalArgumentException("Unexpected end of tiles");
+                    }
+                    int terrain = reader.nextInt();
+                    if (terrain == -1) {
+                        column.add(new Location(new Point(x, y), -1));
+                    } else if (terrain >= 0 && terrain <= 4) {
+                        column.add(new Location(new Point(x, y), terrain * 10));
+                    } else if (terrain == 5) {
+                        column.add(new Base(new Point(x, y), true));
+                        blueBase = column.get(y);
+                    } else if (terrain == 6) {
+                        column.add(new Base(new Point(x, y), false));
+                        redBase = column.get(y);
+                    } else if (terrain == 7) {
+                        column.add(new Factory(new Point(x, y)));
+                    } else if (terrain == 8) {
+                        column.add(new Factory(new Point(x, y), true));
+                    } else if (terrain == 9) {
+                        column.add(new Factory(new Point(x, y), false));
+                    } else {
+                        LOGGER.severe("Invalid terrain code " + terrain + " at (" + x + "," + y + ")");
+                        throw new IllegalArgumentException("Invalid terrain code: " + terrain);
+                    }
+                }
+                entries.add(column);
+            }
+
+            // Units section (optional)
+            while (reader.hasNext()) {
+                int x = reader.nextInt();
+                int y = reader.nextInt();
+                String name = reader.next();
+                boolean team = reader.nextBoolean();
+                if (!isInBounds(x, y)) {
+                    LOGGER.severe("Unit position out of bounds: (" + x + "," + y + ")");
+                    throw new IllegalArgumentException("Unit position out of bounds");
+                }
+                try (java.io.InputStream unitStream = military.util.ResourceLoader.openTextFromResources("Units.txt");
+                     java.util.Scanner unitReader = new java.util.Scanner(new java.io.InputStreamReader(unitStream, java.nio.charset.StandardCharsets.UTF_8))) {
+                    while (unitReader.hasNext() && !unitReader.next().equals(name)) {}
+                    Unit u = new Unit(name, unitReader.next(), unitReader.nextBoolean(),
+                            unitReader.nextBoolean(), team, unitReader.nextInt(),
+                            unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt());
+                    entries.get(x).get(y).addUnit(u);
+                    UnitManager.getInstance().addUnit(u);
                 }
             }
-            entries.add(column);
-        }
-
-        while (reader.hasNext()) {
-            int x = reader.nextInt();
-            int y = reader.nextInt();
-            String name = reader.next();
-            boolean team = reader.nextBoolean();
-//            InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
-            InputStream unitStream;
-            try{
-                unitStream = military.util.ResourceLoader.openTextFromResources("Units.txt");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-                // TODO: Provide notification to user
-            }
-            Scanner unitReader = new Scanner(unitStream);
-            while (!unitReader.next().equals(name)) {}
-            Unit u = new Unit(name, unitReader.next(), unitReader.nextBoolean(),
-                    unitReader.nextBoolean(), team, unitReader.nextInt(),
-                    unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt());
-            entries.get(x).get(y).addUnit(u);
-            UnitManager.getInstance().addUnit(u);
-            unitReader.close();
+        } catch (java.io.IOException ex) {
+            LOGGER.severe("Failed to load map: " + mapPath + " - " + ex.getMessage());
+            throw new RuntimeException(ex);
         }
         calcAdjacent();
     }
@@ -262,14 +280,11 @@ public class LocationManager {
         if (instance == null) {
             instance = new LocationManager();
         }
-        BufferedWriter writer = null;
-        try {
-            File mapFile = military.Config.mapsDir().resolve(filename + ".txt").toFile();
-
-            writer = new BufferedWriter(new FileWriter(mapFile));
-            writer.write(entries.size() + "");
+        java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
+        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(mapPath, java.nio.charset.StandardCharsets.UTF_8)) {
+            writer.write(Integer.toString(entries.size()));
             writer.newLine();
-            writer.write(entries.get(0).size() + "");
+            writer.write(Integer.toString(entries.get(0).size()));
             writer.newLine();
             for (int i = 0; i < entries.size(); i++) {
                 for (int j = 0; j < entries.get(0).size(); j++) {
@@ -288,15 +303,8 @@ public class LocationManager {
                         + " " + u.getName() + " false");
                 writer.newLine();
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                // Close the writer regardless of what happens...
-                writer.close();
-            } catch (Exception e) {
-            }
+            LOGGER.severe("Failed to save map: " + mapPath + " - " + e.getMessage());
         }
     }
 
@@ -306,6 +314,26 @@ public class LocationManager {
          */
         public static Location getBase(boolean team) {
         return team ? blueBase : redBase;
+    }
+
+    public static MapModel exportMapModel() {
+        int w = entries.size();
+        int h = entries.get(0).size();
+        int[][] tiles = new int[w][h];
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                tiles[x][y] = entries.get(x).get(y).getType();
+            }
+        }
+        java.util.List<MapModel.UnitEntry> units = new java.util.ArrayList<>();
+        for (Unit u : UnitManager.getInstance().getUnits(true)) {
+            units.add(new MapModel.UnitEntry(u.getLoc().getLoc().x, u.getLoc().getLoc().y, u.getName(), true));
+        }
+        for (Unit u : UnitManager.getInstance().getUnits(false)) {
+            units.add(new MapModel.UnitEntry(u.getLoc().getLoc().x, u.getLoc().getLoc().y, u.getName(), false));
+        }
+        MapModel model = new MapModel(w, h, tiles, units);
+        return model;
     }
 
     private static void calcAdjacent() {

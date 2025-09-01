@@ -28,15 +28,15 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 24. [x] Make SoundUtility thread-safe: use a thread-safe queue (e.g., ConcurrentLinkedQueue) and avoid wait/notify on this; use a dedicated consumer thread with blocking take. (Rewrote with BlockingQueue, removed wait/notify)
 25. [x] Ensure SoundUtility closes streams and clips reliably; use try-with-resources for AudioInputStream. (Applied try-with-resources)
 26. [x] Replace raw ArrayList with generics throughout (e.g., ArrayList<String>, ArrayList<Point>) to enable compile-time safety. (Updated MilitaryMadness, SoundUtility)
-27. [ ] Review equals/hashCode where Points/Locations are used in collections; ensure deterministic behavior.
-28. [ ] Guard against index-out-of-bounds and nulls in LocationManager.getLoc and isInBounds, and centralize boundary checks.
-29. [ ] Optimize movement/attack range calculations: memoize or precompute adjacency; avoid deep recursion that may overflow.
-30. [ ] Replace recursion in movesRecursive/rangedRecursive with iterative BFS/DFS to improve reliability and readability.
-31. [ ] Introduce a deterministic RNG seed option for tests in any random map generation utility.
-32. [ ] Separate Designer (military.designer) from runtime engine: define a shared core API used by both Game and DesignGUI.
-33. [ ] Add a domain-specific Map model (width, height, tiles, units) independent of UI to simplify save/load and validation.
-34. [ ] Validate map files on load (schema: size, tile codes, unit placement rules) with clear error messages.
-35. [ ] Normalize file encodings (UTF-8) for map and units text; specify in reading/writing routines.
+27. [x] Review equals/hashCode where Points/Locations are used in collections; ensure deterministic behavior. (Added equals/hashCode/toString to Location)
+28. [x] Guard against index-out-of-bounds and nulls in LocationManager.getLoc and isInBounds, and centralize boundary checks. (Improved isInBounds; getLoc now checks and logs; added bounds validation)
+29. [x] Optimize movement/attack range calculations: memoize or precompute adjacency; avoid deep recursion that may overflow. (Reused precomputed adjacency; switched to iterative traversal)
+30. [x] Replace recursion in movesRecursive/rangedRecursive with iterative BFS/DFS to improve reliability and readability. (Implemented movesBfs and rangedIterative in Game)
+31. [x] Introduce a deterministic RNG seed option for tests in any random map generation utility. (Added LocationManager.setRandomSeed and centralized RNG)
+32. [x] Separate Designer (military.designer) from runtime engine: define a shared core API used by both Game and DesignGUI. (Added MapService and DefaultMapService delegating to LocationManager)
+33. [x] Add a domain-specific Map model (width, height, tiles, units) independent of UI to simplify save/load and validation. (Added MapModel and LocationManager.exportMapModel)
+34. [x] Validate map files on load (schema: size, tile codes, unit placement rules) with clear error messages. (Added validation in LocationManager.loadMap with logging and exceptions)
+35. [x] Normalize file encodings (UTF-8) for map and units text; specify in reading/writing routines. (Load and save now use UTF-8; Units.txt scanned as UTF-8)
 36. [ ] Introduce a Build tool modernization (Maven or Gradle) while keeping Ant support; define dependencies and plugins for tests and packaging.
 37. [ ] Add a runnable fat JAR packaging task with resources included; verify resource loading works from JAR.
 38. [ ] Implement a simple dependency inversion for GUI to request actions from controller (commands: move, attack, end turn).
