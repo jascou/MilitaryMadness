@@ -49,27 +49,15 @@ public class Model {
     }
     
     private void loadImage() {
-        InputStream inStream = null;
         try {
-//            InputStream inStream = this.getClass().getClassLoader()
-//                    .getResourceAsStream(name + ".gif");
-            inStream = new FileInputStream("Resources//" + name + ".gif");
-            //inStream = new FileInputStream("Resources//maps/bd01.gif");
-            image = ImageIO.read(inStream);
-            inStream.close();
-        } catch (Exception ex) {
+            image = military.util.ResourceLoader.loadImage("Resources/" + name + ".gif");
+        } catch (IOException ex) {
             System.out.println("no Image");
         }
-        
         BufferedImage temp = null;
-        inStream = null;
         try {
-//            InputStream inStream = this.getClass().getClassLoader()
-//                    .getResourceAsStream(name + ".gif");
-            inStream = new FileInputStream("Resources//" + name + ".gif");
-            temp = ImageIO.read(inStream);
-            inStream.close();
-        } catch (Exception ex) {
+            temp = military.util.ResourceLoader.loadImage("Resources/" + name + ".gif");
+        } catch (IOException ex) {
             System.out.println("no Image");
         }
         

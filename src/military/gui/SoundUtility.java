@@ -83,7 +83,7 @@ public class SoundUtility implements Runnable {
     }
 
     public synchronized void playSound(String file) {
-        addFileToPlay("sounds\\" + file);
+        addFileToPlay(military.Config.soundsDir().resolve(file).toString());
         notify();
     }
 

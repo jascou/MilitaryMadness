@@ -95,7 +95,7 @@ public class MilitaryMadness {
         scenarioComboBox = new JComboBox<>();
         List<Path> fileList;
         try {
-            Path mapsPath = Path.of("Maps");
+            Path mapsPath = military.Config.mapsDir();
             if (!Files.isDirectory(mapsPath)) {
                 JOptionPane.showMessageDialog(null, "Maps folder is missing. You can still create a new level.");
                 return false;

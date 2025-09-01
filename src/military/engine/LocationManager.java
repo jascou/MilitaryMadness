@@ -118,7 +118,7 @@ public class LocationManager {
         entries = new ArrayList<>();
         InputStream inStream = null;
         try {
-            inStream = new FileInputStream("Maps//" + filename + ".txt");
+            inStream = java.nio.file.Files.newInputStream(military.Config.mapsDir().resolve(filename + ".txt"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -160,8 +160,8 @@ public class LocationManager {
 //            InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
             InputStream unitStream;
             try{
-                unitStream = new FileInputStream("Resources//Units.txt");
-            } catch (FileNotFoundException e) {
+                unitStream = military.util.ResourceLoader.openTextFromResources("Units.txt");
+            } catch (Exception e) {
                 throw new RuntimeException(e);
                 // TODO: Provide notification to user
             }
@@ -186,8 +186,8 @@ public class LocationManager {
 //        InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
         InputStream unitStream = null;
         try {
-            unitStream = new FileInputStream("Resources//Units.txt");
-        } catch (FileNotFoundException e) {
+            unitStream = military.util.ResourceLoader.openTextFromResources("Units.txt");
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -240,7 +240,7 @@ public class LocationManager {
         }
         BufferedWriter writer = null;
         try {
-            File mapFile = new File("Maps\\" + filename + ".txt");
+            File mapFile = military.Config.mapsDir().resolve(filename + ".txt").toFile();
 
             writer = new BufferedWriter(new FileWriter(mapFile));
             writer.write(entries.size() + "");

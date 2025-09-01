@@ -61,6 +61,10 @@ public class Game implements Runnable {
     private boolean attacking;
     private boolean factory;
 
+    // Initial step toward decoupling UI and game state
+    private final military.engine.GameState state;
+    private final military.engine.GameController controller;
+
     public Game(String levelName) {
         LocationManager.loadMap(levelName);
         gui = new GUI(levelName);
@@ -69,13 +73,18 @@ public class Game implements Runnable {
         buttonCursor = new Point(-1, -1);
         selectLocs = new ArrayList<>();
         factoryUnit = -1;
+        // Initialize controller and shared state
+        state = new military.engine.GameState();
+        state.setTurn(turn);
+        state.setCursor(new Point(cursor));
+        controller = new military.engine.GameController(state);
     }
 
     @Override
     public void run() {
         while (!LocationManager.isCaptured(!turn)) {
             if (!factory) {
-                gui.render(turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+                controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
             }
             InputEvent evt = GUIMiddleMan.getInstance().getEvent();
             KeyEvent kevt;
@@ -532,6 +541,6 @@ public class Game implements Runnable {
         if (turn) {
             gui.incrementTurn();
         }
-        gui.render(turn, selectLocs, cursor);
+        controller.render(gui, turn, selectLocs, cursor);
     }
 }

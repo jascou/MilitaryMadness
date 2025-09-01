@@ -4,13 +4,13 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 
 1. [x] Establish a CONTRIBUTING.md with coding standards (naming, formatting, null-safety, exceptions) and commit message conventions. (Added CONTRIBUTING.md)
 2. [x] Add a top-level README.md with build/run instructions (JDK version, how to launch game/designer, assets path requirements). (Added README.md)
-3. [ ] Define a consistent package and module overview (diagram or text) describing engine, gui, designer, entrypoint responsibilities.
-4. [ ] Introduce a central configuration class for paths (Maps, Resources, sounds) and OS-agnostic separators (use java.nio.file.Path) instead of hardcoded strings.
-5. [ ] Replace all backslash/forward-slash string paths with Path-based resolution (Model, SoundUtility, GUI map loader, MilitaryMadness, LocationManager).
-6. [ ] Remove reliance on working directory; load assets via classpath resources with a fallback to file system where necessary.
-7. [ ] Create a ResourceLoader utility (images, sounds, text) with clear error reporting and optional caching.
-8. [ ] Decouple UI from game loop: extract Game state/logic from Swing event handling to a separate service/controller.
-9. [ ] Introduce a GameState model (turn, selected unit, cursor, pending actions) separate from rendering to support testability.
+3. [x] Define a consistent package and module overview (diagram or text) describing engine, gui, designer, entrypoint responsibilities. (Added docs/module-overview.md)
+4. [x] Introduce a central configuration class for paths (Maps, Resources, sounds) and OS-agnostic separators (use java.nio.file.Path) instead of hardcoded strings. (Added src/military/Config.java)
+5. [x] Replace all backslash/forward-slash string paths with Path-based resolution (Model, SoundUtility, GUI map loader, MilitaryMadness, LocationManager). (Updated Model, SoundUtility, GUI, MilitaryMadness, LocationManager)
+6. [x] Remove reliance on working directory; load assets via classpath resources with a fallback to file system where necessary. (Added ResourceLoader with classpath-first, filesystem fallback; updated call sites)
+7. [x] Create a ResourceLoader utility (images, sounds, text) with clear error reporting and optional caching. (Added src/military/util/ResourceLoader.java)
+8. [x] Decouple UI from game loop: extract Game state/logic from Swing event handling to a separate service/controller. (Introduced GameController and routed rendering through it)
+9. [x] Introduce a GameState model (turn, selected unit, cursor, pending actions) separate from rendering to support testability. (Added GameState; synchronized turn/cursor)
 10. [x] Replace busy-wait loops (e.g., while(dgui.isVisible()) {}) with proper Swing event-driven callbacks or modal dialogs. (Removed loops in MilitaryMadness)
 11. [ ] Ensure Swing usage stays on EDT: wrap UI mutations in SwingUtilities.invokeLater/invokeAndWait where appropriate.
 12. [ ] Replace JOptionPane runtime errors with structured exception handling and user-friendly messages at the UI boundary.
