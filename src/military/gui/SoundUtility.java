@@ -15,7 +15,7 @@ public class SoundUtility implements Runnable {
 
     private boolean running = true;
     private volatile static SoundUtility instance = null;
-    private ArrayList fileToPlay = new ArrayList();
+    private final ArrayList<String> fileToPlay = new ArrayList<String>();
     private boolean playSounds = true;
 
     public static SoundUtility getInstance() {
@@ -49,32 +49,14 @@ public class SoundUtility implements Runnable {
         String next = getNextFileToPlay();
         while (next != null) {
             File soundFile = new File(next);
-            try {
-                Clip clip = null;                    // The sound clip
-
-                AudioInputStream source = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = null;
+            try (AudioInputStream source = AudioSystem.getAudioInputStream(soundFile)) {
                 DataLine.Info clipInfo = new DataLine.Info(Clip.class, source.getFormat());
                 if (AudioSystem.isLineSupported(clipInfo)) {
-                    // Create a local clip to avoid discarding the old clip
-                    Clip newClip = (Clip) AudioSystem.getLine(clipInfo);   // Create the clip
-                    newClip.open(source);
-
-                    // Deal with previous clip
-                    if (clip != null) {
-                        if (clip.isActive()) // If it's active
-                        {
-                            clip.stop();                      // ...stop it
-                        }
-                        if (clip.isOpen()) // If it's open...
-                        {
-                            clip.close();                     // ...close it.
-                        }
-                    }
-                    clip = newClip;                       // We have a clip, so discard old
-                } else {
+                    clip = (Clip) AudioSystem.getLine(clipInfo);
+                    clip.open(source);
+                    clip.loop(0);
                 }
-
-                clip.loop(0);
             } catch (UnsupportedAudioFileException e) {
                 JOptionPane.showMessageDialog(null, "File not supported",
                         "Unsupported File Type", JOptionPane.WARNING_MESSAGE);
@@ -84,6 +66,17 @@ public class SoundUtility implements Runnable {
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "I/O error creating clip: " + e.getMessage(), "Clip Error",
                         JOptionPane.WARNING_MESSAGE);
+            } finally {
+                if (clip != null) {
+                    try {
+                        if (clip.isActive()) {
+                            clip.stop();
+                        }
+                        if (clip.isOpen()) {
+                            clip.close();
+                        }
+                    } catch (Exception ignore) { }
+                }
             }
             next = getNextFileToPlay();
         }
@@ -91,6 +84,11 @@ public class SoundUtility implements Runnable {
 
     public synchronized void playSound(String file) {
         addFileToPlay("sounds\\" + file);
+        notify();
+    }
+
+    public synchronized void shutdown() {
+        running = false;
         notify();
     }
 
@@ -119,7 +117,7 @@ public class SoundUtility implements Runnable {
         if (fileToPlay.size() == 0) {
             return null;
         }
-        String next = (String) fileToPlay.get(0);
+        String next = fileToPlay.get(0);
         fileToPlay.remove(0);
         return next;
     }

@@ -2,8 +2,8 @@
 
 Below is an ordered, actionable checklist of improvements spanning architecture, code quality, testing, tooling, and documentation. Each task is intentionally small enough to be executed and tracked. Check off items as you complete them.
 
-1. [ ] Establish a CONTRIBUTING.md with coding standards (naming, formatting, null-safety, exceptions) and commit message conventions.
-2. [ ] Add a top-level README.md with build/run instructions (JDK version, how to launch game/designer, assets path requirements).
+1. [x] Establish a CONTRIBUTING.md with coding standards (naming, formatting, null-safety, exceptions) and commit message conventions. (Added CONTRIBUTING.md)
+2. [x] Add a top-level README.md with build/run instructions (JDK version, how to launch game/designer, assets path requirements). (Added README.md)
 3. [ ] Define a consistent package and module overview (diagram or text) describing engine, gui, designer, entrypoint responsibilities.
 4. [ ] Introduce a central configuration class for paths (Maps, Resources, sounds) and OS-agnostic separators (use java.nio.file.Path) instead of hardcoded strings.
 5. [ ] Replace all backslash/forward-slash string paths with Path-based resolution (Model, SoundUtility, GUI map loader, MilitaryMadness, LocationManager).
@@ -11,11 +11,11 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 7. [ ] Create a ResourceLoader utility (images, sounds, text) with clear error reporting and optional caching.
 8. [ ] Decouple UI from game loop: extract Game state/logic from Swing event handling to a separate service/controller.
 9. [ ] Introduce a GameState model (turn, selected unit, cursor, pending actions) separate from rendering to support testability.
-10. [ ] Replace busy-wait loops (e.g., while(dgui.isVisible()) {}) with proper Swing event-driven callbacks or modal dialogs.
+10. [x] Replace busy-wait loops (e.g., while(dgui.isVisible()) {}) with proper Swing event-driven callbacks or modal dialogs. (Removed loops in MilitaryMadness)
 11. [ ] Ensure Swing usage stays on EDT: wrap UI mutations in SwingUtilities.invokeLater/invokeAndWait where appropriate.
 12. [ ] Replace JOptionPane runtime errors with structured exception handling and user-friendly messages at the UI boundary.
 13. [ ] Add logging (java.util.logging or SLF4J) and replace System.out.println with log levels; centralize logger initialization.
-14. [ ] Add nullability checks and Optional usage where appropriate to prevent NPEs (e.g., levelName flow in MilitaryMadness).
+14. [x] Add nullability checks and Optional usage where appropriate to prevent NPEs (e.g., levelName flow in MilitaryMadness). (Default selection & validation)
 15. [ ] Validate user inputs (numeric width/height, map names) with dedicated validator utilities and bounded constraints.
 16. [ ] Extract constants (unit stats, tile types, movement costs) to configuration files or enums; avoid magic numbers.
 17. [ ] Introduce enums for terrain types, unit types, teams, and actions to improve readability and safety.
@@ -26,8 +26,8 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 22. [ ] Add sound system tests by abstracting Clip interactions behind an interface and mocking in tests.
 23. [ ] Introduce interface abstractions for sound and image loading to decouple from javax.sound and ImageIO in core logic.
 24. [ ] Make SoundUtility thread-safe: use a thread-safe queue (e.g., ConcurrentLinkedQueue) and avoid wait/notify on this; use a dedicated consumer thread with blocking take.
-25. [ ] Ensure SoundUtility closes streams and clips reliably; use try-with-resources for AudioInputStream.
-26. [ ] Replace raw ArrayList with generics throughout (e.g., ArrayList<String>, ArrayList<Point>) to enable compile-time safety.
+25. [x] Ensure SoundUtility closes streams and clips reliably; use try-with-resources for AudioInputStream. (Applied try-with-resources)
+26. [x] Replace raw ArrayList with generics throughout (e.g., ArrayList<String>, ArrayList<Point>) to enable compile-time safety. (Updated MilitaryMadness, SoundUtility)
 27. [ ] Review equals/hashCode where Points/Locations are used in collections; ensure deterministic behavior.
 28. [ ] Guard against index-out-of-bounds and nulls in LocationManager.getLoc and isInBounds, and centralize boundary checks.
 29. [ ] Optimize movement/attack range calculations: memoize or precompute adjacency; avoid deep recursion that may overflow.
@@ -52,8 +52,8 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 48. [ ] Add tooltips and accessible names to buttons; ensure keyboard navigation works for accessibility.
 49. [ ] Replace synchronous dialogs with modeless UI panels for better UX flow (scenario selection, factory display).
 50. [ ] Implement a map selection dialog that lists available maps with metadata (size, preview) instead of raw names.
-51. [ ] Add a defensive check when Maps folder is missing or empty; show a helpful message and disable Play option.
-52. [ ] Replace System.exit(0) in main flow with proper window close handling and lifecycle management.
+51. [x] Add a defensive check when Maps folder is missing or empty; show a helpful message and disable Play option. (Dynamic menu, validation)
+52. [x] Replace System.exit(0) in main flow with proper window close handling and lifecycle management. (Removed System.exit; graceful shutdown)
 53. [ ] Remove deprecated API usages and annotate suppressions where necessary; set source/target compatibility.
 54. [ ] Introduce Checkstyle/SpotBugs or Error Prone for static analysis; fix high/medium severity issues.
 55. [ ] Add GitHub Actions (or similar) CI workflow: build, test, static analysis, and package artifacts on push/PR.
@@ -64,7 +64,7 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 60. [ ] Introduce a versioning scheme for save files/maps; implement backward compatibility checks.
 61. [ ] Ensure cross-platform audio/image support; test on Windows/macOS/Linux with headless mode for CI.
 62. [ ] Add command-line options to run the game designer or play mode directly (e.g., --play map, --design width height).
-63. [ ] Implement graceful shutdown: stop sound thread, save any pending preferences, and dispose frames.
+63. [x] Implement graceful shutdown: stop sound thread, save any pending preferences, and dispose frames. (Added SoundUtility.shutdown())
 64. [ ] Extract preferences (sound on/off, last map) to a small persistent settings file using java.util.prefs or JSON.
 65. [ ] Audit exception handling: wrap external IO and present recoverable flows; avoid empty catch blocks.
 66. [ ] Refactor long classes (Game 500+ lines, GUI ~400 lines) into cohesive components with single responsibilities.

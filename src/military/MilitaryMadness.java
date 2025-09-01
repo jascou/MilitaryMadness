@@ -23,8 +23,8 @@ import java.util.stream.Stream;
  * @author Nate
  */
 public class MilitaryMadness {
-    static List<String> levels = new ArrayList();
-    static JComboBox scenarioComboBox;
+    static List<String> levels = new ArrayList<String>();
+    static JComboBox<String> scenarioComboBox;
     static String levelName;
     InputStream levelInputStream = null;
 
@@ -32,35 +32,37 @@ public class MilitaryMadness {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        loadMapList();
-        //findByFileExtensions("Maps", "txt");
-        String choices[] = {"Play Game", "Create Level", "Exit"};
+        boolean hasMaps = loadMapList();
+        // Build choices dynamically based on map availability
+        String[] choices = hasMaps ? new String[]{"Play Game", "Create Level", "Exit"}
+                                   : new String[]{"Create Level", "Exit"};
 
-        int n = 0;
-        while (n != 2) {
+        int n = -1;
+        do {
             n = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
-                    JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices, 2);
-            if (n == 0) {
+                    JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices, choices[choices.length - 1]);
+            if (hasMaps && n == 0) {
                 JOptionPane.showMessageDialog(
                         null,
                         scenarioComboBox,
                         "Choose a scenario to load:",
                         JOptionPane.QUESTION_MESSAGE
                 );
-                // levelName = JOptionPane.showInputDialog("Which level would you like to load?");
-                new Thread(SoundUtility.getInstance()).start();
-                Game game = null;
-                try {
-                    game = new Game(levelName);
-                } catch (NullPointerException e) {
-                    JOptionPane.showMessageDialog(null, "Invalid File Name");
+                if (levelName == null || levelName.isBlank()) {
+                    JOptionPane.showMessageDialog(null, "Please select a valid map to play.");
                     continue;
                 }
-                game.run();
-            } else if (n == 1) {
-                String choices2[] = {"New Level", "Old Level"};
+                new Thread(SoundUtility.getInstance()).start();
+                try {
+                    Game game = new Game(levelName);
+                    game.run();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Failed to start the game: " + e.getMessage());
+                }
+            } else if ((hasMaps && n == 1) || (!hasMaps && n == 0)) {
+                String[] choices2 = {"New Level", "Old Level"};
                 int m = JOptionPane.showOptionDialog(null, "What Would you Like to Do?", null,
-                        JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices2, "Play Game");
+                        JOptionPane.OK_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices2, choices2[0]);
                 if (m == 0) {
                     int width = 0;
                     int height = 0;
@@ -74,38 +76,55 @@ public class MilitaryMadness {
                         continue;
                     }
                     DesignGUI dgui = new DesignGUI(width, height);
-                    while (dgui.isVisible()) {
-                    }
-
-                } else {
-                    String levelName = JOptionPane.showInputDialog("What level would you like to load?");
-                    DesignGUI dgui = new DesignGUI(levelName);
-                    while (dgui.isVisible()) {
+                    // Removed busy-wait; the designer window manages its own lifecycle
+                } else if (m == 1) {
+                    String levelToLoad = JOptionPane.showInputDialog("What level would you like to load?");
+                    if (levelToLoad != null && !levelToLoad.isBlank()) {
+                        DesignGUI dgui = new DesignGUI(levelToLoad);
+                        // Removed busy-wait
                     }
                 }
             }
-        }
-        System.exit(0);
+        } while (!((hasMaps && n == 2) || (!hasMaps && n == 1)));
+
+        // Graceful shutdown without System.exit
+        SoundUtility.getInstance().shutdown();
     }
 
-    static void loadMapList() throws IOException {
-        scenarioComboBox = new JComboBox();
-        List<Path> fileList = listFiles(Path.of("Maps"));
-        fileList.forEach(System.out::println);
-        for (Path path : fileList) {
-            String levelName = path.toFile().getName();
-            levelName = levelName.replace(".txt", "");
-            scenarioComboBox.addItem(levelName);
+    static boolean loadMapList() {
+        scenarioComboBox = new JComboBox<>();
+        List<Path> fileList;
+        try {
+            Path mapsPath = Path.of("Maps");
+            if (!Files.isDirectory(mapsPath)) {
+                JOptionPane.showMessageDialog(null, "Maps folder is missing. You can still create a new level.");
+                return false;
+            }
+            fileList = listFiles(mapsPath);
+        } catch (IOException io) {
+            JOptionPane.showMessageDialog(null, "Unable to read Maps folder: " + io.getMessage());
+            return false;
         }
-        scenarioComboBox.setSelectedIndex(0);
-
+        if (fileList == null || fileList.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No maps found in Maps folder. You can create a new level.");
+            return false;
+        }
+        for (Path path : fileList) {
+            String ln = path.toFile().getName();
+            ln = ln.replace(".txt", "");
+            scenarioComboBox.addItem(ln);
+        }
+        if (scenarioComboBox.getItemCount() > 0) {
+            scenarioComboBox.setSelectedIndex(0);
+            levelName = (String) scenarioComboBox.getItemAt(0);
+        }
         scenarioComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println(e);
                 levelName = (String) scenarioComboBox.getSelectedItem();
             }
         });
+        return true;
     }
 
     public static void mapFileComboBox(List<Path> fileList) {
