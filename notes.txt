@@ -1,0 +1,1 @@
+1. RunGame configuration:  Create new configuration, Gradle, and in Run section, add 'run'.  Save the configuration.
