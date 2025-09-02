@@ -46,7 +46,7 @@ public class MilitaryMadness {
                     }
                     new Thread(SoundUtility.getInstance()).start();
                     Game game = new Game(map);
-                    game.run();
+                    new military.engine.GameLoop(game).run();
                     SoundUtility.getInstance().shutdown();
                     return;
                 } else if ("--design".equalsIgnoreCase(args[0]) && args.length >= 2) {
@@ -95,7 +95,7 @@ public class MilitaryMadness {
                 new Thread(SoundUtility.getInstance()).start();
                 try {
                     Game game = new Game(levelName);
-                    game.run();
+                    new military.engine.GameLoop(game).run();
                 } catch (Exception e) {
                     showMessageEDT("Failed to start the game: " + e.getMessage());
                 }
