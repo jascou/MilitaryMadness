@@ -25,6 +25,14 @@ public class GameController {
     public void render(GUI gui, boolean turn, ArrayList<Point> selectLocs, Point cursor) {
         state.setTurn(turn);
         state.setCursor(new Point(cursor));
-        gui.render(turn, selectLocs, cursor);
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            gui.render(turn, selectLocs, cursor);
+        } else {
+            try {
+                javax.swing.SwingUtilities.invokeAndWait(() -> gui.render(turn, selectLocs, cursor));
+            } catch (Exception ignored) {
+                gui.render(turn, selectLocs, cursor);
+            }
+        }
     }
 }

@@ -77,6 +77,10 @@ public class GUI extends JFrame {
     }
 
     public void render(boolean turn, ArrayList<Point> select, Point cursor) {
+        java.util.logging.Logger dbg = military.util.Logs.getLogger(GUI.class);
+        String dbgMsg = "[DEBUG_LOG] GUI.render(): select size=" + (select==null?"null":select.size()) + ", cursor=" + cursor + ", EDT=" + javax.swing.SwingUtilities.isEventDispatchThread();
+        dbg.info(dbgMsg);
+        System.out.println(dbgMsg);
         displayPanel = hexGridPanel;
         this.turn = turn;
         player1.setText("<html>Player 1<br>Units: " + UnitManager.getInstance().getUnits(true).size() + "</html>");
@@ -140,6 +144,17 @@ public class GUI extends JFrame {
         turnNumberLabel.setText("Turn " + turnNumber);
     }
 
+    // Force an immediate repaint of the hex grid (used after critical state changes)
+    public void forceGridRepaint() {
+        try {
+            if (hexGridPanel != null) {
+                hexGridPanel.paintImmediately(hexGridPanel.getVisibleRect());
+            }
+        } catch (Exception ignore) {
+            // best-effort
+        }
+    }
+
     private void initComponents() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         hexGridPanel = new HexGridPanel();
@@ -192,9 +207,9 @@ public class GUI extends JFrame {
             public void actionPerformed(ActionEvent evt) {
                 if (actions != null) {
                     actions.onMove();
-                } else {
-                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 0, 1, false));
                 }
+                // Always enqueue the legacy event to drive the game loop consistently
+                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 0, 1, false));
             }
         });
         shift.addFocusListener(new FocusAdapter() {
@@ -222,9 +237,8 @@ public class GUI extends JFrame {
             public void actionPerformed(ActionEvent evt) {
                 if (actions != null) {
                     actions.onAttack();
-                } else {
-                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 1, 1, false));
                 }
+                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 1, 1, false));
             }
         });
         attack.addFocusListener(new FocusAdapter() {
@@ -252,9 +266,8 @@ public class GUI extends JFrame {
             public void actionPerformed(ActionEvent evt) {
                 if (actions != null) {
                     actions.onInfo();
-                } else {
-                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 2, 1, false));
                 }
+                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 2, 1, false));
             }
         });
         info.addFocusListener(new FocusAdapter() {
@@ -282,9 +295,8 @@ public class GUI extends JFrame {
             public void actionPerformed(ActionEvent evt) {
                 if (actions != null) {
                     actions.onEndTurn();
-                } else {
-                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 3, 1, false));
                 }
+                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 3, 1, false));
             }
         });
         end.addFocusListener(new FocusAdapter() {

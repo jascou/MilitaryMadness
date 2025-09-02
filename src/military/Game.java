@@ -90,7 +90,7 @@ public class Game implements Runnable {
     @Override
     public void run() {
         while (!LocationManager.isCaptured(!turn)) {
-            // Optionally preload frequently used images (background)
+            // Optionally, preload frequently used images (background)
             military.util.ResourceLoader.preloadImages("Resources/maps/bd01v2.gif");
             if (!factory) {
                 controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
@@ -447,7 +447,7 @@ public class Game implements Runnable {
         }
         Unit unit = LocationManager.getLoc(cursor).getUnit();
         movesLeftAtPoint[cursor.x][cursor.y] = LocationManager.getLoc(cursor).getUnit().getShift();
-        movesBfs(cursor, movesLeftAtPoint, unit);
+        movesBreadthFirstSearch(cursor, movesLeftAtPoint, unit);
         selectLocs.clear();
         for (int i = 0; i < movesLeftAtPoint.length; i++) {
             for (int j = 0; j < movesLeftAtPoint[0].length; j++) {
@@ -456,9 +456,17 @@ public class Game implements Runnable {
                 }
             }
         }
+        java.util.logging.Logger dbg = military.util.Logs.getLogger(Game.class);
+        String debugMsg = "[DEBUG_LOG] shift(): selectLocs size=" + selectLocs.size() + ", cursor=" + cursor + ", thread=" + Thread.currentThread().getName();
+        dbg.info(debugMsg);
+        System.out.println(debugMsg);
+        // Force an immediate render so valid move hexes highlight without waiting for the next loop
+        controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+        // Attempt to force synchronous grid repaint for immediate visual feedback
+        try { gui.forceGridRepaint(); } catch (Exception ignore) { }
     }
 
-    private void movesBfs(Point start, int[][] movesLeftAtPoint, Unit unit) {
+    private void movesBreadthFirstSearch(Point start, int[][] movesLeftAtPoint, Unit unit) {
         java.util.ArrayDeque<Point> queue = new java.util.ArrayDeque<>();
         queue.add(new Point(start));
         while (!queue.isEmpty()) {

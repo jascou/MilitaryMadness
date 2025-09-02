@@ -1,4 +1,59 @@
-# MilitaryMadness Improvement Checklist
+# Improvement Tasks Checklist
+
+A prioritized, actionable checklist to improve architecture, code quality, performance, testing, and tooling. Each item is intentionally small enough to be completed in a focused PR.
+
+1. [ ] Define an Architecture Overview document (docs/architecture.md) describing current modules (engine, gui, util), data flow, and rendering pipeline.
+2. [ ] Extract a clear MVC/MVP boundary: move input handling and game loop concerns out of `Game` into a dedicated controller/service layer; keep `GUI`/`HexGridPanel` as passive views.
+3. [ ] Replace remaining boolean team usage with `Team` enum throughout the codebase (e.g., `UnitManager`, `Game`, `CombatStats`, rendering code) and remove boolean overloads after migration.
+4. [ ] Introduce a `GameState` immutable snapshot model used for rendering; views should consume `GameState` without mutating engine objects.
+5. [ ] Consolidate map operations behind a concrete `MapService` implementation (adapter over `LocationManager`) and use it from both Game and Designer to reduce duplication.
+6. [ ] Break down `Game` (≈580 lines) into cohesive classes: input interpreter, movement/pathfinding service, combat resolver, turn manager, and event bus/notifications.
+7. [ ] Replace `UnitManager` singleton with an instance-owned repository tied to `GameState` (or inject via controller); avoid global mutable state to enable tests.
+8. [ ] Establish a simple domain event system (e.g., TurnStarted, UnitMoved, CombatResolved) to decouple logic from UI sound/visual effects.
+9. [ ] Audit Swing threading: ensure all UI updates occur on the EDT; use `SwingUtilities.invokeLater` from non-EDT code paths consistently.
+10. [ ] Remove direct `getGraphics()` usage in `HexGridPanel` and `GUI`; use repaint() and state-driven `paintComponent` exclusively.
+11. [ ] Eliminate `Thread.sleep` calls in the UI thread; implement timed animations with `javax.swing.Timer` or a render/animation scheduler.
+12. [ ] Optimize rendering: avoid allocating a new `BufferedImage` for each paint; rely on Swing’s double-buffering or maintain a reusable offscreen buffer with resize awareness.
+13. [ ] Centralize image/sprite loading and caching (e.g., ImageCache) to avoid repeated disk IO and per-frame `ImageIO.read` calls.
+14. [ ] Use `Config` paths consistently across the project for maps, resources, and sounds; remove hard-coded file strings where present.
+15. [ ] Validate and normalize resource path handling on Windows/Linux (use `Path`/`Files` APIs); remove manual `File` and string concatenations.
+16. [ ] Replace `System.out.println` debug statements with a unified logger (java.util.logging or SLF4J); standardize logger acquisition (e.g., `Logs.getLogger`).
+17. [ ] Introduce log levels and categories (engine, rendering, IO) and remove noisy logs from hot render paths.
+18. [ ] Guard UI drawing code against NPEs and invalid states (e.g., null `selectLocs` and `cursorLoc` checks) and preconditions.
+19. [ ] Encapsulate hex grid computations in `HexMech` with pure functions; document coordinate system, rounding rules, and visible window math.
+20. [ ] Extract BFS and range calculation from `Game` into a `PathfindingService`; add unit-test coverage for movement costs and obstacles.
+21. [ ] Create a `CombatService` to compute `CombatStats` deterministically; separate visualization (explosions) from calculations.
+22. [ ] Add configuration flags in `TurnRules` for other rule toggles; replace scattered conditionals with centralized checks.
+23. [ ] Establish clear package boundaries: `military.engine` (logic/state), `military.gui` (views/controllers), `military.util` (infra/helpers). Move misplaced classes accordingly.
+24. [ ] Define interfaces for time/scheduling and randomization (e.g., `Clock`, `Rng`) and inject them for deterministic tests.
+25. [ ] Add nullability annotations (@Nullable/@NotNull) and enable IDE inspections to catch potential issues early.
+26. [ ] Introduce Checkstyle/SpotBugs/PMD configs (use existing config/checkstyle) and wire them into Gradle with a failing threshold.
+27. [ ] Add Gradle tasks for static analysis and run them in CI (GitHub Actions or similar) with JDK matrix.
+28. [ ] Expand unit tests: engine movement, combat, capture conditions, map loading edge cases, and serialization; target high-risk classes first (`Game`, `LocationManager`).
+29. [ ] Add GUI smoke/integration tests using headless mode for basic rendering and event dispatch verification.
+30. [ ] Create test fixtures/builders for maps and units to simplify test setup; place under `test/resources` and helper classes under `test/java`.
+31. [ ] Ensure deterministic asset loading in tests (mock ImageCache, sound player no-op in test scope).
+32. [ ] Abstract sound playback (e.g., `SoundPlayer` interface) and use a background thread or queued executor; avoid blocking the EDT.
+33. [ ] Make `Unit` more immutable where possible (final fields for stats; minimize setters); keep mutable state (health, status flags) explicit and well-scoped.
+34. [ ] Review and document damage/experience formulas; extract constants and provide references in code comments.
+35. [ ] Replace magic numbers in rendering (e.g., hard-coded grid sizes 15x10, offsets 13/8) with named constants or configuration.
+36. [ ] Implement viewport/scroll management as a dedicated model (with bounds checks) rather than ad-hoc adjustments in drawing code.
+37. [ ] Ensure map and unit serialization/deserialization is validated; add schema/versioning for map files if needed.
+38. [ ] Add error handling and user feedback pathways for resource IO failures (missing sprites, sounds, maps) without crashing.
+39. [ ] Remove dead code and unused imports; reformat with a consistent code style (Google or Sun) applied via Gradle.
+40. [ ] Write developer onboarding docs (README sections) for running, testing, and contributing; include common workflows and coding standards.
+41. [ ] Add ADR (Architecture Decision Records) for key changes (event system, controller separation, resource cache) to capture rationale.
+42. [ ] Profile rendering hotspots (VisualVM/Java Flight Recorder) and set performance budgets (ms/frame); track improvements.
+43. [ ] Review thread-safety of shared structures (e.g., `LocationManager`, `UnitManager`) if accessed from non-EDT threads; add synchronization or confine to single thread.
+44. [ ] Introduce a lightweight save/load of `GameState` for debugging and regression testing scenarios.
+45. [ ] Create a migration guide for phasing out singleton patterns and boolean team flags, including interim adapters (e.g., `getTeamEnum`).
+46. [ ] Implement feature toggles to switch between legacy and new flows during refactor (config-driven) to de-risk.
+47. [ ] Add comprehensive Javadoc for public APIs (MapService, controllers, services) and ensure generated docs build.
+48. [ ] Validate packaging of resources in builds (Gradle processResources) and avoid reliance on working-directory; favor classpath resources.
+49. [ ] Ensure headless mode compatibility for CI (avoid AWT peer initialization in tests) and guard UI code accordingly.
+50. [ ] Set up pre-commit checks or Git hooks (optional) to run formatting, static analysis, and tests locally.
+
+<!-- Legacy checklist content retained below for historical reference -->
 
 Below is an ordered, actionable checklist of improvements spanning architecture, code quality, testing, tooling, and documentation. Each task is intentionally small enough to be executed and tracked. Check off items as you complete them.
 

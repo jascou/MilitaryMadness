@@ -25,23 +25,29 @@ import military.engine.Unit;
  */
 public class HexGridPanel extends JPanel {
 
-    private ArrayList<Point> selectLocs;
+    private ArrayList<Point> selectLocs = new ArrayList<>();
     private Point cursorLoc = new Point(0, 0);
     private Point corner = new Point(0, 0);
 
     public void render(ArrayList<Point> select, Point cursor) {
-        selectLocs = select;
-        cursorLoc = cursor;
-        paintComponent(this.getGraphics());
+        // Update state and request an EDT repaint instead of direct painting
+        selectLocs = (select != null) ? new ArrayList<>(select) : new ArrayList<>();
+        cursorLoc = (cursor != null) ? new Point(cursor) : new Point(0, 0);
+        javax.swing.SwingUtilities.invokeLater(this::repaint);
     }
 
     public void render() {
         selectLocs = new ArrayList<>();
         cursorLoc = new Point(100, 100);
-        paintComponent(this.getGraphics());
+        javax.swing.SwingUtilities.invokeLater(this::repaint);
     }
 
     public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        java.util.logging.Logger dbg = military.util.Logs.getLogger(HexGridPanel.class);
+        String dbgMsg = "[DEBUG_LOG] HexGridPanel.paintComponent(): selectLocs size=" + (selectLocs==null?"null":selectLocs.size()) + ", cursorLoc=" + cursorLoc;
+        dbg.info(dbgMsg);
+        System.out.println(dbgMsg);
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(6));
         BufferedImage bimg = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -80,7 +86,7 @@ public class HexGridPanel extends JPanel {
             HexMech.selectHex(p.x, p.y, g2img);
         }
         HexMech.cursor(cursorLoc.x, cursorLoc.y, g2img);
-        // Draw map with grid.  If this event occurred on mouse-click, center map on click
+        // Draw map with grid.  If this event occurred on mouse-click, center the map on click
         g2.drawImage(bimg, 0, 0, null);
     }
 
