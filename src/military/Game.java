@@ -74,7 +74,7 @@ public class Game implements Runnable {
     private final military.engine.GameController controller;
 
     public Game(String levelName) {
-        LocationManager.loadMap(levelName);
+        new military.engine.DefaultMapService().loadMap(levelName);
         gui = new GUI(levelName);
         // Provide GUI with controller actions (dependency inversion)
         gui.setActions(new military.gui.GUI.GameActions() {
@@ -227,7 +227,7 @@ public class Game implements Runnable {
                             JOptionPane.showMessageDialog(gui, "Cannot Attack Here");
                             continue;
                         }
-                        gui.displayCombat(military.engine.CombatResolver.resolve(
+                        displayCombatAndPost(military.engine.CombatResolver.resolve(
                                 LocationManager.getLoc(unitLoc).getUnit(),
                                 LocationManager.getLoc(cursor).getUnit(),
                                 LocationManager.getLoc(cursor)));
@@ -245,12 +245,12 @@ public class Game implements Runnable {
                             UnitManager.getInstance().removeUnit(LocationManager.getLoc(unitLoc).getUnit());
                             LocationManager.getLoc(unitLoc).removeUnit();
                         }
-                        if (UnitManager.getInstance().getUnits(false).isEmpty()) {
+                        if (unitRepo.getUnits(military.engine.Team.RED).isEmpty()) {
                             JOptionPane.showMessageDialog(gui, "Player 1 Wins!");
                             gui.dispose();
                             return;
                         }
-                        if (UnitManager.getInstance().getUnits(true).isEmpty()) {
+                        if (unitRepo.getUnits(military.engine.Team.BLUE).isEmpty()) {
                             JOptionPane.showMessageDialog(gui, "Player 2 Wins!");
                             gui.dispose();
                             return;
@@ -355,6 +355,7 @@ public class Game implements Runnable {
                         Unit u = newLoc.getUnit();
                         mFactory.removeUnit(u);
                         u.attack();
+                        military.engine.events.EventBus.getInstance().post(new military.engine.events.UnitMoved(u, new java.awt.Point(newLoc.getLoc())));
                     }
                     if (LocationManager.getLoc(cursor) instanceof Base && ((Base) newLoc).getTeam() != turn) {
                         JOptionPane.showMessageDialog(gui, "Player " + (turn ? "1" : "2") + " Wins!");
@@ -385,12 +386,12 @@ public class Game implements Runnable {
                         UnitManager.getInstance().removeUnit(LocationManager.getLoc(unitLoc).getUnit());
                         LocationManager.getLoc(unitLoc).removeUnit();
                     }
-                    if (UnitManager.getInstance().getUnits(false).isEmpty()) {
+                    if (unitRepo.getUnits(military.engine.Team.RED).isEmpty()) {
                         JOptionPane.showMessageDialog(gui, "Player 1 Wins!");
                         gui.dispose();
                         return;
                     }
-                    if (UnitManager.getInstance().getUnits(true).isEmpty()) {
+                    if (unitRepo.getUnits(military.engine.Team.BLUE).isEmpty()) {
                         JOptionPane.showMessageDialog(gui, "Player 2 Wins!");
                         gui.dispose();
                         return;
@@ -437,6 +438,8 @@ public class Game implements Runnable {
 
     }
 
+    private final military.engine.UnitRepository unitRepo = military.engine.DefaultUnitRepository.getInstance();
+
     private void shift() {
         if (LocationManager.getLoc(cursor).isEmpty()) {
             JOptionPane.showMessageDialog(gui, "No Unit Present");
@@ -454,23 +457,10 @@ public class Game implements Runnable {
         buttonCursor.y = -1;
         unitLoc = new Point(cursor.x, cursor.y);
 
-        int movesLeftAtPoint[][] = new int[LocationManager.getSize().x][LocationManager.getSize().y];
-        for (int i = 0; i < movesLeftAtPoint.length; i++) {
-            for (int j = 0; j < movesLeftAtPoint[0].length; j++) {
-                movesLeftAtPoint[i][j] = -1;
-            }
-        }
         Unit unit = LocationManager.getLoc(cursor).getUnit();
-        movesLeftAtPoint[cursor.x][cursor.y] = LocationManager.getLoc(cursor).getUnit().getShift();
-        movesBreadthFirstSearch(cursor, movesLeftAtPoint, unit);
+        java.util.List<Point> moves = military.engine.PathfindingService.computeMovesBfs(cursor, unit, turn);
         selectLocs.clear();
-        for (int i = 0; i < movesLeftAtPoint.length; i++) {
-            for (int j = 0; j < movesLeftAtPoint[0].length; j++) {
-                if (movesLeftAtPoint[i][j] > -1) {
-                    selectLocs.add(new Point(i, j));
-                }
-            }
-        }
+        selectLocs.addAll(moves);
         java.util.logging.Logger dbg = military.util.Logs.getLogger(Game.class);
         String debugMsg = "[DEBUG_LOG] shift(): selectLocs size=" + selectLocs.size() + ", cursor=" + cursor + ", thread=" + Thread.currentThread().getName();
         dbg.info(debugMsg);
@@ -627,6 +617,7 @@ public class Game implements Runnable {
                         Unit u = newLoc.getUnit();
                         mFactory.removeUnit(u);
                         u.attack();
+                        military.engine.events.EventBus.getInstance().post(new military.engine.events.UnitMoved(u, new java.awt.Point(newLoc.getLoc())));
                     }
                     if (LocationManager.getLoc(cursor) instanceof Base && ((Base) newLoc).getTeam() != turn) {
                         javax.swing.JOptionPane.showMessageDialog(gui, "Player " + (turn ? "1" : "2") + " Wins!");
@@ -921,13 +912,20 @@ public class Game implements Runnable {
         logger.info("Info requested");
     }
 
+    private void displayCombatAndPost(CombatStats stats) {
+        gui.displayCombat(stats);
+        military.engine.events.EventBus.getInstance().post(new military.engine.events.CombatResolved(stats));
+    }
+
     private void end() {
         turn = !turn;
-        UnitManager.getInstance().resetUnits();
+        unitRepo.resetUnits();
         buttonCursor.y = -1;
         if (turn) {
             gui.incrementTurn();
         }
+        // Post domain event for turn switch
+        military.engine.events.EventBus.getInstance().post(new military.engine.events.TurnStarted(turn ? military.engine.Team.BLUE : military.engine.Team.RED));
         controller.render(gui, turn, selectLocs, cursor);
     }
 }

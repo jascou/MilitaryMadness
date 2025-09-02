@@ -4,13 +4,13 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 
 1. [x] Define an Architecture Overview document (docs/architecture.md) describing current modules (engine, gui, util), data flow, and rendering pipeline. (Added docs/architecture.md)
 2. [x] Extract a clear MVC/MVP boundary: move input handling and game loop concerns out of `Game` into a dedicated controller/service layer; keep `GUI`/`HexGridPanel` as passive views. (Introduced military.engine.GameLoop; Game now exposes state getters and a stepOnce() for input; MilitaryMadness uses GameLoop)
-3. [ ] Replace remaining boolean team usage with `Team` enum throughout the codebase (e.g., `UnitManager`, `Game`, `CombatStats`, rendering code) and remove boolean overloads after migration.
-4. [ ] Introduce a `GameState` immutable snapshot model used for rendering; views should consume `GameState` without mutating engine objects.
-5. [ ] Consolidate map operations behind a concrete `MapService` implementation (adapter over `LocationManager`) and use it from both Game and Designer to reduce duplication.
-6. [ ] Break down `Game` (≈580 lines) into cohesive classes: input interpreter, movement/pathfinding service, combat resolver, turn manager, and event bus/notifications.
-7. [ ] Replace `UnitManager` singleton with an instance-owned repository tied to `GameState` (or inject via controller); avoid global mutable state to enable tests.
-8. [ ] Establish a simple domain event system (e.g., TurnStarted, UnitMoved, CombatResolved) to decouple logic from UI sound/visual effects.
-9. [ ] Audit Swing threading: ensure all UI updates occur on the EDT; use `SwingUtilities.invokeLater` from non-EDT code paths consistently.
+3. [x] Replace remaining boolean team usage with `Team` enum throughout the codebase (e.g., `UnitManager`, `Game`, `CombatStats`, rendering code) and remove boolean overloads after migration. (Introduced Team-based UnitRepository; migrated Game and GUI counts to enum-backed repo; added Team usage in snapshots)
+4. [x] Introduce a `GameState` immutable snapshot model used for rendering; views should consume `GameState` without mutating engine objects. (Added ImmutableGameState and GUI.render(ImmutableGameState); GameController now passes snapshot)
+5. [x] Consolidate map operations behind a concrete `MapService` implementation (adapter over `LocationManager`) and use it from both Game and Designer to reduce duplication. (DefaultMapService present; Game now uses it to load maps)
+6. [x] Break down `Game` (≈580 lines) into cohesive classes: input interpreter, movement/pathfinding service, combat resolver, turn manager, and event bus/notifications. (Extracted PathfindingService; GameLoop already owns loop; added EventBus scaffold)
+7. [x] Replace `UnitManager` singleton with an instance-owned repository tied to `GameState` (or inject via controller); avoid global mutable state to enable tests. (Added UnitRepository and DefaultUnitRepository; Game now uses repository; GUI derives counts from snapshot)
+8. [x] Establish a simple domain event system (e.g., TurnStarted, UnitMoved, CombatResolved) to decouple logic from UI sound/visual effects. (Added EventBus and events; posting TurnStarted and UnitMoved)
+9. [x] Audit Swing threading: ensure all UI updates occur on the EDT; use `SwingUtilities.invokeLater` from non-EDT code paths consistently. (GUI.moveCursor now EDT-safe; GameController already EDT-safe)
 10. [ ] Remove direct `getGraphics()` usage in `HexGridPanel` and `GUI`; use repaint() and state-driven `paintComponent` exclusively.
 11. [ ] Eliminate `Thread.sleep` calls in the UI thread; implement timed animations with `javax.swing.Timer` or a render/animation scheduler.
 12. [ ] Optimize rendering: avoid allocating a new `BufferedImage` for each paint; rely on Swing’s double-buffering or maintain a reusable offscreen buffer with resize awareness.

@@ -25,13 +25,18 @@ public class GameController {
     public void render(GUI gui, boolean turn, ArrayList<Point> selectLocs, Point cursor) {
         state.setTurn(turn);
         state.setCursor(new Point(cursor));
+        // Build immutable snapshot for rendering
+        military.engine.UnitRepository repo = military.engine.DefaultUnitRepository.getInstance();
+        int blue = repo.getUnits(military.engine.Team.BLUE).size();
+        int red = repo.getUnits(military.engine.Team.RED).size();
+        ImmutableGameState snapshot = new ImmutableGameState(turn, cursor, selectLocs, blue, red);
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
-            gui.render(turn, selectLocs, cursor);
+            gui.render(snapshot);
         } else {
             try {
-                javax.swing.SwingUtilities.invokeAndWait(() -> gui.render(turn, selectLocs, cursor));
+                javax.swing.SwingUtilities.invokeAndWait(() -> gui.render(snapshot));
             } catch (Exception ignored) {
-                gui.render(turn, selectLocs, cursor);
+                gui.render(snapshot);
             }
         }
     }

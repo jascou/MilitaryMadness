@@ -6,6 +6,7 @@
 package military.gui;
 
 import military.engine.CombatStats;
+import military.engine.ImmutableGameState;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -77,14 +78,24 @@ public class GUI extends JFrame {
     }
 
     public void render(boolean turn, ArrayList<Point> select, Point cursor) {
+        // Backward-compatible path: construct a temporary snapshot and delegate
+        ImmutableGameState snap = new ImmutableGameState(turn, cursor, select,
+                military.engine.DefaultUnitRepository.getInstance().getUnits(military.engine.Team.BLUE).size(),
+                military.engine.DefaultUnitRepository.getInstance().getUnits(military.engine.Team.RED).size());
+        render(snap);
+    }
+
+    // New snapshot-based rendering API
+    public void render(ImmutableGameState state) {
         java.util.logging.Logger dbg = military.util.Logs.getLogger(GUI.class);
-        String dbgMsg = "[DEBUG_LOG] GUI.render(): select size=" + (select==null?"null":select.size()) + ", cursor=" + cursor + ", EDT=" + javax.swing.SwingUtilities.isEventDispatchThread();
+        String dbgMsg = "[DEBUG_LOG] GUI.render(state): select size=" + (state.getSelect()==null?"null":state.getSelect().size()) + ", cursor=" + state.getCursor() + ", EDT=" + javax.swing.SwingUtilities.isEventDispatchThread();
         dbg.info(dbgMsg);
         System.out.println(dbgMsg);
         displayPanel = hexGridPanel;
-        this.turn = turn;
-        player1.setText("<html>Player 1<br>Units: " + UnitManager.getInstance().getUnits(true).size() + "</html>");
-        player2.setText("<html>Player 2<br>Units: " + UnitManager.getInstance().getUnits(false).size() + "</html>");
+        this.turn = state.getTurn();
+        player1.setText("<html>Player 1<br>Units: " + state.getBlueCount() + "</html>");
+        player2.setText("<html>Player 2<br>Units: " + state.getRedCount() + "</html>");
+        Point cursor = state.getCursor();
         if (cursor.x == -1) {
             if (cursor.y == 0) {
                 shift.grabFocus();
@@ -101,7 +112,7 @@ public class GUI extends JFrame {
             hexGridPanel.grabFocus();
         }
         if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
-            hexGridPanel.render(select, new Point(cursor.x, cursor.y));
+            hexGridPanel.render(new ArrayList<>(state.getSelect()), new Point(cursor.x, cursor.y));
             bottomPanel.render(cursor);
         } else {
             System.out.println("Cursor exceeds map bounds");
@@ -109,13 +120,16 @@ public class GUI extends JFrame {
     }
 
     public void moveCursor(Point cursor) {
-        int x, y;
-        x = cursor.x;
-        y = cursor.y;
+        if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+            javax.swing.SwingUtilities.invokeLater(() -> moveCursor(new Point(cursor)));
+            return;
+        }
+        int x = cursor.x;
+        int y = cursor.y;
         if (x < 0 || ((x % 2 == 0) && (y == 0))) { // Ensure click is within map bounds
             return;
         }
-        if(displayPanel == hexGridPanel){
+        if (displayPanel == hexGridPanel) {
             hexGridPanel.grabFocus();
             try {
                 hexGridPanel.drawCursor(new Point(cursor.x, cursor.y), turn);
@@ -124,11 +138,10 @@ public class GUI extends JFrame {
             }
             bottomPanel.render(cursor);
         }
-        if(displayPanel == factoryPanel){
+        if (displayPanel == factoryPanel) {
             factoryPanel.drawCursor(new Point(cursor.x, cursor.y));
             bottomPanel.factoryUnit(factoryPanel.getUnit());
         }
-        
     }
 
     public void displayCombat(CombatStats cstat) {
