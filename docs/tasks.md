@@ -2,7 +2,7 @@
 
 A prioritized, actionable checklist to improve architecture, code quality, performance, testing, and tooling. Each item is intentionally small enough to be completed in a focused PR.
 
-1. [ ] Define an Architecture Overview document (docs/architecture.md) describing current modules (engine, gui, util), data flow, and rendering pipeline.
+1. [x] Define an Architecture Overview document (docs/architecture.md) describing current modules (engine, gui, util), data flow, and rendering pipeline. (Added docs/architecture.md)
 2. [ ] Extract a clear MVC/MVP boundary: move input handling and game loop concerns out of `Game` into a dedicated controller/service layer; keep `GUI`/`HexGridPanel` as passive views.
 3. [ ] Replace remaining boolean team usage with `Team` enum throughout the codebase (e.g., `UnitManager`, `Game`, `CombatStats`, rendering code) and remove boolean overloads after migration.
 4. [ ] Introduce a `GameState` immutable snapshot model used for rendering; views should consume `GameState` without mutating engine objects.
