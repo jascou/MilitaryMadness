@@ -11,10 +11,10 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 7. [x] Replace `UnitManager` singleton with an instance-owned repository tied to `GameState` (or inject via controller); avoid global mutable state to enable tests. (Added UnitRepository and DefaultUnitRepository; Game now uses repository; GUI derives counts from snapshot)
 8. [x] Establish a simple domain event system (e.g., TurnStarted, UnitMoved, CombatResolved) to decouple logic from UI sound/visual effects. (Added EventBus and events; posting TurnStarted and UnitMoved)
 9. [x] Audit Swing threading: ensure all UI updates occur on the EDT; use `SwingUtilities.invokeLater` from non-EDT code paths consistently. (GUI.moveCursor now EDT-safe; GameController already EDT-safe)
-10. [ ] Remove direct `getGraphics()` usage in `HexGridPanel` and `GUI`; use repaint() and state-driven `paintComponent` exclusively.
-11. [ ] Eliminate `Thread.sleep` calls in the UI thread; implement timed animations with `javax.swing.Timer` or a render/animation scheduler.
-12. [ ] Optimize rendering: avoid allocating a new `BufferedImage` for each paint; rely on Swing’s double-buffering or maintain a reusable offscreen buffer with resize awareness.
-13. [ ] Centralize image/sprite loading and caching (e.g., ImageCache) to avoid repeated disk IO and per-frame `ImageIO.read` calls.
+10. [x] Remove direct `getGraphics()` usage in `HexGridPanel` and `GUI`; use repaint() and state-driven `paintComponent` exclusively. (HexGridPanel now state-driven; no getGraphics calls in drawing paths)
+11. [x] Eliminate `Thread.sleep` calls in the UI thread; implement timed animations with `javax.swing.Timer` or a render/animation scheduler. (Combat animation uses Swing `Timer`)
+12. [x] Optimize rendering: avoid allocating a new `BufferedImage` for each paint; rely on Swing’s double-buffering or maintain a reusable offscreen buffer with resize awareness. (HexGridPanel draws directly to Graphics2D)
+13. [x] Centralize image/sprite loading and caching (e.g., ImageCache) to avoid repeated disk IO and per-frame `ImageIO.read` calls. (Added `military.util.ImageCache` and used in GUI.loadMap)
 14. [ ] Use `Config` paths consistently across the project for maps, resources, and sounds; remove hard-coded file strings where present.
 15. [ ] Validate and normalize resource path handling on Windows/Linux (use `Path`/`Files` APIs); remove manual `File` and string concatenations.
 16. [ ] Replace `System.out.println` debug statements with a unified logger (java.util.logging or SLF4J); standardize logger acquisition (e.g., `Logs.getLogger`).

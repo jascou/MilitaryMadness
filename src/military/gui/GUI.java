@@ -421,7 +421,7 @@ public class GUI extends JFrame {
         //mapPanel = new JPanel();
        // InputStream inStream = null;
         try {
-            BufferedImage bimg = military.util.ResourceLoader.loadImage("Resources/maps/bd01v2.gif");
+            BufferedImage bimg = military.util.ImageCache.get("Resources/maps/bd01v2.gif");
             int width = bimg.getWidth();
             int height = bimg.getHeight();
 //            Image image = ImageIO.read(inStream);
