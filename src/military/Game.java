@@ -152,6 +152,13 @@ public class Game implements Runnable {
                     }
                     kevt = (KeyEvent) evt;
                 }
+                // Allow keyboard Shift to initiate movement highlighting directly
+                if (kevt.getKeyCode() == military.util.InputMappings.SHIFT) {
+                    if (!shifting && !attacking && !factory) {
+                        shift();
+                        continue;
+                    }
+                }
                 if (kevt.getKeyCode() == military.util.InputMappings.ENTER) {
                     if (!shifting && !attacking && !factory) {
                         if (LocationManager.getLoc(cursor) instanceof Factory) {
@@ -268,7 +275,7 @@ public class Game implements Runnable {
                         }
                     }
                 }
-                if (kevt.getKeyCode() == military.util.InputMappings.SHIFT) {
+                if (kevt.getKeyCode() == military.util.InputMappings.ESCAPE) {
                     if (shifting) {
                         shifting = false;
                         selectLocs.clear();
