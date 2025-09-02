@@ -89,8 +89,7 @@ public class GUI extends JFrame {
     public void render(ImmutableGameState state) {
         java.util.logging.Logger dbg = military.util.Logs.getLogger(GUI.class);
         String dbgMsg = "[DEBUG_LOG] GUI.render(state): select size=" + (state.getSelect()==null?"null":state.getSelect().size()) + ", cursor=" + state.getCursor() + ", EDT=" + javax.swing.SwingUtilities.isEventDispatchThread();
-        dbg.info(dbgMsg);
-        System.out.println(dbgMsg);
+        dbg.fine(dbgMsg);
         displayPanel = hexGridPanel;
         this.turn = state.getTurn();
         player1.setText("<html>Player 1<br>Units: " + state.getBlueCount() + "</html>");
@@ -115,7 +114,8 @@ public class GUI extends JFrame {
             hexGridPanel.render(new ArrayList<>(state.getSelect()), new Point(cursor.x, cursor.y));
             bottomPanel.render(cursor);
         } else {
-            System.out.println("Cursor exceeds map bounds");
+            java.util.logging.Logger logger = military.util.Logs.getLogger(GUI.class);
+            logger.fine("Cursor exceeds map bounds");
         }
     }
 
@@ -421,7 +421,8 @@ public class GUI extends JFrame {
         //mapPanel = new JPanel();
        // InputStream inStream = null;
         try {
-            BufferedImage bimg = military.util.ImageCache.get("Resources/maps/bd01v2.gif");
+            String bg = military.Config.resourcesDir().resolve("maps").resolve("bd01v2.gif").toString();
+            BufferedImage bimg = military.util.ImageCache.get(bg);
             int width = bimg.getWidth();
             int height = bimg.getHeight();
 //            Image image = ImageIO.read(inStream);
@@ -444,7 +445,7 @@ public class GUI extends JFrame {
             });
         } catch (Exception ex) {
             java.util.logging.Logger logger = military.util.Logs.getLogger(GUI.class);
-            logger.info("Background image not found: Resources/maps/bd01v2.gif");
+            logger.info("Background image not found: " + military.Config.resourcesDir().resolve("maps").resolve("bd01v2.gif"));
         }
     }
 

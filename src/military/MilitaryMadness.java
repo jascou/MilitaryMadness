@@ -220,7 +220,8 @@ public class MilitaryMadness {
         }
         // checking if the encountered object is a file or not
         if (a[i].isFile()) {
-            System.out.println(a[i].getName());
+            java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+            logger.fine(a[i].getName());
         }
         // recursively printing files from the directory
         // i + 1 means look for the next file

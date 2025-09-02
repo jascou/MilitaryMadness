@@ -99,7 +99,8 @@ public class Game implements Runnable {
     public void run() {
         while (!LocationManager.isCaptured(!turn)) {
             // Optionally, preload frequently used images (background)
-            military.util.ResourceLoader.preloadImages("Resources/maps/bd01v2.gif");
+            String bg = military.Config.resourcesDir().resolve("maps").resolve("bd01v2.gif").toString();
+            military.util.ResourceLoader.preloadImages(bg);
             if (!factory) {
                 controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
             }
@@ -463,8 +464,7 @@ public class Game implements Runnable {
         selectLocs.addAll(moves);
         java.util.logging.Logger dbg = military.util.Logs.getLogger(Game.class);
         String debugMsg = "[DEBUG_LOG] shift(): selectLocs size=" + selectLocs.size() + ", cursor=" + cursor + ", thread=" + Thread.currentThread().getName();
-        dbg.info(debugMsg);
-        System.out.println(debugMsg);
+        dbg.fine(debugMsg);
         // Force an immediate render so valid move hexes highlight without waiting for the next loop
         controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
         // Attempt to force synchronous grid repaint for immediate visual feedback

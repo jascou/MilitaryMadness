@@ -55,6 +55,8 @@ public class HexGridPanel extends JPanel {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        if (selectLocs == null) { selectLocs = new java.util.ArrayList<>(); }
+        if (cursorLoc == null) { cursorLoc = new Point(0, 0); }
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(6));
         // Background
@@ -218,7 +220,8 @@ public class HexGridPanel extends JPanel {
 //            Graphics2D g2 = (Graphics2D) this.getGraphics();
 //            g2.drawImage(bimg, 60, 20, null);
         } catch (Exception ex) {
-            System.out.println("Error loading map image: " + ex);
+            java.util.logging.Logger logger = military.util.Logs.getLogger(HexGridPanel.class);
+            logger.warning("Error loading map image: " + ex);
         }
     }
 

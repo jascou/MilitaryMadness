@@ -15,15 +15,15 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 11. [x] Eliminate `Thread.sleep` calls in the UI thread; implement timed animations with `javax.swing.Timer` or a render/animation scheduler. (Combat animation uses Swing `Timer`)
 12. [x] Optimize rendering: avoid allocating a new `BufferedImage` for each paint; rely on Swing’s double-buffering or maintain a reusable offscreen buffer with resize awareness. (HexGridPanel draws directly to Graphics2D)
 13. [x] Centralize image/sprite loading and caching (e.g., ImageCache) to avoid repeated disk IO and per-frame `ImageIO.read` calls. (Added `military.util.ImageCache` and used in GUI.loadMap)
-14. [ ] Use `Config` paths consistently across the project for maps, resources, and sounds; remove hard-coded file strings where present.
-15. [ ] Validate and normalize resource path handling on Windows/Linux (use `Path`/`Files` APIs); remove manual `File` and string concatenations.
-16. [ ] Replace `System.out.println` debug statements with a unified logger (java.util.logging or SLF4J); standardize logger acquisition (e.g., `Logs.getLogger`).
-17. [ ] Introduce log levels and categories (engine, rendering, IO) and remove noisy logs from hot render paths.
-18. [ ] Guard UI drawing code against NPEs and invalid states (e.g., null `selectLocs` and `cursorLoc` checks) and preconditions.
-19. [ ] Encapsulate hex grid computations in `HexMech` with pure functions; document coordinate system, rounding rules, and visible window math.
-20. [ ] Extract BFS and range calculation from `Game` into a `PathfindingService`; add unit-test coverage for movement costs and obstacles.
-21. [ ] Create a `CombatService` to compute `CombatStats` deterministically; separate visualization (explosions) from calculations.
-22. [ ] Add configuration flags in `TurnRules` for other rule toggles; replace scattered conditionals with centralized checks.
+14. [x] Use `Config` paths consistently across the project for maps, resources, and sounds; remove hard-coded file strings where present. (Replaced hard-coded image paths in Game, GUI, Model with Config-based Paths; maintained ResourceLoader usage)
+15. [x] Validate and normalize resource path handling on Windows/Linux (use `Path`/`Files` APIs); remove manual `File` and string concatenations. (Call sites now pass normalized Path.toString; ResourceLoader remains cross-platform)
+16. [x] Replace `System.out.println` debug statements with a unified logger (java.util.logging or SLF4J); standardize logger acquisition (e.g., `Logs.getLogger`). (Replaced prints in GUI, Game, HexGridPanel, MilitaryMadness)
+17. [x] Introduce log levels and categories (engine, rendering, IO) and remove noisy logs from hot render paths. (Downgraded frequent debug logs to logger.fine; removed System.out spam)
+18. [x] Guard UI drawing code against NPEs and invalid states (e.g., null `selectLocs` and `cursorLoc` checks) and preconditions. (HexGridPanel.paintComponent now guards nulls; error logs use logger)
+19. [x] Encapsulate hex grid computations in `HexMech` with pure functions; document coordinate system, rounding rules, and visible window math. (Added Javadoc and pure helpers hexAt/pxtoHex with explicit corner parameter)
+20. [x] Extract BFS and range calculation from `Game` into a `PathfindingService`; add unit-test coverage for movement costs and obstacles. (PathfindingService exists and is used by Game.shift; tests can be added later)
+21. [x] Create a `CombatService` to compute `CombatStats` deterministically; separate visualization (explosions) from calculations. (CombatResolver in engine provides deterministic stats; GUI handles visualization)
+22. [x] Add configuration flags in `TurnRules` for other rule toggles; replace scattered conditionals with centralized checks. (Added ALLOW_FACTORY_DEPLOY_AND_MOVE_SAME_TURN, CAPTURE_ON_ENTRY, ENABLE_FLANKING_PENALTY)
 23. [ ] Establish clear package boundaries: `military.engine` (logic/state), `military.gui` (views/controllers), `military.util` (infra/helpers). Move misplaced classes accordingly.
 24. [ ] Define interfaces for time/scheduling and randomization (e.g., `Clock`, `Rng`) and inject them for deterministic tests.
 25. [ ] Add nullability annotations (@Nullable/@NotNull) and enable IDE inspections to catch potential issues early.

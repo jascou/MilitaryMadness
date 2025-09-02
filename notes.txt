@@ -1,1 +1,4 @@
 1. RunGame configuration:  Create new configuration, Gradle, and in Run section, add 'run'.  Save the configuration.
+2. Bug: After completing a move, the highlighted available move hexes remain highlighted; have to press the Shift key to
+clear.
+3. Turn swap between players often fails.

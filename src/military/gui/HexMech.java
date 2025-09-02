@@ -9,7 +9,12 @@ import military.engine.LocationManager;
 import military.engine.Unit;
 
 /**
- * Code taken and editied from http://www.quarkphysics.ca/scripsi/hexgrid/
+ * Hex grid math and drawing helpers.
+ * Coordinates:
+ * - i = column (x), j = row (y) in axial-like grid with staggered rows.
+ * - Corner is the top-left visible hex index used for viewport offset.
+ * Pure helpers are provided to compute polygon/point mapping without mutating state.
+ * Code originally adapted from http://www.quarkphysics.ca/scripsi/hexgrid/
  */
 public class HexMech {
 
@@ -191,4 +196,56 @@ public class HexMech {
         return p;
     }
 
+    /**
+     * Pure variant of hex() that computes the polygon for a given corner viewport without mutating global corner.
+     */
+    public static Polygon hexAt(int i, int j, Point cornerParam) {
+        int x = (i - cornerParam.x) * (s + t);
+        int y = (j - cornerParam.y) * h + (i % 2) * h / 2;
+        int[] cx = new int[]{x + t, x + t + s, x + t + s + t, x + t + s, x + t, x};
+        int[] cy = new int[]{y, y, y + r, y + r + r, y + r + r, y + r};
+        return new Polygon(cx, cy, 6);
+    }
+
+    /**
+     * Pure variant of pxtoHex() that maps pixels to grid coords for a provided corner without changing state.
+     */
+    public static Point pxtoHex(int mx, int my, Point cornerParam) {
+        Point p = new Point(-1, -1);
+        int x = (int) (mx / (s + t));
+        int y = (int) ((my - (x % 2) * r) / h);
+        int dx = mx - x * (s + t);
+        int dy = my - y * h;
+        if (my - (x % 2) * r < 0) {
+            return p;
+        }
+        if (x % 2 == 0) {
+            if (dy > r) {
+                if (dx * r / t < dy - r) {
+                    x--;
+                }
+            }
+            if (dy < r) {
+                if ((t - dx) * r / t > dy) {
+                    x--;
+                    y--;
+                }
+            }
+        } else {
+            if (dy > h) {
+                if (dx * r / t < dy - h) {
+                    x--;
+                    y++;
+                }
+            }
+            if (dy < h) {
+                if ((t - dx) * r / t > dy - r) {
+                    x--;
+                }
+            }
+        }
+        p.x = x + cornerParam.x;
+        p.y = y + cornerParam.y;
+        return p;
+    }
 }

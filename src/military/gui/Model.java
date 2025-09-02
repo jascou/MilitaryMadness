@@ -55,14 +55,16 @@ public class Model {
     
     private void loadImage() {
         try {
-            image = military.util.ResourceLoader.loadImage("Resources/" + name + ".gif");
+            String path = military.Config.resourcesDir().resolve(name + ".gif").toString();
+            image = military.util.ResourceLoader.loadImage(path);
         } catch (IOException ex) {
             java.util.logging.Logger logger = military.util.Logs.getLogger(Model.class);
             logger.info("Image not found: Resources/" + name + ".gif");
         }
         BufferedImage temp = null;
         try {
-            temp = military.util.ResourceLoader.loadImage("Resources/" + name + ".gif");
+            String path2 = military.Config.resourcesDir().resolve(name + ".gif").toString();
+            temp = military.util.ResourceLoader.loadImage(path2);
         } catch (IOException ex) {
             java.util.logging.Logger logger = military.util.Logs.getLogger(Model.class);
             logger.info("Image not found (temp): Resources/" + name + ".gif");
