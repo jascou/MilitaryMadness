@@ -32,12 +32,12 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 28. [x] Expand unit tests: engine movement, combat, capture conditions, map loading edge cases, and serialization; target high-risk classes first (`Game`, `LocationManager`). (Added CombatDeterminismTest)
 29. [x] Add GUI smoke/integration tests using headless mode for basic rendering and event dispatch verification. (Added GuiHeadlessSmokeTest guarded for headless)
 30. [x] Create test fixtures/builders for maps and units to simplify test setup; place under `test/resources` and helper classes under `test/java`. (Added TestBuilders)
-31. [ ] Ensure deterministic asset loading in tests (mock ImageCache, sound player no-op in test scope).
-32. [ ] Abstract sound playback (e.g., `SoundPlayer` interface) and use a background thread or queued executor; avoid blocking the EDT.
-33. [ ] Make `Unit` more immutable where possible (final fields for stats; minimize setters); keep mutable state (health, status flags) explicit and well-scoped.
-34. [ ] Review and document damage/experience formulas; extract constants and provide references in code comments.
-35. [ ] Replace magic numbers in rendering (e.g., hard-coded grid sizes 15x10, offsets 13/8) with named constants or configuration.
-36. [ ] Implement viewport/scroll management as a dedicated model (with bounds checks) rather than ad-hoc adjustments in drawing code.
+31. [x] Ensure deterministic asset loading in tests (mock ImageCache, sound player no-op in test scope). (ImageCache now supports setImageLoader; added ImageCacheDeterministicTest; Sound tests use FakeSoundPlayer)
+32. [x] Abstract sound playback (e.g., `SoundPlayer` interface) and use a background thread or queued executor; avoid blocking the EDT. (SoundPlayer exists; SoundUtility runs on dedicated thread/queue)
+33. [x] Make `Unit` more immutable where possible (final fields for stats; minimize setters); keep mutable state (health, status flags) explicit and well-scoped. (Documented mutable fields; core stats final; Team enum adapter retained)
+34. [x] Review and document damage/experience formulas; extract constants and provide references in code comments. (Added constants and comments in CombatStats)
+35. [x] Replace magic numbers in rendering (e.g., hard-coded grid sizes 15x10, offsets 13/8) with named constants or configuration. (HexGridPanel constants VIEW_WIDTH/HEIGHT and thresholds)
+36. [x] Implement viewport/scroll management as a dedicated model (with bounds checks) rather than ad-hoc adjustments in drawing code. (Added Viewport model; HexGridPanel delegates scrolling)
 37. [ ] Ensure map and unit serialization/deserialization is validated; add schema/versioning for map files if needed.
 38. [ ] Add error handling and user feedback pathways for resource IO failures (missing sprites, sounds, maps) without crashing.
 39. [ ] Remove dead code and unused imports; reformat with a consistent code style (Google or Sun) applied via Gradle.

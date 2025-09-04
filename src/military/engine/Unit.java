@@ -8,8 +8,9 @@ package military.engine;
 import java.awt.Point;
 
 /**
- *
- * @author Nate
+ * Unit domain model.
+ * Immutable core stats (type/name/attacks/defense/range/shift, flags for air/ranged) are final.
+ * Mutable state is explicit and limited to team, experience, health, shiftDone/attackDone, and location.
  */
 public class Unit{
 

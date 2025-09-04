@@ -24,9 +24,17 @@ import military.engine.Unit;
  */
 public class HexGridPanel extends JPanel {
 
+    // Viewport configuration constants
+    private static final int VIEW_WIDTH = 15;
+    private static final int VIEW_HEIGHT = 10;
+    private static final int SCROLL_THRESHOLD_X = 13;
+    private static final int SCROLL_THRESHOLD_Y = 8;
+    private static final int TIMER_MS = 16;
+    private static final int BULLET_STEP = 6;
+
     private ArrayList<Point> selectLocs = new ArrayList<>();
     private Point cursorLoc = new Point(0, 0);
-    private Point corner = new Point(0, 0);
+    private final Viewport viewport = new Viewport(VIEW_WIDTH, VIEW_HEIGHT);
 
     // Combat animation state
     private boolean inCombat = false;
@@ -63,30 +71,31 @@ public class HexGridPanel extends JPanel {
         g2.setColor(Color.black);
         g2.fillRect(0, 0, getWidth(), getHeight());
         // Draw grid and selections
+        Point corner = viewport.getCorner();
         HexMech.setCorner(corner);
-        for (int i = corner.x; i < corner.x + 15; i++) {
-            for (int j = corner.y; j < corner.y + 10; j++) {
+        for (int i = corner.x; i < corner.x + VIEW_WIDTH; i++) {
+            for (int j = corner.y; j < corner.y + VIEW_HEIGHT; j++) {
                 HexMech.drawHex(i, j, g2);
             }
         }
         if (corner.x > 0) {
-            for (int j = corner.y; j < corner.y + 10; j++) {
+            for (int j = corner.y; j < corner.y + VIEW_HEIGHT; j++) {
                 HexMech.drawHex(corner.x - 1, j, g2);
             }
         }
         if (corner.y > 0) {
-            for (int i = corner.x; i < corner.x + 15; i++) {
+            for (int i = corner.x; i < corner.x + VIEW_WIDTH; i++) {
                 HexMech.drawHex(i, corner.y - 1, g2);
             }
         }
-        if (corner.x < LocationManager.getSize().x - 15) {
-            for (int j = corner.y; j < corner.y + 10; j++) {
-                HexMech.drawHex(corner.x + 15, j, g2);
+        if (corner.x < LocationManager.getSize().x - VIEW_WIDTH) {
+            for (int j = corner.y; j < corner.y + VIEW_HEIGHT; j++) {
+                HexMech.drawHex(corner.x + VIEW_WIDTH, j, g2);
             }
         }
-        if (corner.y < LocationManager.getSize().y - 10) {
-            for (int i = corner.x; i < corner.x + 15; i++) {
-                HexMech.drawHex(i, corner.y + 10, g2);
+        if (corner.y < LocationManager.getSize().y - VIEW_HEIGHT) {
+            for (int i = corner.x; i < corner.x + VIEW_WIDTH; i++) {
+                HexMech.drawHex(i, corner.y + VIEW_HEIGHT, g2);
             }
         }
         for (Point p : selectLocs) {
@@ -105,16 +114,9 @@ public class HexGridPanel extends JPanel {
 
     public void updateCursor(Point cursor, boolean turn) {
         cursorLoc = (cursor != null) ? new Point(cursor) : new Point(0, 0);
-        // Adjust corner to keep cursor near center region
-        if (cursorLoc.x == corner.x && cursorLoc.x != 0) {
-            corner.x -= 2;
-        } else if (cursorLoc.y == corner.y && cursorLoc.y != 0) {
-            corner.y -= 2;
-        } else if (cursorLoc.x == corner.x + 13 && cursorLoc.x < LocationManager.getSize().x - 2) {
-            corner.x += 2;
-        } else if (cursorLoc.y == corner.y + 8 && cursorLoc.y < LocationManager.getSize().y - 2) {
-            corner.y += 2;
-        }
+        // Adjust viewport to keep cursor near edges according to thresholds
+        viewport.adjustToCursor(cursorLoc, LocationManager.getSize().x, LocationManager.getSize().y,
+                SCROLL_THRESHOLD_X, SCROLL_THRESHOLD_Y);
         repaint();
     }
 
@@ -134,10 +136,10 @@ public class HexGridPanel extends JPanel {
         if (combatTimer != null) {
             combatTimer.stop();
         }
-        combatTimer = new Timer(16, e -> {
+        combatTimer = new Timer(TIMER_MS, e -> {
             if (!inCombat) { ((Timer)e.getSource()).stop(); return; }
             if (phase == 0) {
-                animX += 6;
+                animX += BULLET_STEP;
                 if (animX >= getWidth() - 85) {
                     phase = 1;
                     phaseTicks = 0;

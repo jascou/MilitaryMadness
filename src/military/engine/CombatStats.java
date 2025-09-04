@@ -11,6 +11,14 @@ import military.util.Rng;
  */
 public class CombatStats {
 
+    // Damage/experience computation constants
+    private static final double[] EXP_MOD = {1.0, 1.05, 1.1, 1.2, 1.3, 1.4, 1.6, 1.8, 2.0};
+    private static final double[] SURROUND_MOD = {1.0, 0.8, 0.7, 0.6, 0.5, 0.25};
+    // Damage = (COEFF_A * rand) + ((base/50) * COEFF_B * pow(rand, POWER))
+    private static final double COEFF_A = 2.5;
+    private static final double COEFF_B = 1.2;
+    private static final double POWER = 0.25;
+
     private static Rng RNG = new DefaultRng();
 
     /**
@@ -78,16 +86,15 @@ public class CombatStats {
     }
 
     private void calcBase() {
-        double expMod[] = {1.0, 1.05, 1.1, 1.2, 1.3, 1.4, 1.6, 1.8, 2.0};
         attackerBUA = (int) ((defender.isAir() ? attacker.getAirAttack()
-                : attacker.getLandAttack()) * attacker.getHealth() * expMod[attacker.getExp()]);
+                : attacker.getLandAttack()) * attacker.getHealth() * EXP_MOD[attacker.getExp()]);
         defenderBUA = (int) ((attacker.isAir() ? defender.getAirAttack()
-                : defender.getLandAttack()) * defender.getHealth() * expMod[defender.getExp()]);
+                : defender.getLandAttack()) * defender.getHealth() * EXP_MOD[defender.getExp()]);
         if (attacker.isRanged()) {
             defenderBUA = 0;
         }
-        attackerBUD = (int) (attacker.getDefense() * attacker.getHealth() * expMod[attacker.getExp()]);
-        defenderBUD = (int) (defender.getDefense() * defender.getHealth() * expMod[defender.getExp()]);
+        attackerBUD = (int) (attacker.getDefense() * attacker.getHealth() * EXP_MOD[attacker.getExp()]);
+        defenderBUD = (int) (defender.getDefense() * defender.getHealth() * EXP_MOD[defender.getExp()]);
     }
 
     private void surround() {
@@ -128,20 +135,19 @@ public class CombatStats {
     }
 
     private void calcFinal() {
-        double surrMod[] = {1.0, 0.8, 0.7, 0.6, 0.5, 0.25};
         attackerTerrain = attacker.getLoc().getTerrain();
         defenderTerrain = defender.getLoc().getTerrain();
         attackerFA = (attackerBUA + attackerASup);
         attackerFD = ((attackerBUD + attackerDSup) * (attackerTerrain + 100) / 100);
-        defenderFA = (int) ((defenderBUA + defenderASup) * surrMod[surround]);
-        defenderFD = (int) ((defenderBUD + defenderDSup) * surrMod[surround] * (defenderTerrain + 100) / 100);
+        defenderFA = (int) ((defenderBUA + defenderASup) * SURROUND_MOD[surround]);
+        defenderFD = (int) ((defenderBUD + defenderDSup) * SURROUND_MOD[surround] * (defenderTerrain + 100) / 100);
     }
 
     private void calcLosses() {
         int baseAonD = (attackerFA - defenderFD);
         int baseDonA = (defenderFA - attackerFD);
-        int damAonD = (int) ((2.5 * RNG.nextDouble()) + (((double)baseAonD) / 50) * 1.2 * pow(RNG.nextDouble(), .25));
-        int damDonA = (int) ((2.5 * RNG.nextDouble()) + (((double)baseDonA) / 50) * 1.2 * pow(RNG.nextDouble(), .25));
+        int damAonD = (int) ((COEFF_A * RNG.nextDouble()) + (((double)baseAonD) / 50) * COEFF_B * pow(RNG.nextDouble(), POWER));
+        int damDonA = (int) ((COEFF_A * RNG.nextDouble()) + (((double)baseDonA) / 50) * COEFF_B * pow(RNG.nextDouble(), POWER));
 
         if (defenderBUA == 0) {
             damDonA = 0;
