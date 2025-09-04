@@ -86,6 +86,7 @@ spotbugsMain {
     }
 }
 
+
 check.dependsOn jacocoTestCoverageVerification, spotbugsMain
 
 sourceSets {

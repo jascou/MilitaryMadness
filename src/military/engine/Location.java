@@ -66,9 +66,6 @@ public class Location {
     }
 
     public Color getColor() {
-        float alpha = 0.25f;
-        int type = AlphaComposite.SRC_OVER;
-        AlphaComposite composite = AlphaComposite.getInstance(type, alpha);
         if(terrain == 0)
             return Color.LIGHT_GRAY;
         if(terrain == 10)

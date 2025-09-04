@@ -294,6 +294,7 @@ public class LocationManager {
     /**
          * Saves the current map layout and units to Maps/{filename}.txt.
          * Writing is best-effort; caller is responsible for error handling.
+         * Legacy format without a header to preserve round-trip equality with older maps.
          */
         public static void saveMap(String filename) {
         if (instance == null) {
@@ -324,6 +325,42 @@ public class LocationManager {
             }
         } catch (Exception e) {
             LOGGER.severe("Failed to save map: " + mapPath + " - " + e.getMessage());
+        }
+    }
+
+    /**
+         * Saves using the versioned format with a header (e.g., MMAPv1). Useful for future evolution.
+         */
+        public static void saveMapV1(String filename) {
+        if (instance == null) {
+            instance = new LocationManager();
+        }
+        java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
+        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(mapPath, java.nio.charset.StandardCharsets.UTF_8)) {
+            writer.write("MMAPv1");
+            writer.newLine();
+            writer.write(Integer.toString(entries.size()));
+            writer.newLine();
+            writer.write(Integer.toString(entries.get(0).size()));
+            writer.newLine();
+            for (int i = 0; i < entries.size(); i++) {
+                for (int j = 0; j < entries.get(0).size(); j++) {
+                    writer.write(entries.get(i).get(j).getType() + " ");
+                }
+                writer.newLine();
+            }
+            for (Unit u : UnitManager.getInstance().getUnits(true)) {
+                writer.write(u.getLoc().getLoc().x + " " + u.getLoc().getLoc().y
+                        + " " + u.getName() + " true");
+                writer.newLine();
+            }
+            for (Unit u : UnitManager.getInstance().getUnits(false)) {
+                writer.write(u.getLoc().getLoc().x + " " + u.getLoc().getLoc().y
+                        + " " + u.getName() + " false");
+                writer.newLine();
+            }
+        } catch (Exception e) {
+            LOGGER.severe("Failed to save map (v1): " + mapPath + " - " + e.getMessage());
         }
     }
 

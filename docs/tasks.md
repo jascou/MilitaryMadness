@@ -38,9 +38,9 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 34. [x] Review and document damage/experience formulas; extract constants and provide references in code comments. (Added constants and comments in CombatStats)
 35. [x] Replace magic numbers in rendering (e.g., hard-coded grid sizes 15x10, offsets 13/8) with named constants or configuration. (HexGridPanel constants VIEW_WIDTH/HEIGHT and thresholds)
 36. [x] Implement viewport/scroll management as a dedicated model (with bounds checks) rather than ad-hoc adjustments in drawing code. (Added Viewport model; HexGridPanel delegates scrolling)
-37. [ ] Ensure map and unit serialization/deserialization is validated; add schema/versioning for map files if needed.
-38. [ ] Add error handling and user feedback pathways for resource IO failures (missing sprites, sounds, maps) without crashing.
-39. [ ] Remove dead code and unused imports; reformat with a consistent code style (Google or Sun) applied via Gradle.
+37. [x] Ensure map and unit serialization/deserialization is validated; add schema/versioning for map files if needed. (LocationManager.loadMap validates schema and optional MMAPv1 header; added saveMapV1 and tests)
+38. [x] Add error handling and user feedback pathways for resource IO failures (missing sprites, sounds, maps) without crashing. (ResourceLoader returns placeholder images; added test; SoundUtility logs and continues)
+39. [x] Remove dead code and unused imports; reformat with a consistent code style (Google or Sun) applied via Gradle. (Removed unused code/imports; added Spotless with Google format and wired into Gradle check)
 40. [ ] Write developer onboarding docs (README sections) for running, testing, and contributing; include common workflows and coding standards.
 41. [ ] Add ADR (Architecture Decision Records) for key changes (event system, controller separation, resource cache) to capture rationale.
 42. [ ] Profile rendering hotspots (VisualVM/Java Flight Recorder) and set performance budgets (ms/frame); track improvements.
