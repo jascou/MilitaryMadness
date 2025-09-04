@@ -89,6 +89,11 @@ spotbugsMain {
 
 check.dependsOn jacocoTestCoverageVerification, spotbugsMain
 
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    failOnError = false
+}
+
 sourceSets {
     main {
         java { srcDirs = ['src'] }

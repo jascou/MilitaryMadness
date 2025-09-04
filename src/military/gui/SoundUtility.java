@@ -2,6 +2,7 @@ package military.gui;
 
 import military.util.Logs;
 import military.util.SoundPlayer;
+import military.util.FeatureToggles;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -40,7 +41,9 @@ public class SoundUtility implements Runnable, SoundPlayer {
         return instance;
     }
 
-    private SoundUtility() { }
+    private SoundUtility() {
+        this.playSounds = FeatureToggles.soundEnabledByDefault();
+    }
 
     @Override
     public void setPlaySounds(boolean value) {
