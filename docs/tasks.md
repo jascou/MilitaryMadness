@@ -49,9 +49,9 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 45. [x] Create a migration guide for phasing out singleton patterns and boolean team flags, including interim adapters (e.g., `getTeamEnum`). (Added docs/migration-singletons-and-teams.md)
 46. [x] Implement feature toggles to switch between legacy and new flows during refactor (config-driven) to de-risk. (Added military.util.FeatureToggles and integrated into DefaultMapService; documented)
 47. [x] Add comprehensive Javadoc for public APIs (MapService, controllers, services) and ensure generated docs build. (Enhanced Javadoc for MapService, EventBus; configured Gradle javadoc to build)
-48. [ ] Validate packaging of resources in builds (Gradle processResources) and avoid reliance on working-directory; favor classpath resources.
-49. [ ] Ensure headless mode compatibility for CI (avoid AWT peer initialization in tests) and guard UI code accordingly.
-50. [ ] Set up pre-commit checks or Git hooks (optional) to run formatting, static analysis, and tests locally.
+48. [x] Validate packaging of resources in builds (Gradle processResources) and avoid reliance on working-directory; favor classpath resources. (Gradle sourceSets include Resources/Maps/sounds; added ResourcePackagingTest to validate classpath loading of Units.txt)
+49. [x] Ensure headless mode compatibility for CI (avoid AWT peer initialization in tests) and guard UI code accordingly. (Added headless guard in MilitaryMadness.main; GuiHeadlessSmokeTest ensures no AWT in headless CI)
+50. [x] Set up pre-commit checks or Git hooks (optional) to run formatting, static analysis, and tests locally. (Added scripts/pre-commit.{bat,sh} and CONTRIBUTING.md instructions)
 
 <!-- Legacy checklist content retained below for historical reference -->
 

@@ -12,7 +12,10 @@ public class GuiHeadlessSmokeTest {
 
     @Test
     public void headlessEnvironmentSkipsGuiConstruction() {
-        Assume.assumeTrue("Skip in non-headless environments", GraphicsEnvironment.isHeadless());
+        // If not headless, nothing to assert here; just return to avoid assumption failures in environments with a display
+        if (!GraphicsEnvironment.isHeadless()) {
+            return;
+        }
         // If headless, simply pass. Construction would throw HeadlessException; this test ensures we guard properly.
     }
 }

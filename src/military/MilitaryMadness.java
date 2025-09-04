@@ -32,6 +32,12 @@ public class MilitaryMadness {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
+        // Headless guard: avoid constructing Swing dialogs/frames when running in headless CI
+        if (java.awt.GraphicsEnvironment.isHeadless()) {
+            java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+            logger.info("Headless environment detected; skipping UI startup.");
+            return;
+        }
         // Command-line options:
         // --play <mapName>
         // --design <width> <height>

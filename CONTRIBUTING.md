@@ -32,4 +32,19 @@ Thank you for your interest in improving this project! This document describes h
 - No busy-wait loops; Swing actions on EDT.
 - Updated docs/tasks.md (checked off relevant items) and any affected docs.
 
+## Optional: Enable Pre-Commit Checks Locally
+To run tests and static analysis before each commit, you can install the provided hook scripts:
+
+- Windows (PowerShell/cmd): copy `scripts\pre-commit.bat` to your Git hooks folder as `pre-commit`.
+- macOS/Linux: copy `scripts/pre-commit.sh` to `.git/hooks/pre-commit` and make it executable.
+
+Alternatively, point Git to use the scripts directory as hooks path:
+- `git config core.hooksPath scripts` (macOS/Linux: ensure `pre-commit.sh` is renamed to `pre-commit` and executable)
+
+These hooks will run: `gradlew clean test check`.
+- Code compiles, runs basic flows (game or designer).
+- No raw types; streams closed; paths via `java.nio.file.Path` when possible.
+- No busy-wait loops; Swing actions on EDT.
+- Updated docs/tasks.md (checked off relevant items) and any affected docs.
+
 Thanks for contributing!
