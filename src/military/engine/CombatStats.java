@@ -2,13 +2,23 @@ package military.engine;
 
 import static java.lang.Math.pow;
 import java.util.ArrayList;
-import java.util.Random;
+import military.util.DefaultRng;
+import military.util.Rng;
 
 /**
  *
  * @author Nate
  */
 public class CombatStats {
+
+    private static Rng RNG = new DefaultRng();
+
+    /**
+     * Inject a deterministic RNG for tests.
+     */
+    public static void setRng(Rng rng) {
+        if (rng != null) RNG = rng;
+    }
 
     private final Unit attacker;
     private final Unit defender;
@@ -128,11 +138,10 @@ public class CombatStats {
     }
 
     private void calcLosses() {
-        Random rand = new Random();
         int baseAonD = (attackerFA - defenderFD);
         int baseDonA = (defenderFA - attackerFD);
-        int damAonD = (int) ((2.5 * rand.nextDouble()) + (((double)baseAonD) / 50) * 1.2 * pow(rand.nextDouble(), .25));
-        int damDonA = (int) ((2.5 * rand.nextDouble()) + (((double)baseDonA) / 50) * 1.2 * pow(rand.nextDouble(), .25));
+        int damAonD = (int) ((2.5 * RNG.nextDouble()) + (((double)baseAonD) / 50) * 1.2 * pow(RNG.nextDouble(), .25));
+        int damDonA = (int) ((2.5 * RNG.nextDouble()) + (((double)baseDonA) / 50) * 1.2 * pow(RNG.nextDouble(), .25));
 
         if (defenderBUA == 0) {
             damDonA = 0;

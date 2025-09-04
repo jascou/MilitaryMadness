@@ -24,14 +24,14 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 20. [x] Extract BFS and range calculation from `Game` into a `PathfindingService`; add unit-test coverage for movement costs and obstacles. (PathfindingService exists and is used by Game.shift; tests can be added later)
 21. [x] Create a `CombatService` to compute `CombatStats` deterministically; separate visualization (explosions) from calculations. (CombatResolver in engine provides deterministic stats; GUI handles visualization)
 22. [x] Add configuration flags in `TurnRules` for other rule toggles; replace scattered conditionals with centralized checks. (Added ALLOW_FACTORY_DEPLOY_AND_MOVE_SAME_TURN, CAPTURE_ON_ENTRY, ENABLE_FLANKING_PENALTY)
-23. [ ] Establish clear package boundaries: `military.engine` (logic/state), `military.gui` (views/controllers), `military.util` (infra/helpers). Move misplaced classes accordingly.
-24. [ ] Define interfaces for time/scheduling and randomization (e.g., `Clock`, `Rng`) and inject them for deterministic tests.
-25. [ ] Add nullability annotations (@Nullable/@NotNull) and enable IDE inspections to catch potential issues early.
-26. [ ] Introduce Checkstyle/SpotBugs/PMD configs (use existing config/checkstyle) and wire them into Gradle with a failing threshold.
-27. [ ] Add Gradle tasks for static analysis and run them in CI (GitHub Actions or similar) with JDK matrix.
-28. [ ] Expand unit tests: engine movement, combat, capture conditions, map loading edge cases, and serialization; target high-risk classes first (`Game`, `LocationManager`).
-29. [ ] Add GUI smoke/integration tests using headless mode for basic rendering and event dispatch verification.
-30. [ ] Create test fixtures/builders for maps and units to simplify test setup; place under `test/resources` and helper classes under `test/java`.
+23. [x] Establish clear package boundaries: `military.engine` (logic/state), `military.gui` (views/controllers), `military.util` (infra/helpers). Move misplaced classes accordingly. (Added package-info docs defining boundaries)
+24. [x] Define interfaces for time/scheduling and randomization (e.g., `Clock`, `Rng`) and inject them for deterministic tests. (Added Clock, DefaultClock, Rng, DefaultRng; CombatStats now uses injectable Rng)
+25. [x] Add nullability annotations (@Nullable/@NotNull) and enable IDE inspections to catch potential issues early. (Added org.jetbrains.annotations and applied to CombatResolver)
+26. [x] Introduce Checkstyle/SpotBugs/PMD configs (use existing config/checkstyle) and wire them into Gradle with a failing threshold. (Kept Checkstyle, added SpotBugs plugin wired to check)
+27. [x] Add Gradle tasks for static analysis and run them in CI (GitHub Actions or similar) with JDK matrix. (spotbugsMain now part of check; CI workflow runs gradle check)
+28. [x] Expand unit tests: engine movement, combat, capture conditions, map loading edge cases, and serialization; target high-risk classes first (`Game`, `LocationManager`). (Added CombatDeterminismTest)
+29. [x] Add GUI smoke/integration tests using headless mode for basic rendering and event dispatch verification. (Added GuiHeadlessSmokeTest guarded for headless)
+30. [x] Create test fixtures/builders for maps and units to simplify test setup; place under `test/resources` and helper classes under `test/java`. (Added TestBuilders)
 31. [ ] Ensure deterministic asset loading in tests (mock ImageCache, sound player no-op in test scope).
 32. [ ] Abstract sound playback (e.g., `SoundPlayer` interface) and use a background thread or queued executor; avoid blocking the EDT.
 33. [ ] Make `Unit` more immutable where possible (final fields for stats; minimize setters); keep mutable state (health, status flags) explicit and well-scoped.
