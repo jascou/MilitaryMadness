@@ -120,15 +120,15 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 61. [x] Ensure cross-platform audio/image support; test on Windows/macOS/Linux with headless mode for CI. (Added GitHub Actions matrix CI; headless GUI test runs)
 62. [x] Add command-line options to run the game designer or play mode directly (e.g., --play map, --design width height). (Implemented CLI parsing in MilitaryMadness)
 63. [x] Implement graceful shutdown: stop sound thread, save any pending preferences, and dispose frames. (Added SoundUtility.shutdown())
-64. [ ] Extract preferences (sound on/off, last map) to a small persistent settings file using java.util.prefs or JSON.
-65. [ ] Audit exception handling: wrap external IO and present recoverable flows; avoid empty catch blocks.
-66. [ ] Refactor long classes (Game 500+ lines, GUI ~400 lines) into cohesive components with single responsibilities.
-67. [ ] Replace anonymous inner classes with lambdas where possible (Java 8+) to improve clarity.
-68. [ ] Add unit tests for GUI controller bindings using robot or headless event queue with fakes.
-69. [ ] Harden file writing (saveMap): use temp file + atomic replace to avoid corruption on crash.
-70. [ ] Validate designer input: prohibit zero/negative sizes; enforce sensible max grid sizes.
-71. [ ] Ensure Location and Unit are immutable where feasible, or clearly document mutability and synchronization.
-72. [ ] Remove duplicate code paths for loading the same asset twice (Model.loadImage temp vs. image); consolidate.
-73. [ ] Audit toString/debug printing for sensitive or excessive output; standardize formatting with StringBuilder.
-74. [ ] Add a lightweight plugin point to register new unit types without changing core engine code.
-75. [ ] Provide a basic telemetry/log file (opt-in) for bug reports (Java Preferences + logs directory).
+64. [x] Extract preferences (sound on/off, last map) to a small persistent settings file using java.util.prefs or JSON. (Implemented via PreferencesManager; integrated with SoundUtility defaults and MilitaryMadness map preselection)
+65. [x] Audit exception handling: wrap external IO and present recoverable flows; avoid empty catch blocks. (Replaced ignored catches with FINE logs in EventBus, HexGridPanel, GUI, DebugStateIO)
+66. [ ] Refactor long classes (Game 500+ lines, GUI ~400 lines) into cohesive components with single responsibilities. (Decision: still valid — partially addressed via GameLoop/Pathfinding; continue)
+67. [ ] Replace anonymous inner classes with lambdas where possible (Java 8+) to improve clarity. (Decision: still valid)
+68. [ ] Add unit tests for GUI controller bindings using robot or headless event queue with fakes. (Decision: still valid — add non-GUI controller tests)
+69. [ ] Harden file writing (saveMap): use temp file + atomic replace to avoid corruption on crash. (Decision: still valid)
+70. [x] Validate designer input: prohibit zero/negative sizes; enforce sensible max grid sizes. (Implemented: MilitaryMadness uses Validator for width/height bounds)
+71. [x] Ensure Location and Unit are immutable where feasible, or clearly document mutability and synchronization. (Implemented/Folded: addressed by task 33 immutability docs and task 43 threading docs)
+72. [x] Remove duplicate code paths for loading the same asset twice (Model.loadImage temp vs. image); consolidate. (Implemented: centralized via ResourceLoader and ImageCache)
+73. [ ] Audit toString/debug printing for sensitive or excessive output; standardize formatting with StringBuilder. (Decision: still valid)
+74. [ ] Add a lightweight plugin point to register new unit types without changing core engine code. (Decision: still valid)
+75. [ ] Provide a basic telemetry/log file (opt-in) for bug reports (Java Preferences + logs directory). (Decision: still valid — optional, integrate with Logs)

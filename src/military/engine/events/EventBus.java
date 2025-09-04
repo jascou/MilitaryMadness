@@ -37,7 +37,12 @@ public class EventBus {
      */
     public void post(GameEvent event) {
         for (Consumer<GameEvent> l : listeners) {
-            try { l.accept(event); } catch (Exception ignore) {}
+            try {
+                l.accept(event);
+            } catch (Exception ex) {
+                java.util.logging.Logger log = military.util.Logs.getLogger(EventBus.class);
+                log.fine("Listener threw during event dispatch: " + ex.toString());
+            }
         }
     }
 }

@@ -468,7 +468,10 @@ public class Game implements Runnable {
         // Force an immediate render so valid move hexes highlight without waiting for the next loop
         controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
         // Attempt to force synchronous grid repaint for immediate visual feedback
-        try { gui.forceGridRepaint(); } catch (Exception ignore) { }
+        try { gui.forceGridRepaint(); } catch (Exception ex) {
+            java.util.logging.Logger log = military.util.Logs.getLogger(Game.class);
+            log.fine("forceGridRepaint threw: " + ex.toString());
+        }
     }
 
     private void movesBreadthFirstSearch(Point start, int[][] movesLeftAtPoint, Unit unit) {

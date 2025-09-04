@@ -163,8 +163,9 @@ public class GUI extends JFrame {
             if (hexGridPanel != null) {
                 hexGridPanel.paintImmediately(hexGridPanel.getVisibleRect());
             }
-        } catch (Exception ignore) {
-            // best-effort
+        } catch (Exception ex) {
+            java.util.logging.Logger log = military.util.Logs.getLogger(GUI.class);
+            log.fine("forceGridRepaint failed: " + ex.toString());
         }
     }
 

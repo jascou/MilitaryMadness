@@ -123,7 +123,9 @@ public final class DebugStateIO {
                             break;
                         }
                     }
-                } catch (Exception ignore) {
+                } catch (Exception ex) {
+                    java.util.logging.Logger log = military.util.Logs.getLogger(DebugStateIO.class);
+                    log.fine("Units.txt lookup failed for '" + name + "', using fallback: " + ex.toString());
                     // fall through to fallback
                 }
                 if (u == null) {

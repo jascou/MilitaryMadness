@@ -51,6 +51,8 @@ public class MilitaryMadness {
                         return;
                     }
                     new Thread(SoundUtility.getInstance()).start();
+                    // Persist last played map
+                    try { military.util.PreferencesManager.setLastMapName(map); } catch (Exception ex) { /* best-effort */ }
                     Game game = new Game(map);
                     new military.engine.GameLoop(game).run();
                     SoundUtility.getInstance().shutdown();
@@ -98,6 +100,7 @@ public class MilitaryMadness {
                     continue;
                 }
                 levelName = chosen;
+                try { military.util.PreferencesManager.setLastMapName(levelName); } catch (Exception ex) { /* best-effort */ }
                 new Thread(SoundUtility.getInstance()).start();
                 try {
                     Game game = new Game(levelName);
@@ -163,8 +166,23 @@ public class MilitaryMadness {
             scenarioComboBox.addItem(ln);
         }
         if (scenarioComboBox.getItemCount() > 0) {
-            scenarioComboBox.setSelectedIndex(0);
-            levelName = (String) scenarioComboBox.getItemAt(0);
+            // If a last map preference exists and is present in the list, select it
+            String last = military.util.PreferencesManager.getLastMapName();
+            boolean set = false;
+            if (last != null) {
+                for (int i = 0; i < scenarioComboBox.getItemCount(); i++) {
+                    if (last.equals(scenarioComboBox.getItemAt(i))) {
+                        scenarioComboBox.setSelectedIndex(i);
+                        levelName = (String) scenarioComboBox.getItemAt(i);
+                        set = true;
+                        break;
+                    }
+                }
+            }
+            if (!set) {
+                scenarioComboBox.setSelectedIndex(0);
+                levelName = (String) scenarioComboBox.getItemAt(0);
+            }
         }
         scenarioComboBox.addActionListener(new ActionListener() {
             @Override

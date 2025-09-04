@@ -131,7 +131,10 @@ public class HexGridPanel extends JPanel {
         this.phase = 0;
         this.phaseTicks = 0;
         this.inCombat = true;
-        try { SoundUtility.getInstance().playSound("Launch.wav"); } catch (Exception ignore) {}
+        try { SoundUtility.getInstance().playSound("Launch.wav"); } catch (Exception ex) {
+            java.util.logging.Logger log = military.util.Logs.getLogger(HexGridPanel.class);
+            log.fine("Sound play failed (Launch.wav): " + ex.toString());
+        }
         if (combatTimer != null) {
             combatTimer.stop();
         }
@@ -142,7 +145,10 @@ public class HexGridPanel extends JPanel {
                 if (animX >= getWidth() - 85) {
                     phase = 1;
                     phaseTicks = 0;
-                    try { SoundUtility.getInstance().playSound("Explosion.wav"); } catch (Exception ignore) {}
+                    try { SoundUtility.getInstance().playSound("Explosion.wav"); } catch (Exception ex) {
+                        java.util.logging.Logger log = military.util.Logs.getLogger(HexGridPanel.class);
+                        log.fine("Sound play failed (Explosion.wav): " + ex.toString());
+                    }
                 }
             } else if (phase == 1) {
                 phaseTicks++;

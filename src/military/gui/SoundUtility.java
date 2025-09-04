@@ -42,12 +42,19 @@ public class SoundUtility implements Runnable, SoundPlayer {
     }
 
     private SoundUtility() {
-        this.playSounds = FeatureToggles.soundEnabledByDefault();
+        // Preference overrides toggle default if present
+        this.playSounds = military.util.PreferencesManager.isSoundEnabled(FeatureToggles.soundEnabledByDefault());
     }
 
     @Override
     public void setPlaySounds(boolean value) {
         playSounds = value;
+        try {
+            military.util.PreferencesManager.setSoundEnabled(value);
+        } catch (Exception ex) {
+            // best-effort persistence; log at FINE
+            LOGGER.fine("Failed to persist sound preference: " + ex.toString());
+        }
     }
 
     private boolean getPlaySounds() {
