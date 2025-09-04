@@ -41,10 +41,10 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 37. [x] Ensure map and unit serialization/deserialization is validated; add schema/versioning for map files if needed. (LocationManager.loadMap validates schema and optional MMAPv1 header; added saveMapV1 and tests)
 38. [x] Add error handling and user feedback pathways for resource IO failures (missing sprites, sounds, maps) without crashing. (ResourceLoader returns placeholder images; added test; SoundUtility logs and continues)
 39. [x] Remove dead code and unused imports; reformat with a consistent code style (Google or Sun) applied via Gradle. (Removed unused code/imports; added Spotless with Google format and wired into Gradle check)
-40. [ ] Write developer onboarding docs (README sections) for running, testing, and contributing; include common workflows and coding standards.
-41. [ ] Add ADR (Architecture Decision Records) for key changes (event system, controller separation, resource cache) to capture rationale.
-42. [ ] Profile rendering hotspots (VisualVM/Java Flight Recorder) and set performance budgets (ms/frame); track improvements.
-43. [ ] Review thread-safety of shared structures (e.g., `LocationManager`, `UnitManager`) if accessed from non-EDT threads; add synchronization or confine to single thread.
+40. [x] Write developer onboarding docs (README sections) for running, testing, and contributing; include common workflows and coding standards. (Expanded README with Gradle build/test/run, single-test examples, reports, coding standards, workflows, and troubleshooting)
+41. [x] Add ADR (Architecture Decision Records) for key changes (event system, controller separation, resource cache) to capture rationale. (Added docs/adr/ADR-0001..0003)
+42. [x] Profile rendering hotspots (VisualVM/Java Flight Recorder) and set performance budgets (ms/frame); track improvements. (docs/profiling.md updated with 60 FPS target, budgets, and checklist)
+43. [x] Review thread-safety of shared structures (e.g., `LocationManager`, `UnitManager`) if accessed from non-EDT threads; add synchronization or confine to single thread. (Synchronized common read methods in LocationManager; added docs/THREADING.md and strengthened Javadoc)
 44. [ ] Introduce a lightweight save/load of `GameState` for debugging and regression testing scenarios.
 45. [ ] Create a migration guide for phasing out singleton patterns and boolean team flags, including interim adapters (e.g., `getTeamEnum`).
 46. [ ] Implement feature toggles to switch between legacy and new flows during refactor (config-driven) to de-risk.

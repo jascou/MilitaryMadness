@@ -19,7 +19,10 @@ import java.util.Scanner;
 /**
  * Manages the map grid (locations), base/factory placements, and unit placement.
  *
- * Thread-safety: all methods are intended to be used from the game thread; no synchronization is provided.
+ * Thread-safety: The engine is designed for single-threaded access for mutation (the game/engine thread).
+ * Read access from the EDT occurs for rendering needs (e.g., size queries). To reduce race risks, common
+ * read methods like getSize(), getLoc(), and isInBounds() are synchronized. All other mutation methods
+ * should be called only from the engine thread. Avoid calling mutating methods from the EDT.
  * IO: loadMap/saveMap perform filesystem access via Config paths; callers should ensure valid filenames.
  *
  * @author Nate
@@ -33,11 +36,11 @@ public class LocationManager {
     private static final java.util.logging.Logger LOGGER = military.util.Logs.getLogger(LocationManager.class);
     private static final Random RNG = new Random();
 
-    public static Point getSize() {
+    public static synchronized Point getSize() {
         return new Point(entries.size(), entries.get(0).size());
     }
 
-    public static Location getLoc(int x, int y) {
+    public static synchronized Location getLoc(int x, int y) {
 //        System.out.println("getLoc(" + x + ", " + y +")");
         if (!isInBounds(x, y)) {
             java.util.logging.Logger logger = military.util.Logs.getLogger(LocationManager.class);
@@ -47,7 +50,7 @@ public class LocationManager {
         return entries.get(x).get(y);
     }
 
-    public static boolean isInBounds(int x, int y) {
+    public static synchronized boolean isInBounds(int x, int y) {
         if (entries == null || entries.isEmpty()) return false;
         if (x < 0 || y < 0) return false;
         int width = entries.size();
