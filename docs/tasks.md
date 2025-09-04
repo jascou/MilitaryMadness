@@ -122,7 +122,7 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 63. [x] Implement graceful shutdown: stop sound thread, save any pending preferences, and dispose frames. (Added SoundUtility.shutdown())
 64. [x] Extract preferences (sound on/off, last map) to a small persistent settings file using java.util.prefs or JSON. (Implemented via PreferencesManager; integrated with SoundUtility defaults and MilitaryMadness map preselection)
 65. [x] Audit exception handling: wrap external IO and present recoverable flows; avoid empty catch blocks. (Replaced ignored catches with FINE logs in EventBus, HexGridPanel, GUI, DebugStateIO)
-66. [ ] Refactor long classes (Game 500+ lines, GUI ~400 lines) into cohesive components with single responsibilities. (Decision: still valid — partially addressed via GameLoop/Pathfinding; continue)
+66. [x] Refactor long classes (Game 500+ lines, GUI ~400 lines) into cohesive components with single responsibilities. (Removed legacy BFS from Game in favor of PathfindingService; extracted GUI button wiring into ButtonBinder component to reduce duplication and responsibility)
 67. [ ] Replace anonymous inner classes with lambdas where possible (Java 8+) to improve clarity. (Decision: still valid)
 68. [ ] Add unit tests for GUI controller bindings using robot or headless event queue with fakes. (Decision: still valid — add non-GUI controller tests)
 69. [ ] Harden file writing (saveMap): use temp file + atomic replace to avoid corruption on crash. (Decision: still valid)

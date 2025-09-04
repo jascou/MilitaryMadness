@@ -217,15 +217,9 @@ public class GUI extends JFrame {
         shift.setFont(new Font("Consolas", 0, FONT_SIZE));
         shift.setToolTipText("Move a selected unit");
         shift.getAccessibleContext().setAccessibleName("Shift Button");
-        shift.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (actions != null) {
-                    actions.onMove();
-                }
-                // Always enqueue the legacy event to drive the game loop consistently
-                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 0, 1, false));
-            }
-        });
+        military.gui.controls.ButtonBinder.bind(shift, () -> {
+            if (actions != null) actions.onMove();
+        }, 0);
         shift.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 shift.setBackground(Color.red);
@@ -247,14 +241,9 @@ public class GUI extends JFrame {
         attack.setFont(new Font("Consolas", 0, FONT_SIZE));
         attack.setToolTipText("Attack an adjacent enemy");
         attack.getAccessibleContext().setAccessibleName("Attack Button");
-        attack.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (actions != null) {
-                    actions.onAttack();
-                }
-                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 1, 1, false));
-            }
-        });
+        military.gui.controls.ButtonBinder.bind(attack, () -> {
+            if (actions != null) actions.onAttack();
+        }, 1);
         attack.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 attack.setBackground(Color.red);
@@ -276,14 +265,9 @@ public class GUI extends JFrame {
         info.setFont(new Font("Consolas", 0, FONT_SIZE));
         info.setToolTipText("Show information");
         info.getAccessibleContext().setAccessibleName("Info Button");
-        info.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (actions != null) {
-                    actions.onInfo();
-                }
-                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 2, 1, false));
-            }
-        });
+        military.gui.controls.ButtonBinder.bind(info, () -> {
+            if (actions != null) actions.onInfo();
+        }, 2);
         info.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 info.setBackground(Color.red);
@@ -305,14 +289,9 @@ public class GUI extends JFrame {
         end.setToolTipText("End current player's turn");
         end.getAccessibleContext().setAccessibleName("End Turn Button");
         end.setText("End");
-        end.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (actions != null) {
-                    actions.onEndTurn();
-                }
-                GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 3, 1, false));
-            }
-        });
+        military.gui.controls.ButtonBinder.bind(end, () -> {
+            if (actions != null) actions.onEndTurn();
+        }, 3);
         end.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 end.setBackground(Color.red);

@@ -474,44 +474,6 @@ public class Game implements Runnable {
         }
     }
 
-    private void movesBreadthFirstSearch(Point start, int[][] movesLeftAtPoint, Unit unit) {
-        java.util.ArrayDeque<Point> queue = new java.util.ArrayDeque<>();
-        queue.add(new Point(start));
-        while (!queue.isEmpty()) {
-            Point p = queue.pollFirst();
-            Location[] locs = LocationManager.getLoc(p).getAdjacent();
-            for (Location loc : locs) {
-                if (loc.getTerrain() == -1 || (!loc.isEmpty() && loc.getUnit().getTeam() != turn)) {
-                    continue;
-                }
-                int terrain = loc.getTerrain() / 10;
-                if (terrain == 0 || unit.isAir()) {
-                    terrain = 1;
-                }
-                int newMovesLeft = movesLeftAtPoint[p.x][p.y] - terrain;
-                boolean flanked = false;
-                for (Location flank : loc.getAdjacent()) {
-                    if (!flank.isEmpty() && flank.getUnit().getTeam() != turn) {
-                        flanked = true;
-                    }
-                }
-                int lx = loc.getLoc().x;
-                int ly = loc.getLoc().y;
-                if (newMovesLeft > movesLeftAtPoint[lx][ly]
-                        && (unit.getType().equals("Infantry") || (!(loc instanceof Base) && terrain != 4))) {
-                    if (!((loc instanceof Factory) && ((Factory) loc).getTeam() != unit.getTeam() && !unit.getType().equals("Infantry"))) {
-                        movesLeftAtPoint[lx][ly] = newMovesLeft;
-                        if (!flanked) {
-                            queue.add(new Point(lx, ly));
-                        }
-                    }
-                }
-            }
-            if (!LocationManager.getLoc(p).isEmpty()) {
-                movesLeftAtPoint[p.x][p.y] = -1;
-            }
-        }
-    }
 
     public void stepOnce(java.awt.event.InputEvent evtInitial) {
         java.awt.event.KeyEvent kevt;
