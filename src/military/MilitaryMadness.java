@@ -184,23 +184,15 @@ public class MilitaryMadness {
                 levelName = (String) scenarioComboBox.getItemAt(0);
             }
         }
-        scenarioComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                levelName = (String) scenarioComboBox.getSelectedItem();
-            }
+        scenarioComboBox.addActionListener(e -> {
+            levelName = (String) scenarioComboBox.getSelectedItem();
         });
         return true;
     }
 
     public static void mapFileComboBox(List<Path> fileList) {
         JComboBox comboBox = new JComboBox(fileList.toArray());
-        comboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
+        comboBox.addActionListener(e -> { });
         BasicComboBoxRenderer renderer = new BasicComboBoxRenderer();
         renderer.setPreferredSize(new Dimension(200, 130));
         renderer.setHorizontalAlignment(SwingConstants.CENTER);
