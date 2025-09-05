@@ -117,6 +117,12 @@ public class Location {
 
     @Override
     public String toString() {
-        return "Location{" + "x=" + loc.x + ", y=" + loc.y + ", terrain=" + terrain + '}';
+        StringBuilder sb = new StringBuilder(64);
+        sb.append("Location{")
+          .append("x=").append(loc.x)
+          .append(", y=").append(loc.y)
+          .append(", terrain=").append(terrain)
+          .append('}');
+        return sb.toString();
     }
 }
