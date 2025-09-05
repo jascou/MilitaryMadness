@@ -289,9 +289,8 @@ public class GUI extends JFrame {
         end.setToolTipText("End current player's turn");
         end.getAccessibleContext().setAccessibleName("End Turn Button");
         end.setText("End");
-        military.gui.controls.ButtonBinder.bind(end, () -> {
-            if (actions != null) actions.onEndTurn();
-        }, 3);
+        // Important: Avoid double-dispatch on End. Let the legacy event drive Game.end() once.
+        military.gui.controls.ButtonBinder.bind(end, null, 3);
         end.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 end.setBackground(Color.red);
