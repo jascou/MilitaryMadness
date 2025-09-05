@@ -240,23 +240,10 @@ public class LocationManager {
         int x = p.x;
         int y = p.y;
 //        InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
-        InputStream unitStream = null;
-        try {
-            unitStream = military.util.ResourceLoader.openTextFromResources("Units.txt");
-        } catch (Exception e) {
-            java.util.logging.Logger logger = military.util.Logs.getLogger(LocationManager.class);
-            logger.severe("Failed to load Units.txt: " + e.getMessage());
-        }
-
-        assert unitStream != null;          // Added June 16, 2023
-        Scanner unitReader = new Scanner(unitStream);
-        while (!unitReader.next().equals(name)) {}
-        Unit u = new Unit(name, unitReader.next(), unitReader.nextBoolean(),
-                unitReader.nextBoolean(), team, unitReader.nextInt(),
-                unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt());
+        // Use plugin registry (with fallback to Units.txt) to create the unit by name
+        Unit u = UnitPluginRegistry.create(name, team);
         entries.get(x).get(y).addUnit(u);
         UnitManager.getInstance().addUnit(u);
-        unitReader.close();
     }
 
     /**
@@ -304,7 +291,8 @@ public class LocationManager {
             instance = new LocationManager();
         }
         java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
-        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(mapPath, java.nio.charset.StandardCharsets.UTF_8)) {
+        java.nio.file.Path tmpPath = mapPath.resolveSibling(filename + ".txt.tmp");
+        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(tmpPath, java.nio.charset.StandardCharsets.UTF_8)) {
             writer.write(Integer.toString(entries.size()));
             writer.newLine();
             writer.write(Integer.toString(entries.get(0).size()));
@@ -327,7 +315,18 @@ public class LocationManager {
                 writer.newLine();
             }
         } catch (Exception e) {
-            LOGGER.severe("Failed to save map: " + mapPath + " - " + e.getMessage());
+            LOGGER.severe("Failed to write temp map file: " + tmpPath + " - " + e.getMessage());
+            return;
+        }
+        try {
+            java.nio.file.Files.move(tmpPath, mapPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+        } catch (Exception moveEx) {
+            try {
+                // Fallback without ATOMIC_MOVE if not supported
+                java.nio.file.Files.move(tmpPath, mapPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception ex2) {
+                LOGGER.severe("Failed to replace map file: " + mapPath + " - " + ex2.getMessage());
+            }
         }
     }
 
@@ -339,7 +338,8 @@ public class LocationManager {
             instance = new LocationManager();
         }
         java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
-        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(mapPath, java.nio.charset.StandardCharsets.UTF_8)) {
+        java.nio.file.Path tmpPath = mapPath.resolveSibling(filename + ".txt.tmp");
+        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(tmpPath, java.nio.charset.StandardCharsets.UTF_8)) {
             writer.write("MMAPv1");
             writer.newLine();
             writer.write(Integer.toString(entries.size()));
@@ -363,7 +363,17 @@ public class LocationManager {
                 writer.newLine();
             }
         } catch (Exception e) {
-            LOGGER.severe("Failed to save map (v1): " + mapPath + " - " + e.getMessage());
+            LOGGER.severe("Failed to write temp map file (v1): " + tmpPath + " - " + e.getMessage());
+            return;
+        }
+        try {
+            java.nio.file.Files.move(tmpPath, mapPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+        } catch (Exception moveEx) {
+            try {
+                java.nio.file.Files.move(tmpPath, mapPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception ex2) {
+                LOGGER.severe("Failed to replace map file (v1): " + mapPath + " - " + ex2.getMessage());
+            }
         }
     }
 

@@ -266,30 +266,32 @@ public class CombatStats {
 
     @Override
     public String toString() {
-        return "\n+=================================+" +
-                "\nattacker=" + attacker +
-                "\ndefender=" + defender +
-                "\ntype=" + type +
-                "\nattackerBUA=" + attackerBUA +
-                "\nattackerBUD=" + attackerBUD +
-                "\ndefenderBUA=" + defenderBUA +
-                "\ndefenderBUD=" + defenderBUD +
-                "\nsurround=" + surround +
-                "\nattackerASup=" + attackerASup +
-                "\nattackerDSup=" + attackerDSup +
-                "\ndefenderASup=" + defenderASup +
-                "\ndefenderDSup=" + defenderDSup +
-                "\nattackerTerrain=" + attackerTerrain +
-                "\ndefenderTerrain=" + defenderTerrain +
-                "\nattackerFA=" + attackerFA +
-                "\nattackerFD=" + attackerFD +
-                "\ndefenderFA=" + defenderFA +
-                "\ndefenderFD=" + defenderFD +
-                "\nattackerHB=" + attackerHB +
-                "\nattackerEB=" + attackerEB +
-                "\ndefenderHB=" + defenderHB +
-                "\ndefenderEB=" + defenderEB +
-                "\n+=================================+";
+        StringBuilder sb = new StringBuilder(512);
+        sb.append("\n+=================================+");
+        sb.append("\nattacker=").append(attacker.getName());
+        sb.append("\ndefender=").append(defender.getName());
+        sb.append("\ntype=").append(type);
+        sb.append("\nattackerBUA=").append(attackerBUA);
+        sb.append("\nattackerBUD=").append(attackerBUD);
+        sb.append("\ndefenderBUA=").append(defenderBUA);
+        sb.append("\ndefenderBUD=").append(defenderBUD);
+        sb.append("\nsurround=").append(surround);
+        sb.append("\nattackerASup=").append(attackerASup);
+        sb.append("\nattackerDSup=").append(attackerDSup);
+        sb.append("\ndefenderASup=").append(defenderASup);
+        sb.append("\ndefenderDSup=").append(defenderDSup);
+        sb.append("\nattackerTerrain=").append(attackerTerrain);
+        sb.append("\ndefenderTerrain=").append(defenderTerrain);
+        sb.append("\nattackerFA=").append(attackerFA);
+        sb.append("\nattackerFD=").append(attackerFD);
+        sb.append("\ndefenderFA=").append(defenderFA);
+        sb.append("\ndefenderFD=").append(defenderFD);
+        sb.append("\nattackerHB=").append(attackerHB);
+        sb.append("\nattackerEB=").append(attackerEB);
+        sb.append("\ndefenderHB=").append(defenderHB);
+        sb.append("\ndefenderEB=").append(defenderEB);
+        sb.append("\n+=================================+");
+        return sb.toString();
     }
 
 }

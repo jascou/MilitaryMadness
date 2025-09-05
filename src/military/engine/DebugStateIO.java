@@ -104,34 +104,8 @@ public final class DebugStateIO {
                 boolean team = reader.nextBoolean();
                 int health = reader.nextInt();
                 int exp = reader.nextInt();
-                // Create unit from Units.txt like LocationManager.addUnit
-                Unit u = null;
-                try (InputStream unitStream = ResourceLoader.openTextFromResources("Units.txt");
-                     Scanner unitReader = new Scanner(new InputStreamReader(unitStream, StandardCharsets.UTF_8))) {
-                    while (unitReader.hasNext()) {
-                        String token = unitReader.next();
-                        if (name.equals(token)) {
-                            String type = unitReader.next();
-                            boolean isRange = unitReader.nextBoolean();
-                            boolean isAir = unitReader.nextBoolean();
-                            int landAttack = unitReader.nextInt();
-                            int airAttack = unitReader.nextInt();
-                            int range = unitReader.nextInt();
-                            int defense = unitReader.nextInt();
-                            int shift = unitReader.nextInt();
-                            u = new Unit(name, type, isRange, isAir, team, landAttack, airAttack, range, defense, shift);
-                            break;
-                        }
-                    }
-                } catch (Exception ex) {
-                    java.util.logging.Logger log = military.util.Logs.getLogger(DebugStateIO.class);
-                    log.fine("Units.txt lookup failed for '" + name + "', using fallback: " + ex.toString());
-                    // fall through to fallback
-                }
-                if (u == null) {
-                    // Fallback with minimal stats if Units.txt format/name is unknown
-                    u = new Unit(name, name, false, false, team, 0, 0, 1, 0, 0);
-                }
+                // Create unit via plugin registry, which falls back to Units.txt or a minimal default
+                Unit u = UnitPluginRegistry.create(name, team);
                 LocationManager.getLoc(x, y).addUnit(u);
                 // Apply saved mutable state
                 u.setHealth(health);

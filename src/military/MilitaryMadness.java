@@ -38,6 +38,8 @@ public class MilitaryMadness {
             logger.info("Headless environment detected; skipping UI startup.");
             return;
         }
+        // Initialize optional telemetry/log-to-file if opted-in
+        try { military.util.Telemetry.initIfEnabled(); } catch (Exception ignore) {}
         // Command-line options:
         // --play <mapName>
         // --design <width> <height>
