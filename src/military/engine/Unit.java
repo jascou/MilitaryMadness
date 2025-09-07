@@ -8,8 +8,9 @@ package military.engine;
 import java.awt.Point;
 
 /**
- *
- * @author Nate
+ * Unit domain model.
+ * Immutable core stats (type/name/attacks/defense/range/shift, flags for air/ranged) are final.
+ * Mutable state is explicit and limited to team, experience, health, shiftDone/attackDone, and location.
  */
 public class Unit{
 
@@ -129,6 +130,17 @@ public class Unit{
         return team;
     }
 
+    /**
+     * Adapter to migrate from boolean team to Team enum.
+     */
+    public Team getTeamEnum() {
+        return team ? Team.BLUE : Team.RED;
+    }
+
+    public void setTeam(Team t) {
+        this.team = (t == Team.BLUE);
+    }
+
     public Location getLoc() {
         return loc;
     }
@@ -155,15 +167,17 @@ public class Unit{
 
     @Override
     public String toString() {
-        return "\n+=========================+" +
-                "\ntype=" + type +
-                "\nname=" + name +
-                "\nteam=" + team +
-                "\nlandAttack=" + landAttack +
-                "\nairAttack=" + airAttack +
-                "\ndefense=" + defense +
-                "\nexp=" + exp +
-                "\nhealth=" + health + 
-                "\n+========================+";
+        StringBuilder sb = new StringBuilder(192);
+        sb.append("\n+=========================+");
+        sb.append("\ntype=").append(type);
+        sb.append("\nname=").append(name);
+        sb.append("\nteam=").append(team);
+        sb.append("\nlandAttack=").append(landAttack);
+        sb.append("\nairAttack=").append(airAttack);
+        sb.append("\ndefense=").append(defense);
+        sb.append("\nexp=").append(exp);
+        sb.append("\nhealth=").append(health);
+        sb.append("\n+========================+");
+        return sb.toString();
     }
 }

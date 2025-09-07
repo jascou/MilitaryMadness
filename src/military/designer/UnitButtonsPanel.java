@@ -34,7 +34,7 @@ public class UnitButtonsPanel extends JPanel {
         this.setLayout(grid);
         InputStream unitStream = null;
         try {
-           unitStream = new FileInputStream("Resources//Units.txt");
+           unitStream = military.util.ResourceLoader.openTextFromResources("Units.txt");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,12 +47,9 @@ public class UnitButtonsPanel extends JPanel {
             final JButton butt = new JButton();
             butt.setName(unitReader.next());
             butt.setIcon(new ImageIcon(ModelManager.getModel(butt.getName()).getImage(true).getScaledInstance( 20, 20,  java.awt.Image.SCALE_SMOOTH )));
-            butt.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent evt) {
-                    unitName = butt.getName();
-                    selected = true;
-                    
-                }
+            butt.addActionListener(evt -> {
+                unitName = butt.getName();
+                selected = true;
             });
             butt.setMargin(new Insets(0, 0, 0, 0));
             butt.setMinimumSize(new Dimension(32, 32));

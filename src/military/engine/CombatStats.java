@@ -2,13 +2,31 @@ package military.engine;
 
 import static java.lang.Math.pow;
 import java.util.ArrayList;
-import java.util.Random;
+import military.util.DefaultRng;
+import military.util.Rng;
 
 /**
  *
  * @author Nate
  */
 public class CombatStats {
+
+    // Damage/experience computation constants
+    private static final double[] EXP_MOD = {1.0, 1.05, 1.1, 1.2, 1.3, 1.4, 1.6, 1.8, 2.0};
+    private static final double[] SURROUND_MOD = {1.0, 0.8, 0.7, 0.6, 0.5, 0.25};
+    // Damage = (COEFF_A * rand) + ((base/50) * COEFF_B * pow(rand, POWER))
+    private static final double COEFF_A = 2.5;
+    private static final double COEFF_B = 1.2;
+    private static final double POWER = 0.25;
+
+    private static Rng RNG = new DefaultRng();
+
+    /**
+     * Inject a deterministic RNG for tests.
+     */
+    public static void setRng(Rng rng) {
+        if (rng != null) RNG = rng;
+    }
 
     private final Unit attacker;
     private final Unit defender;
@@ -68,16 +86,15 @@ public class CombatStats {
     }
 
     private void calcBase() {
-        double expMod[] = {1.0, 1.05, 1.1, 1.2, 1.3, 1.4, 1.6, 1.8, 2.0};
         attackerBUA = (int) ((defender.isAir() ? attacker.getAirAttack()
-                : attacker.getLandAttack()) * attacker.getHealth() * expMod[attacker.getExp()]);
+                : attacker.getLandAttack()) * attacker.getHealth() * EXP_MOD[attacker.getExp()]);
         defenderBUA = (int) ((attacker.isAir() ? defender.getAirAttack()
-                : defender.getLandAttack()) * defender.getHealth() * expMod[defender.getExp()]);
+                : defender.getLandAttack()) * defender.getHealth() * EXP_MOD[defender.getExp()]);
         if (attacker.isRanged()) {
             defenderBUA = 0;
         }
-        attackerBUD = (int) (attacker.getDefense() * attacker.getHealth() * expMod[attacker.getExp()]);
-        defenderBUD = (int) (defender.getDefense() * defender.getHealth() * expMod[defender.getExp()]);
+        attackerBUD = (int) (attacker.getDefense() * attacker.getHealth() * EXP_MOD[attacker.getExp()]);
+        defenderBUD = (int) (defender.getDefense() * defender.getHealth() * EXP_MOD[defender.getExp()]);
     }
 
     private void surround() {
@@ -118,21 +135,19 @@ public class CombatStats {
     }
 
     private void calcFinal() {
-        double surrMod[] = {1.0, 0.8, 0.7, 0.6, 0.5, 0.25};
         attackerTerrain = attacker.getLoc().getTerrain();
         defenderTerrain = defender.getLoc().getTerrain();
         attackerFA = (attackerBUA + attackerASup);
         attackerFD = ((attackerBUD + attackerDSup) * (attackerTerrain + 100) / 100);
-        defenderFA = (int) ((defenderBUA + defenderASup) * surrMod[surround]);
-        defenderFD = (int) ((defenderBUD + defenderDSup) * surrMod[surround] * (defenderTerrain + 100) / 100);
+        defenderFA = (int) ((defenderBUA + defenderASup) * SURROUND_MOD[surround]);
+        defenderFD = (int) ((defenderBUD + defenderDSup) * SURROUND_MOD[surround] * (defenderTerrain + 100) / 100);
     }
 
     private void calcLosses() {
-        Random rand = new Random();
         int baseAonD = (attackerFA - defenderFD);
         int baseDonA = (defenderFA - attackerFD);
-        int damAonD = (int) ((2.5 * rand.nextDouble()) + (((double)baseAonD) / 50) * 1.2 * pow(rand.nextDouble(), .25));
-        int damDonA = (int) ((2.5 * rand.nextDouble()) + (((double)baseDonA) / 50) * 1.2 * pow(rand.nextDouble(), .25));
+        int damAonD = (int) ((COEFF_A * RNG.nextDouble()) + (((double)baseAonD) / 50) * COEFF_B * pow(RNG.nextDouble(), POWER));
+        int damDonA = (int) ((COEFF_A * RNG.nextDouble()) + (((double)baseDonA) / 50) * COEFF_B * pow(RNG.nextDouble(), POWER));
 
         if (defenderBUA == 0) {
             damDonA = 0;
@@ -251,30 +266,32 @@ public class CombatStats {
 
     @Override
     public String toString() {
-        return "\n+=================================+" +
-                "\nattacker=" + attacker +
-                "\ndefender=" + defender +
-                "\ntype=" + type +
-                "\nattackerBUA=" + attackerBUA +
-                "\nattackerBUD=" + attackerBUD +
-                "\ndefenderBUA=" + defenderBUA +
-                "\ndefenderBUD=" + defenderBUD +
-                "\nsurround=" + surround +
-                "\nattackerASup=" + attackerASup +
-                "\nattackerDSup=" + attackerDSup +
-                "\ndefenderASup=" + defenderASup +
-                "\ndefenderDSup=" + defenderDSup +
-                "\nattackerTerrain=" + attackerTerrain +
-                "\ndefenderTerrain=" + defenderTerrain +
-                "\nattackerFA=" + attackerFA +
-                "\nattackerFD=" + attackerFD +
-                "\ndefenderFA=" + defenderFA +
-                "\ndefenderFD=" + defenderFD +
-                "\nattackerHB=" + attackerHB +
-                "\nattackerEB=" + attackerEB +
-                "\ndefenderHB=" + defenderHB +
-                "\ndefenderEB=" + defenderEB +
-                "\n+=================================+";
+        StringBuilder sb = new StringBuilder(512);
+        sb.append("\n+=================================+");
+        sb.append("\nattacker=").append(attacker.getName());
+        sb.append("\ndefender=").append(defender.getName());
+        sb.append("\ntype=").append(type);
+        sb.append("\nattackerBUA=").append(attackerBUA);
+        sb.append("\nattackerBUD=").append(attackerBUD);
+        sb.append("\ndefenderBUA=").append(defenderBUA);
+        sb.append("\ndefenderBUD=").append(defenderBUD);
+        sb.append("\nsurround=").append(surround);
+        sb.append("\nattackerASup=").append(attackerASup);
+        sb.append("\nattackerDSup=").append(attackerDSup);
+        sb.append("\ndefenderASup=").append(defenderASup);
+        sb.append("\ndefenderDSup=").append(defenderDSup);
+        sb.append("\nattackerTerrain=").append(attackerTerrain);
+        sb.append("\ndefenderTerrain=").append(defenderTerrain);
+        sb.append("\nattackerFA=").append(attackerFA);
+        sb.append("\nattackerFD=").append(attackerFD);
+        sb.append("\ndefenderFA=").append(defenderFA);
+        sb.append("\ndefenderFD=").append(defenderFD);
+        sb.append("\nattackerHB=").append(attackerHB);
+        sb.append("\nattackerEB=").append(attackerEB);
+        sb.append("\ndefenderHB=").append(defenderHB);
+        sb.append("\ndefenderEB=").append(defenderEB);
+        sb.append("\n+=================================+");
+        return sb.toString();
     }
 
 }
