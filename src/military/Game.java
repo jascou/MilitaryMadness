@@ -211,6 +211,12 @@ public class Game implements Runnable {
                             mFactory.removeUnit(u);
                             u.attack();
                         }
+                        // Immediately update the UI to clear or update highlights after movement
+                        controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+                        try { gui.forceGridRepaint(); } catch (Exception ex) {
+                            java.util.logging.Logger log = military.util.Logs.getLogger(Game.class);
+                            log.fine("forceGridRepaint threw: " + ex.toString());
+                        }
                         if (LocationManager.getLoc(cursor) instanceof Base && ((Base) newLoc).getTeam() != turn) {
                             JOptionPane.showMessageDialog(gui, "Player " + (turn ? "1" : "2") + " Wins!");
                             gui.dispose();
@@ -357,6 +363,12 @@ public class Game implements Runnable {
                         mFactory.removeUnit(u);
                         u.attack();
                         military.engine.events.EventBus.getInstance().post(new military.engine.events.UnitMoved(u, new java.awt.Point(newLoc.getLoc())));
+                    }
+                    // Immediately update the UI to clear or update highlights after movement
+                    controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+                    try { gui.forceGridRepaint(); } catch (Exception ex) {
+                        java.util.logging.Logger log = military.util.Logs.getLogger(Game.class);
+                        log.fine("forceGridRepaint threw: " + ex.toString());
                     }
                     if (LocationManager.getLoc(cursor) instanceof Base && ((Base) newLoc).getTeam() != turn) {
                         JOptionPane.showMessageDialog(gui, "Player " + (turn ? "1" : "2") + " Wins!");
