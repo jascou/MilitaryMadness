@@ -133,10 +133,8 @@ public class DesignGUI extends JFrame {
         noTerrain.setForeground(Color.LIGHT_GRAY);
         noTerrain.setBackground(Color.black);
         noTerrain.setMinimumSize(new Dimension(40, 40));
-        noTerrain.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = -1;
-            }
+        noTerrain.addActionListener(evt -> {
+            type = -1;
         });
 
         terrain0 = new JButton();
@@ -146,11 +144,9 @@ public class DesignGUI extends JFrame {
         terrain0.setForeground(Color.BLACK);
         terrain0.setBackground(Color.LIGHT_GRAY);
         terrain0.setMinimumSize(new Dimension(40, 40));
-        terrain0.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = 0;
-                unitButtons.deselect();
-            }
+        terrain0.addActionListener(evt -> {
+            type = 0;
+            unitButtons.deselect();
         });
 
         terrain1 = new JButton();
@@ -160,11 +156,9 @@ public class DesignGUI extends JFrame {
         terrain1.setForeground(Color.BLACK);
         terrain1.setBackground(new Color(100, 150, 0));
         terrain1.setMinimumSize(new Dimension(40, 40));
-        terrain1.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = 1;
-                unitButtons.deselect();
-            }
+        terrain1.addActionListener(evt -> {
+            type = 1;
+            unitButtons.deselect();
         });
 
         terrain2 = new JButton();
@@ -174,11 +168,9 @@ public class DesignGUI extends JFrame {
         terrain2.setForeground(Color.BLACK);
         terrain2.setBackground(new Color(100, 100, 0));
         terrain2.setMinimumSize(new Dimension(40, 40));
-        terrain2.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = 2;
-                unitButtons.deselect();
-            }
+        terrain2.addActionListener(evt -> {
+            type = 2;
+            unitButtons.deselect();
         });
 
         terrain3 = new JButton();
@@ -188,11 +180,9 @@ public class DesignGUI extends JFrame {
         terrain3.setForeground(Color.BLACK);
         terrain3.setBackground(new Color(0, 125, 0));
         terrain3.setMinimumSize(new Dimension(40, 40));
-        terrain3.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = 3;
-                unitButtons.deselect();
-            }
+        terrain3.addActionListener(evt -> {
+            type = 3;
+            unitButtons.deselect();
         });
 
         terrain4 = new JButton();
@@ -202,33 +192,27 @@ public class DesignGUI extends JFrame {
         terrain4.setForeground(Color.lightGray);
         terrain4.setBackground(new Color(0, 65, 0));
         terrain4.setMinimumSize(new Dimension(40, 40));
-        terrain4.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = 4;
-                unitButtons.deselect();
-            }
+        terrain4.addActionListener(evt -> {
+            type = 4;
+            unitButtons.deselect();
         });
 
         blueBase = new JButton();
         blueBase.setIcon(new ImageIcon(ModelManager.getModel("BlueBase").getImage().getScaledInstance( 32, 22,  java.awt.Image.SCALE_SMOOTH )));
         blueBase.setMargin(new Insets(0, 0, 0, 0));
         blueBase.setMaximumSize(new Dimension(40, 40));
-        blueBase.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = 5;
-                unitButtons.deselect();
-            }
+        blueBase.addActionListener(evt -> {
+            type = 5;
+            unitButtons.deselect();
         });
 
         redBase = new JButton();
         redBase.setIcon(new ImageIcon(ModelManager.getModel("RedBase").getImage().getScaledInstance( 32, 22,  java.awt.Image.SCALE_SMOOTH )));
         redBase.setMargin(new Insets(0, 0, 0, 0));
         redBase.setMaximumSize(new Dimension(40, 40));
-        redBase.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = 6;
-                unitButtons.deselect();
-            }
+        redBase.addActionListener(evt -> {
+            type = 6;
+            unitButtons.deselect();
         });
         
         factory = new JButton();
@@ -236,11 +220,9 @@ public class DesignGUI extends JFrame {
         factory.setBackground(Color.LIGHT_GRAY);
         factory.setMargin(new Insets(0, 0, 0, 0));
         factory.setMaximumSize(new Dimension(40, 40));
-        factory.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = 7;
-                unitButtons.deselect();
-            }
+        factory.addActionListener(evt -> {
+            type = 7;
+            unitButtons.deselect();
         });
         
         teamFactory = new JButton();
@@ -248,11 +230,9 @@ public class DesignGUI extends JFrame {
         teamFactory.setBackground(Color.BLUE);
         teamFactory.setMargin(new Insets(0, 0, 0, 0));
         teamFactory.setMaximumSize(new Dimension(40, 40));
-        teamFactory.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                type = team ? 8 : 9;
-                unitButtons.deselect();
-            }
+        teamFactory.addActionListener(evt -> {
+            type = team ? 8 : 9;
+            unitButtons.deselect();
         });
 
         blueTeam = new JRadioButton();
@@ -260,34 +240,30 @@ public class DesignGUI extends JFrame {
         blueTeam.setFont(new Font("Consolas", 0, 9));
         blueTeam.setBackground(Color.BLACK);
         blueTeam.setForeground(Color.LIGHT_GRAY);
-        blueTeam.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                team = true;
-                unitButtons.changeTeam(true);
+        blueTeam.addActionListener(evt -> {
+            team = true;
+            unitButtons.changeTeam(true);
 //                charlie.setIcon(new ImageIcon(ModelManager.getModel("Charlie").getImage(true)));
 //                bison.setIcon(new ImageIcon(ModelManager.getModel("Bison").getImage(true)));
 //                kilroy.setIcon(new ImageIcon(ModelManager.getModel("Kilroy").getImage(true)));
 //                hadrian.setIcon(new ImageIcon(ModelManager.getModel("Hadrian").getImage(true)));
-                teamFactory.setBackground(Color.BLUE);
-                redTeam.setSelected(false);
-            }
+            teamFactory.setBackground(Color.BLUE);
+            redTeam.setSelected(false);
         });
         redTeam = new JRadioButton();
         redTeam.setText("Red");
         redTeam.setFont(new Font("Consolas", 0, 9));
         redTeam.setBackground(Color.BLACK);
         redTeam.setForeground(Color.LIGHT_GRAY);
-        redTeam.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                team = false;
-                unitButtons.changeTeam(false);
+        redTeam.addActionListener(evt -> {
+            team = false;
+            unitButtons.changeTeam(false);
 //                charlie.setIcon(new ImageIcon(ModelManager.getModel("Charlie").getImage(false)));
 //                bison.setIcon(new ImageIcon(ModelManager.getModel("Bison").getImage(false)));
 //                kilroy.setIcon(new ImageIcon(ModelManager.getModel("Kilroy").getImage(false)));
 //                hadrian.setIcon(new ImageIcon(ModelManager.getModel("Hadrian").getImage(false)));
-                teamFactory.setBackground(Color.red);
-                blueTeam.setSelected(false);
-            }
+            teamFactory.setBackground(Color.red);
+            blueTeam.setSelected(false);
         });
 
         unitButtons = new UnitButtonsPanel();
@@ -337,23 +313,21 @@ public class DesignGUI extends JFrame {
         save.setBackground(Color.BLACK);
         save.setForeground(Color.LIGHT_GRAY);
         save.setFont(new Font("Consolas", 0, 16));
-        save.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (LocationManager.getBase(true) == null || LocationManager.getBase(false) == null) {
-                    JOptionPane.showMessageDialog(design, "Base Missing");
-                    return;
-                }
-                String mapName = JOptionPane.showInputDialog("Map Name?");
-                if (mapName == null || mapName.equals("")) {
-                    JOptionPane.showMessageDialog(design, "Invalid Name");
-                    return;
-                }
-                try {
-                    LocationManager.saveMap(mapName);
-                    JOptionPane.showMessageDialog(design, "Map "+ mapName + " saved.");
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(design, "Error occurred: "+ e.toString());
-                }
+        save.addActionListener(evt -> {
+            if (LocationManager.getBase(true) == null || LocationManager.getBase(false) == null) {
+                JOptionPane.showMessageDialog(design, "Base Missing");
+                return;
+            }
+            String mapName = JOptionPane.showInputDialog("Map Name?");
+            if (mapName == null || mapName.equals("")) {
+                JOptionPane.showMessageDialog(design, "Invalid Name");
+                return;
+            }
+            try {
+                LocationManager.saveMap(mapName);
+                JOptionPane.showMessageDialog(design, "Map "+ mapName + " saved.");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(design, "Error occurred: "+ e.toString());
             }
         });
         
@@ -363,11 +337,9 @@ public class DesignGUI extends JFrame {
         random.setBackground(Color.BLACK);
         random.setForeground(Color.LIGHT_GRAY);
         random.setFont(new Font("Consolas", 0, 16));
-        random.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                LocationManager.generateMap(LocationManager.getSize().x, LocationManager.getSize().y);
-                render();
-            }
+        random.addActionListener(evt -> {
+            LocationManager.generateMap(LocationManager.getSize().x, LocationManager.getSize().y);
+            render();
         });
     }
 

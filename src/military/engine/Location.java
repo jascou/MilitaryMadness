@@ -66,9 +66,6 @@ public class Location {
     }
 
     public Color getColor() {
-        float alpha = 0.25f;
-        int type = AlphaComposite.SRC_OVER;
-        AlphaComposite composite = AlphaComposite.getInstance(type, alpha);
         if(terrain == 0)
             return Color.LIGHT_GRAY;
         if(terrain == 10)
@@ -120,6 +117,12 @@ public class Location {
 
     @Override
     public String toString() {
-        return "Location{" + "x=" + loc.x + ", y=" + loc.y + ", terrain=" + terrain + '}';
+        StringBuilder sb = new StringBuilder(64);
+        sb.append("Location{")
+          .append("x=").append(loc.x)
+          .append(", y=").append(loc.y)
+          .append(", terrain=").append(terrain)
+          .append('}');
+        return sb.toString();
     }
 }

@@ -32,6 +32,60 @@ public class MilitaryMadness {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
+        // Headless guard: avoid constructing Swing dialogs/frames when running in headless CI
+        if (java.awt.GraphicsEnvironment.isHeadless()) {
+            java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+            logger.info("Headless environment detected; skipping UI startup.");
+            return;
+        }
+        // Initialize optional telemetry/log-to-file if opted-in
+        try { military.util.Telemetry.initIfEnabled(); } catch (Exception ignore) {}
+        // Command-line options:
+        // --play <mapName>
+        // --design <width> <height>
+        // --design <mapName>
+        if (args != null && args.length > 0) {
+            try {
+                if ("--play".equalsIgnoreCase(args[0]) && args.length >= 2) {
+                    String map = args[1];
+                    if (!military.util.Validator.isValidMapName(map)) {
+                        showMessageEDT("Invalid map name: " + map);
+                        return;
+                    }
+                    new Thread(SoundUtility.getInstance()).start();
+                    // Persist last played map
+                    try { military.util.PreferencesManager.setLastMapName(map); } catch (Exception ex) { /* best-effort */ }
+                    Game game = new Game(map);
+                    new military.engine.GameLoop(game).run();
+                    SoundUtility.getInstance().shutdown();
+                    return;
+                } else if ("--design".equalsIgnoreCase(args[0]) && args.length >= 2) {
+                    if (args.length == 2) {
+                        String map = args[1];
+                        if (!military.util.Validator.isValidMapName(map)) {
+                            showMessageEDT("Invalid map name: " + map);
+                            return;
+                        }
+                        new DesignGUI(map);
+                        return;
+                    } else if (args.length >= 3) {
+                        java.util.OptionalInt w = military.util.Validator.parsePositiveIntWithin(args[1], 1, 1000);
+                        java.util.OptionalInt h = military.util.Validator.parsePositiveIntWithin(args[2], 1, 1000);
+                        if (!w.isPresent() || !h.isPresent()) {
+                            showMessageEDT("Invalid width/height for --design. Use integers between 1 and 1000.");
+                            return;
+                        }
+                        new DesignGUI(w.getAsInt(), h.getAsInt());
+                        return;
+                    }
+                }
+            } catch (Exception ex) {
+                java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+                logger.severe("Command-line option failed: " + ex.getMessage());
+                // fall through to UI
+            }
+        }
+
         boolean hasMaps = loadMapList();
         // Build choices dynamically based on map availability
         String[] choices = hasMaps ? new String[]{"Play Game", "Create Level", "Exit"}
@@ -43,15 +97,16 @@ public class MilitaryMadness {
             if (hasMaps && n == 0) {
                 // Use improved map selection dialog with metadata
                 String chosen = military.gui.MapSelectionDialog.showDialog(null);
-                if (chosen == null || chosen.isBlank()) {
+                if (chosen == null || chosen.trim().isEmpty()) {
                     showMessageEDT("Please select a valid map to play.");
                     continue;
                 }
                 levelName = chosen;
+                try { military.util.PreferencesManager.setLastMapName(levelName); } catch (Exception ex) { /* best-effort */ }
                 new Thread(SoundUtility.getInstance()).start();
                 try {
                     Game game = new Game(levelName);
-                    game.run();
+                    new military.engine.GameLoop(game).run();
                 } catch (Exception e) {
                     showMessageEDT("Failed to start the game: " + e.getMessage());
                 }
@@ -113,26 +168,33 @@ public class MilitaryMadness {
             scenarioComboBox.addItem(ln);
         }
         if (scenarioComboBox.getItemCount() > 0) {
-            scenarioComboBox.setSelectedIndex(0);
-            levelName = (String) scenarioComboBox.getItemAt(0);
-        }
-        scenarioComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                levelName = (String) scenarioComboBox.getSelectedItem();
+            // If a last map preference exists and is present in the list, select it
+            String last = military.util.PreferencesManager.getLastMapName();
+            boolean set = false;
+            if (last != null) {
+                for (int i = 0; i < scenarioComboBox.getItemCount(); i++) {
+                    if (last.equals(scenarioComboBox.getItemAt(i))) {
+                        scenarioComboBox.setSelectedIndex(i);
+                        levelName = (String) scenarioComboBox.getItemAt(i);
+                        set = true;
+                        break;
+                    }
+                }
             }
+            if (!set) {
+                scenarioComboBox.setSelectedIndex(0);
+                levelName = (String) scenarioComboBox.getItemAt(0);
+            }
+        }
+        scenarioComboBox.addActionListener(e -> {
+            levelName = (String) scenarioComboBox.getSelectedItem();
         });
         return true;
     }
 
     public static void mapFileComboBox(List<Path> fileList) {
         JComboBox comboBox = new JComboBox(fileList.toArray());
-        comboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
+        comboBox.addActionListener(e -> { });
         BasicComboBoxRenderer renderer = new BasicComboBoxRenderer();
         renderer.setPreferredSize(new Dimension(200, 130));
         renderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -176,7 +238,8 @@ public class MilitaryMadness {
         }
         // checking if the encountered object is a file or not
         if (a[i].isFile()) {
-            System.out.println(a[i].getName());
+            java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+            logger.fine(a[i].getName());
         }
         // recursively printing files from the directory
         // i + 1 means look for the next file

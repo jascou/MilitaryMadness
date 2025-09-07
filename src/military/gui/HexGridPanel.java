@@ -10,11 +10,9 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 import military.engine.CombatStats;
 import military.engine.LocationManager;
 import military.engine.Unit;
@@ -25,166 +23,196 @@ import military.engine.Unit;
  */
 public class HexGridPanel extends JPanel {
 
-    private ArrayList<Point> selectLocs;
+    // Viewport configuration constants
+    private static final int VIEW_WIDTH = 15;
+    private static final int VIEW_HEIGHT = 10;
+    private static final int SCROLL_THRESHOLD_X = 13;
+    private static final int SCROLL_THRESHOLD_Y = 8;
+    private static final int TIMER_MS = 16;
+    private static final int BULLET_STEP = 6;
+
+    private ArrayList<Point> selectLocs = new ArrayList<>();
     private Point cursorLoc = new Point(0, 0);
-    private Point corner = new Point(0, 0);
+    private final Viewport viewport = new Viewport(VIEW_WIDTH, VIEW_HEIGHT);
+
+    // Combat animation state
+    private boolean inCombat = false;
+    private CombatStats combatStats;
+    private Timer combatTimer;
+    private int animX = 0;
+    private int phase = 0; // 0: bullets, 1: explosions, 2: done
+    private int phaseTicks = 0;
+    private int bluehb = 0, redhb = 0;
+    private Unit blue;
+    private Unit red;
+    private boolean turnForCombat;
 
     public void render(ArrayList<Point> select, Point cursor) {
-        selectLocs = select;
-        cursorLoc = cursor;
-        paintComponent(this.getGraphics());
+        // Update state and request an EDT repaint instead of direct painting
+        selectLocs = (select != null) ? new ArrayList<>(select) : new ArrayList<>();
+        cursorLoc = (cursor != null) ? new Point(cursor) : new Point(0, 0);
+        javax.swing.SwingUtilities.invokeLater(this::repaint);
     }
 
     public void render() {
         selectLocs = new ArrayList<>();
         cursorLoc = new Point(100, 100);
-        paintComponent(this.getGraphics());
+        javax.swing.SwingUtilities.invokeLater(this::repaint);
     }
 
     public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (selectLocs == null) { selectLocs = new java.util.ArrayList<>(); }
+        if (cursorLoc == null) { cursorLoc = new Point(0, 0); }
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(6));
-        BufferedImage bimg = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2img = (Graphics2D)bimg.getGraphics();
-        g2img.setColor(Color.black); // Set background
-        g2img.fillRect(0,0,bimg.getWidth(), bimg.getHeight());
-        loadMapImage(null);
+        // Background
+        g2.setColor(Color.black);
+        g2.fillRect(0, 0, getWidth(), getHeight());
+        // Draw grid and selections
+        Point corner = viewport.getCorner();
         HexMech.setCorner(corner);
-        for (int i = corner.x; i < corner.x + 15; i++) {
-            for (int j = corner.y; j < corner.y + 10; j++) {
-                HexMech.drawHex(i, j, g2img);
+        for (int i = corner.x; i < corner.x + VIEW_WIDTH; i++) {
+            for (int j = corner.y; j < corner.y + VIEW_HEIGHT; j++) {
+                HexMech.drawHex(i, j, g2);
             }
         }
-        if(corner.x > 0){
-            for (int j = corner.y; j < corner.y + 10; j++) {
-                HexMech.drawHex(corner.x-1, j, g2img);
+        if (corner.x > 0) {
+            for (int j = corner.y; j < corner.y + VIEW_HEIGHT; j++) {
+                HexMech.drawHex(corner.x - 1, j, g2);
             }
         }
-        if(corner.y > 0){
-            for (int i = corner.x; i < corner.x + 15; i++) {
-                HexMech.drawHex(i, corner.y-1, g2img);
+        if (corner.y > 0) {
+            for (int i = corner.x; i < corner.x + VIEW_WIDTH; i++) {
+                HexMech.drawHex(i, corner.y - 1, g2);
             }
         }
-        if(corner.x < LocationManager.getSize().x-15){
-            for (int j = corner.y; j < corner.y + 10; j++) {
-                HexMech.drawHex(corner.x+15, j, g2img);
+        if (corner.x < LocationManager.getSize().x - VIEW_WIDTH) {
+            for (int j = corner.y; j < corner.y + VIEW_HEIGHT; j++) {
+                HexMech.drawHex(corner.x + VIEW_WIDTH, j, g2);
             }
         }
-        if(corner.y < LocationManager.getSize().y -10){
-            for (int i = corner.x; i < corner.x + 15; i++) {
-                HexMech.drawHex(i, corner.y+10, g2img);
+        if (corner.y < LocationManager.getSize().y - VIEW_HEIGHT) {
+            for (int i = corner.x; i < corner.x + VIEW_WIDTH; i++) {
+                HexMech.drawHex(i, corner.y + VIEW_HEIGHT, g2);
             }
         }
-        
         for (Point p : selectLocs) {
-            HexMech.selectHex(p.x, p.y, g2img);
+            HexMech.selectHex(p.x, p.y, g2);
         }
-        HexMech.cursor(cursorLoc.x, cursorLoc.y, g2img);
-        // Draw map with grid.  If this event occurred on mouse-click, center map on click
-        g2.drawImage(bimg, 0, 0, null);
+        HexMech.cursor(cursorLoc.x, cursorLoc.y, g2);
+        // If a combat animation is active, draw it on top
+        if (inCombat) {
+            paintCombat(g2);
+        }
     }
 
     public void drawCursor(Point cursor, boolean turn) {
-        loadMapImage(null);
-        Graphics2D g2 = (Graphics2D) this.getGraphics();
-        HexMech.drawHex(cursorLoc.x, cursorLoc.y, g2);
-        for (Point p : selectLocs) {
-            if (p.x == cursorLoc.x && p.y == cursorLoc.y) {
-                HexMech.selectHex(p.x, p.y, g2);
-            }
-        }
-        cursorLoc = cursor;
-        if (cursorLoc.x == corner.x && cursorLoc.x != 0) {
-            corner.x -= 2;
-            paintComponent(this.getGraphics());
-            return;
-        }
-        if (cursorLoc.y == corner.y && cursorLoc.y != 0) {
-            corner.y -= 2;
-            paintComponent(this.getGraphics());
-            return;
-        }
-        if (cursorLoc.x == corner.x + 13 && cursorLoc.x < LocationManager.getSize().x - 2) {
-            // Re-center map
-            corner.x += 2;
-            paintComponent(this.getGraphics());
-            return;
-        }
-        if (cursorLoc.y == corner.y + 8 && cursorLoc.y < LocationManager.getSize().y - 2) {
-            // Re-center map
-            corner.y += 2;
-            paintComponent(this.getGraphics());
-            return;
-        }
-        HexMech.cursor(cursorLoc.x, cursorLoc.y, turn, g2);
+        updateCursor(cursor, turn);
+    }
+
+    public void updateCursor(Point cursor, boolean turn) {
+        cursorLoc = (cursor != null) ? new Point(cursor) : new Point(0, 0);
+        // Adjust viewport to keep cursor near edges according to thresholds
+        viewport.adjustToCursor(cursorLoc, LocationManager.getSize().x, LocationManager.getSize().y,
+                SCROLL_THRESHOLD_X, SCROLL_THRESHOLD_Y);
+        repaint();
     }
 
     public void displayCombat(CombatStats cstat) {
-        boolean turn = cstat.getAttacker().getTeam();
-        Unit blue = (turn ? cstat.getAttacker() : cstat.getDefender());
-        Unit red = (turn ? cstat.getDefender() : cstat.getAttacker());
-        Graphics2D g2 = (Graphics2D) this.getGraphics();
+        // Initialize animation state and start timer; avoid blocking UI thread
+        this.combatStats = cstat;
+        this.turnForCombat = cstat.getAttacker().getTeam();
+        this.blue = (turnForCombat ? cstat.getAttacker() : cstat.getDefender());
+        this.red = (turnForCombat ? cstat.getDefender() : cstat.getAttacker());
+        this.bluehb = (turnForCombat ? cstat.getAttackerHB() : cstat.getDefenderHB());
+        this.redhb = (!turnForCombat ? cstat.getAttackerHB() : cstat.getDefenderHB());
+        this.animX = 90;
+        this.phase = 0;
+        this.phaseTicks = 0;
+        this.inCombat = true;
+        try { SoundUtility.getInstance().playSound("Launch.wav"); } catch (Exception ex) {
+            java.util.logging.Logger log = military.util.Logs.getLogger(HexGridPanel.class);
+            log.fine("Sound play failed (Launch.wav): " + ex.toString());
+        }
+        if (combatTimer != null) {
+            combatTimer.stop();
+        }
+        combatTimer = new Timer(TIMER_MS, e -> {
+            if (!inCombat) { ((Timer)e.getSource()).stop(); return; }
+            if (phase == 0) {
+                animX += BULLET_STEP;
+                if (animX >= getWidth() - 85) {
+                    phase = 1;
+                    phaseTicks = 0;
+                    try { SoundUtility.getInstance().playSound("Explosion.wav"); } catch (Exception ex) {
+                        java.util.logging.Logger log = military.util.Logs.getLogger(HexGridPanel.class);
+                        log.fine("Sound play failed (Explosion.wav): " + ex.toString());
+                    }
+                }
+            } else if (phase == 1) {
+                phaseTicks++;
+                if (phaseTicks > 12) {
+                    phase = 2;
+                }
+            } else {
+                inCombat = false;
+                ((Timer)e.getSource()).stop();
+            }
+            repaint();
+        });
+        combatTimer.start();
+    }
+
+    private void paintCombat(Graphics2D g2) {
+        // Background halves
         g2.setColor(blue.getLoc().getColor());
         g2.fillRect(0, 0, getWidth() / 2, getHeight());
         g2.setColor(red.getLoc().getColor());
         g2.fillRect(getWidth() / 2, 0, getWidth() / 2, getHeight());
         g2.setColor(Color.black);
-        int bluehb = (turn ? cstat.getAttackerHB() : cstat.getDefenderHB());
-        int redhb = (!turn ? cstat.getAttackerHB() : cstat.getDefenderHB());
-        SoundUtility.getInstance().playSound("Launch.wav");
+        // Draw unit images at sides
         for (int i = 0; i < bluehb; i++) {
             g2.drawImage(ModelManager.getModel(blue.getModelName()).getImage(true), 50, i * getHeight() / bluehb, 40, 40, null);
         }
         for (int i = 0; i < redhb; i++) {
             g2.drawImage(ModelManager.getModel(red.getModelName()).getImage(false), getWidth() - 90, i * getHeight() / redhb, 40, 40, null);
         }
-
-        for (int x = 90; x < getWidth() - 85; x++) {
+        // Phase 0: bullet traces
+        if (phase == 0) {
+            int x = animX;
             for (int i = 0; i < bluehb; i++) {
-                if (x < getWidth() / 2) {
-                    g2.setColor(blue.getLoc().getColor());
-                } else {
-                    g2.setColor(red.getLoc().getColor());
-                }
+                g2.setColor((x < getWidth() / 2) ? blue.getLoc().getColor() : red.getLoc().getColor());
                 g2.fillRect(x - 1, 18 + i * getHeight() / bluehb, 3, 3);
                 g2.setColor(Color.black);
-                g2.setPaintMode();
                 g2.fillRect(x, 18 + i * getHeight() / bluehb, 3, 3);
             }
             for (int i = 0; i < redhb; i++) {
-                if (x < getWidth() / 2) {
-                    g2.setColor(red.getLoc().getColor());
-                } else {
-                    g2.setColor(blue.getLoc().getColor());
-                }
+                g2.setColor((x < getWidth() / 2) ? red.getLoc().getColor() : blue.getLoc().getColor());
                 g2.fillRect(getWidth() - x + 1, 18 + i * getHeight() / redhb, 3, 3);
                 g2.setColor(Color.black);
                 g2.fillRect(getWidth() - x, 18 + i * getHeight() / redhb, 3, 3);
             }
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ex) {
+        }
+        // Phase 1: explosions overlays
+        if (phase >= 1) {
+            for (int i = 0; i < bluehb - blue.getHealth(); i++) {
+                g2.drawImage(ModelManager.getModel("Explosion").getImage(true), 50, i * getHeight() / bluehb, 40, 40, null);
+            }
+            for (int i = 0; i < redhb - red.getHealth(); i++) {
+                g2.drawImage(ModelManager.getModel("Explosion").getImage(false), getWidth() - 90, i * getHeight() / redhb, 40, 40, null);
             }
         }
-        SoundUtility.getInstance().playSound("Explosion.wav");
-        for (int i = 0; i < bluehb - blue.getHealth(); i++) {
-            g2.drawImage(ModelManager.getModel("Explosion").getImage(true), 50, i * getHeight() / bluehb, 40, 40, null);
-        }
-        for (int i = 0; i < redhb - red.getHealth(); i++) {
-            g2.drawImage(ModelManager.getModel("Explosion").getImage(false), getWidth() - 90, i * getHeight() / redhb, 40, 40, null);
-        }
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException ex) {
-
-        }
-        g2.setColor(blue.getLoc().getColor());
-        for (int i = 0; i < bluehb - blue.getHealth(); i++) {
-            g2.fillRect(50, i * getHeight() / bluehb, 40, 40);
-        }
-        g2.setColor(red.getLoc().getColor());
-        for (int i = 0; i < redhb - red.getHealth(); i++) {
-            g2.fillRect(getWidth() - 90, i * getHeight() / redhb, 40, 40);
+        // Phase 2: fill destroyed blocks
+        if (phase >= 2) {
+            g2.setColor(blue.getLoc().getColor());
+            for (int i = 0; i < bluehb - blue.getHealth(); i++) {
+                g2.fillRect(50, i * getHeight() / bluehb, 40, 40);
+            }
+            g2.setColor(red.getLoc().getColor());
+            for (int i = 0; i < redhb - red.getHealth(); i++) {
+                g2.fillRect(getWidth() - 90, i * getHeight() / redhb, 40, 40);
+            }
         }
     }
 
@@ -199,7 +227,8 @@ public class HexGridPanel extends JPanel {
 //            Graphics2D g2 = (Graphics2D) this.getGraphics();
 //            g2.drawImage(bimg, 60, 20, null);
         } catch (Exception ex) {
-            System.out.println("Error loading map image: " + ex);
+            java.util.logging.Logger logger = military.util.Logs.getLogger(HexGridPanel.class);
+            logger.warning("Error loading map image: " + ex);
         }
     }
 

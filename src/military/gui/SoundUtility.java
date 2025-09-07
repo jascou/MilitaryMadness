@@ -2,6 +2,7 @@ package military.gui;
 
 import military.util.Logs;
 import military.util.SoundPlayer;
+import military.util.FeatureToggles;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -40,11 +41,20 @@ public class SoundUtility implements Runnable, SoundPlayer {
         return instance;
     }
 
-    private SoundUtility() { }
+    private SoundUtility() {
+        // Preference overrides toggle default if present
+        this.playSounds = military.util.PreferencesManager.isSoundEnabled(FeatureToggles.soundEnabledByDefault());
+    }
 
     @Override
     public void setPlaySounds(boolean value) {
         playSounds = value;
+        try {
+            military.util.PreferencesManager.setSoundEnabled(value);
+        } catch (Exception ex) {
+            // best-effort persistence; log at FINE
+            LOGGER.fine("Failed to persist sound preference: " + ex.toString());
+        }
     }
 
     private boolean getPlaySounds() {

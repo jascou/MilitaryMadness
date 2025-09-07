@@ -18,6 +18,7 @@ public final class InputMappings {
     public static final int LETTER_S = 83;
     public static final int LETTER_W = 87;
     public static final int ENTER = 10;
+    public static final int ESCAPE = 27;
 
     public static final int MOUSE_LEFT = 1;
     public static final int MOUSE_MIDDLE = 3;

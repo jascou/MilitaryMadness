@@ -6,6 +6,7 @@
 package military.gui;
 
 import military.engine.CombatStats;
+import military.engine.ImmutableGameState;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -77,10 +78,23 @@ public class GUI extends JFrame {
     }
 
     public void render(boolean turn, ArrayList<Point> select, Point cursor) {
+        // Backward-compatible path: construct a temporary snapshot and delegate
+        ImmutableGameState snap = new ImmutableGameState(turn, cursor, select,
+                military.engine.DefaultUnitRepository.getInstance().getUnits(military.engine.Team.BLUE).size(),
+                military.engine.DefaultUnitRepository.getInstance().getUnits(military.engine.Team.RED).size());
+        render(snap);
+    }
+
+    // New snapshot-based rendering API
+    public void render(ImmutableGameState state) {
+        java.util.logging.Logger dbg = military.util.Logs.getLogger(GUI.class);
+        String dbgMsg = "[DEBUG_LOG] GUI.render(state): select size=" + (state.getSelect()==null?"null":state.getSelect().size()) + ", cursor=" + state.getCursor() + ", EDT=" + javax.swing.SwingUtilities.isEventDispatchThread();
+        dbg.fine(dbgMsg);
         displayPanel = hexGridPanel;
-        this.turn = turn;
-        player1.setText("<html>Player 1<br>Units: " + UnitManager.getInstance().getUnits(true).size() + "</html>");
-        player2.setText("<html>Player 2<br>Units: " + UnitManager.getInstance().getUnits(false).size() + "</html>");
+        this.turn = state.getTurn();
+        player1.setText("<html>Player 1<br>Units: " + state.getBlueCount() + "</html>");
+        player2.setText("<html>Player 2<br>Units: " + state.getRedCount() + "</html>");
+        Point cursor = state.getCursor();
         if (cursor.x == -1) {
             if (cursor.y == 0) {
                 shift.grabFocus();
@@ -97,21 +111,25 @@ public class GUI extends JFrame {
             hexGridPanel.grabFocus();
         }
         if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
-            hexGridPanel.render(select, new Point(cursor.x, cursor.y));
+            hexGridPanel.render(new ArrayList<>(state.getSelect()), new Point(cursor.x, cursor.y));
             bottomPanel.render(cursor);
         } else {
-            System.out.println("Cursor exceeds map bounds");
+            java.util.logging.Logger logger = military.util.Logs.getLogger(GUI.class);
+            logger.fine("Cursor exceeds map bounds");
         }
     }
 
     public void moveCursor(Point cursor) {
-        int x, y;
-        x = cursor.x;
-        y = cursor.y;
+        if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+            javax.swing.SwingUtilities.invokeLater(() -> moveCursor(new Point(cursor)));
+            return;
+        }
+        int x = cursor.x;
+        int y = cursor.y;
         if (x < 0 || ((x % 2 == 0) && (y == 0))) { // Ensure click is within map bounds
             return;
         }
-        if(displayPanel == hexGridPanel){
+        if (displayPanel == hexGridPanel) {
             hexGridPanel.grabFocus();
             try {
                 hexGridPanel.drawCursor(new Point(cursor.x, cursor.y), turn);
@@ -120,11 +138,10 @@ public class GUI extends JFrame {
             }
             bottomPanel.render(cursor);
         }
-        if(displayPanel == factoryPanel){
+        if (displayPanel == factoryPanel) {
             factoryPanel.drawCursor(new Point(cursor.x, cursor.y));
             bottomPanel.factoryUnit(factoryPanel.getUnit());
         }
-        
     }
 
     public void displayCombat(CombatStats cstat) {
@@ -138,6 +155,18 @@ public class GUI extends JFrame {
     public void incrementTurn() {
         turnNumber++;
         turnNumberLabel.setText("Turn " + turnNumber);
+    }
+
+    // Force an immediate repaint of the hex grid (used after critical state changes)
+    public void forceGridRepaint() {
+        try {
+            if (hexGridPanel != null) {
+                hexGridPanel.paintImmediately(hexGridPanel.getVisibleRect());
+            }
+        } catch (Exception ex) {
+            java.util.logging.Logger log = military.util.Logs.getLogger(GUI.class);
+            log.fine("forceGridRepaint failed: " + ex.toString());
+        }
     }
 
     private void initComponents() {
@@ -188,15 +217,9 @@ public class GUI extends JFrame {
         shift.setFont(new Font("Consolas", 0, FONT_SIZE));
         shift.setToolTipText("Move a selected unit");
         shift.getAccessibleContext().setAccessibleName("Shift Button");
-        shift.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (actions != null) {
-                    actions.onMove();
-                } else {
-                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 0, 1, false));
-                }
-            }
-        });
+        military.gui.controls.ButtonBinder.bind(shift, () -> {
+            if (actions != null) actions.onMove();
+        }, 0);
         shift.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 shift.setBackground(Color.red);
@@ -218,15 +241,9 @@ public class GUI extends JFrame {
         attack.setFont(new Font("Consolas", 0, FONT_SIZE));
         attack.setToolTipText("Attack an adjacent enemy");
         attack.getAccessibleContext().setAccessibleName("Attack Button");
-        attack.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (actions != null) {
-                    actions.onAttack();
-                } else {
-                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 1, 1, false));
-                }
-            }
-        });
+        military.gui.controls.ButtonBinder.bind(attack, () -> {
+            if (actions != null) actions.onAttack();
+        }, 1);
         attack.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 attack.setBackground(Color.red);
@@ -248,15 +265,9 @@ public class GUI extends JFrame {
         info.setFont(new Font("Consolas", 0, FONT_SIZE));
         info.setToolTipText("Show information");
         info.getAccessibleContext().setAccessibleName("Info Button");
-        info.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (actions != null) {
-                    actions.onInfo();
-                } else {
-                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 2, 1, false));
-                }
-            }
-        });
+        military.gui.controls.ButtonBinder.bind(info, () -> {
+            if (actions != null) actions.onInfo();
+        }, 2);
         info.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 info.setBackground(Color.red);
@@ -278,15 +289,9 @@ public class GUI extends JFrame {
         end.setToolTipText("End current player's turn");
         end.getAccessibleContext().setAccessibleName("End Turn Button");
         end.setText("End");
-        end.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (actions != null) {
-                    actions.onEndTurn();
-                } else {
-                    GUIMiddleMan.getInstance().putEvent(new MouseEvent(shift, 0, 0, 0, -1, 3, 1, false));
-                }
-            }
-        });
+        military.gui.controls.ButtonBinder.bind(end, () -> {
+            if (actions != null) actions.onEndTurn();
+        }, 3);
         end.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 end.setBackground(Color.red);
@@ -396,7 +401,8 @@ public class GUI extends JFrame {
         //mapPanel = new JPanel();
        // InputStream inStream = null;
         try {
-            BufferedImage bimg = military.util.ResourceLoader.loadImage("Resources/maps/bd01v2.gif");
+            String bg = military.Config.resourcesDir().resolve("maps").resolve("bd01v2.gif").toString();
+            BufferedImage bimg = military.util.ImageCache.get(bg);
             int width = bimg.getWidth();
             int height = bimg.getHeight();
 //            Image image = ImageIO.read(inStream);
@@ -419,7 +425,7 @@ public class GUI extends JFrame {
             });
         } catch (Exception ex) {
             java.util.logging.Logger logger = military.util.Logs.getLogger(GUI.class);
-            logger.info("Background image not found: Resources/maps/bd01v2.gif");
+            logger.info("Background image not found: " + military.Config.resourcesDir().resolve("maps").resolve("bd01v2.gif"));
         }
     }
 

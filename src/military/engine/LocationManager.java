@@ -19,7 +19,10 @@ import java.util.Scanner;
 /**
  * Manages the map grid (locations), base/factory placements, and unit placement.
  *
- * Thread-safety: all methods are intended to be used from the game thread; no synchronization is provided.
+ * Thread-safety: The engine is designed for single-threaded access for mutation (the game/engine thread).
+ * Read access from the EDT occurs for rendering needs (e.g., size queries). To reduce race risks, common
+ * read methods like getSize(), getLoc(), and isInBounds() are synchronized. All other mutation methods
+ * should be called only from the engine thread. Avoid calling mutating methods from the EDT.
  * IO: loadMap/saveMap perform filesystem access via Config paths; callers should ensure valid filenames.
  *
  * @author Nate
@@ -33,11 +36,11 @@ public class LocationManager {
     private static final java.util.logging.Logger LOGGER = military.util.Logs.getLogger(LocationManager.class);
     private static final Random RNG = new Random();
 
-    public static Point getSize() {
+    public static synchronized Point getSize() {
         return new Point(entries.size(), entries.get(0).size());
     }
 
-    public static Location getLoc(int x, int y) {
+    public static synchronized Location getLoc(int x, int y) {
 //        System.out.println("getLoc(" + x + ", " + y +")");
         if (!isInBounds(x, y)) {
             java.util.logging.Logger logger = military.util.Logs.getLogger(LocationManager.class);
@@ -47,7 +50,7 @@ public class LocationManager {
         return entries.get(x).get(y);
     }
 
-    public static boolean isInBounds(int x, int y) {
+    public static synchronized boolean isInBounds(int x, int y) {
         if (entries == null || entries.isEmpty()) return false;
         if (x < 0 || y < 0) return false;
         int width = entries.size();
@@ -142,8 +145,27 @@ public class LocationManager {
         java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
         try (java.io.InputStream inStream = java.nio.file.Files.newInputStream(mapPath);
              java.util.Scanner reader = new java.util.Scanner(new java.io.InputStreamReader(inStream, java.nio.charset.StandardCharsets.UTF_8))) {
-            int numColumns = reader.nextInt();
-            int numRows = reader.nextInt();
+            // Support optional version header: MMAPv1
+            int numColumns;
+            int numRows;
+            String firstToken = reader.hasNext() ? reader.next() : null;
+            if (firstToken == null) {
+                throw new IllegalArgumentException("Empty map file");
+            }
+            try {
+                // If first token is an integer, it's the legacy format (dims first)
+                numColumns = Integer.parseInt(firstToken);
+                numRows = reader.nextInt();
+            } catch (NumberFormatException nfe) {
+                // Otherwise expect a version header token then dims
+                if (!firstToken.startsWith("MMAPv")) {
+                    LOGGER.severe("Unknown map header: " + firstToken);
+                    throw new IllegalArgumentException("Unknown map header: " + firstToken);
+                }
+                numColumns = reader.nextInt();
+                numRows = reader.nextInt();
+            }
+
             if (numColumns <= 0 || numRows <= 0 || numColumns > 500 || numRows > 500) {
                 LOGGER.severe("Invalid map dimensions: " + numColumns + "x" + numRows);
                 throw new IllegalArgumentException("Invalid map dimensions");
@@ -218,23 +240,10 @@ public class LocationManager {
         int x = p.x;
         int y = p.y;
 //        InputStream unitStream = instance.getClass().getClassLoader().getResourceAsStream("Units.txt");
-        InputStream unitStream = null;
-        try {
-            unitStream = military.util.ResourceLoader.openTextFromResources("Units.txt");
-        } catch (Exception e) {
-            java.util.logging.Logger logger = military.util.Logs.getLogger(LocationManager.class);
-            logger.severe("Failed to load Units.txt: " + e.getMessage());
-        }
-
-        assert unitStream != null;          // Added June 16, 2023
-        Scanner unitReader = new Scanner(unitStream);
-        while (!unitReader.next().equals(name)) {}
-        Unit u = new Unit(name, unitReader.next(), unitReader.nextBoolean(),
-                unitReader.nextBoolean(), team, unitReader.nextInt(),
-                unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt());
+        // Use plugin registry (with fallback to Units.txt) to create the unit by name
+        Unit u = UnitPluginRegistry.create(name, team);
         entries.get(x).get(y).addUnit(u);
         UnitManager.getInstance().addUnit(u);
-        unitReader.close();
     }
 
     /**
@@ -275,13 +284,15 @@ public class LocationManager {
     /**
          * Saves the current map layout and units to Maps/{filename}.txt.
          * Writing is best-effort; caller is responsible for error handling.
+         * Legacy format without a header to preserve round-trip equality with older maps.
          */
         public static void saveMap(String filename) {
         if (instance == null) {
             instance = new LocationManager();
         }
         java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
-        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(mapPath, java.nio.charset.StandardCharsets.UTF_8)) {
+        java.nio.file.Path tmpPath = mapPath.resolveSibling(filename + ".txt.tmp");
+        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(tmpPath, java.nio.charset.StandardCharsets.UTF_8)) {
             writer.write(Integer.toString(entries.size()));
             writer.newLine();
             writer.write(Integer.toString(entries.get(0).size()));
@@ -304,7 +315,65 @@ public class LocationManager {
                 writer.newLine();
             }
         } catch (Exception e) {
-            LOGGER.severe("Failed to save map: " + mapPath + " - " + e.getMessage());
+            LOGGER.severe("Failed to write temp map file: " + tmpPath + " - " + e.getMessage());
+            return;
+        }
+        try {
+            java.nio.file.Files.move(tmpPath, mapPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+        } catch (Exception moveEx) {
+            try {
+                // Fallback without ATOMIC_MOVE if not supported
+                java.nio.file.Files.move(tmpPath, mapPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception ex2) {
+                LOGGER.severe("Failed to replace map file: " + mapPath + " - " + ex2.getMessage());
+            }
+        }
+    }
+
+    /**
+         * Saves using the versioned format with a header (e.g., MMAPv1). Useful for future evolution.
+         */
+        public static void saveMapV1(String filename) {
+        if (instance == null) {
+            instance = new LocationManager();
+        }
+        java.nio.file.Path mapPath = military.Config.mapsDir().resolve(filename + ".txt");
+        java.nio.file.Path tmpPath = mapPath.resolveSibling(filename + ".txt.tmp");
+        try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(tmpPath, java.nio.charset.StandardCharsets.UTF_8)) {
+            writer.write("MMAPv1");
+            writer.newLine();
+            writer.write(Integer.toString(entries.size()));
+            writer.newLine();
+            writer.write(Integer.toString(entries.get(0).size()));
+            writer.newLine();
+            for (int i = 0; i < entries.size(); i++) {
+                for (int j = 0; j < entries.get(0).size(); j++) {
+                    writer.write(entries.get(i).get(j).getType() + " ");
+                }
+                writer.newLine();
+            }
+            for (Unit u : UnitManager.getInstance().getUnits(true)) {
+                writer.write(u.getLoc().getLoc().x + " " + u.getLoc().getLoc().y
+                        + " " + u.getName() + " true");
+                writer.newLine();
+            }
+            for (Unit u : UnitManager.getInstance().getUnits(false)) {
+                writer.write(u.getLoc().getLoc().x + " " + u.getLoc().getLoc().y
+                        + " " + u.getName() + " false");
+                writer.newLine();
+            }
+        } catch (Exception e) {
+            LOGGER.severe("Failed to write temp map file (v1): " + tmpPath + " - " + e.getMessage());
+            return;
+        }
+        try {
+            java.nio.file.Files.move(tmpPath, mapPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+        } catch (Exception moveEx) {
+            try {
+                java.nio.file.Files.move(tmpPath, mapPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception ex2) {
+                LOGGER.severe("Failed to replace map file (v1): " + mapPath + " - " + ex2.getMessage());
+            }
         }
     }
 
