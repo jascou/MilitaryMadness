@@ -45,7 +45,11 @@ public final class UnitPluginRegistry {
     public static Unit create(String name, boolean team) {
         UnitCreator creator = REGISTRY.get(name);
         if (creator != null) {
-            try { return creator.create(name, team); } catch (Exception ignored) { /* fallback below */ }
+            try {
+                Unit u = creator.create(name, team);
+                UnitCapabilities.apply(u);
+                return u;
+            } catch (Exception ignored) { /* fallback below */ }
         }
         // Fallback to Units.txt format used by LocationManager
         try (InputStream unitStream = ResourceLoader.openTextFromResources("Units.txt");
@@ -61,7 +65,9 @@ public final class UnitPluginRegistry {
                     int range = unitReader.nextInt();
                     int defense = unitReader.nextInt();
                     int shift = unitReader.nextInt();
-                    return new Unit(name, type, isRange, isAir, team, landAttack, airAttack, range, defense, shift);
+                    Unit u = new Unit(name, type, isRange, isAir, team, landAttack, airAttack, range, defense, shift);
+                    UnitCapabilities.apply(u);
+                    return u;
                 }
             }
         } catch (Exception ex) {
@@ -69,6 +75,8 @@ public final class UnitPluginRegistry {
             log.fine("Units.txt lookup failed for '" + name + "': " + ex.toString());
         }
         // Unknown name -> minimal default
-        return new Unit(name, name, false, false, team, 0, 0, 1, 0, 0);
+        Unit u = new Unit(name, name, false, false, team, 0, 0, 1, 0, 0);
+        UnitCapabilities.apply(u);
+        return u;
     }
 }

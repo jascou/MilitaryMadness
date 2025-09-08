@@ -219,6 +219,7 @@ public class LocationManager {
                     Unit u = new Unit(name, unitReader.next(), unitReader.nextBoolean(),
                             unitReader.nextBoolean(), team, unitReader.nextInt(),
                             unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt(), unitReader.nextInt());
+                    UnitCapabilities.apply(u);
                     entries.get(x).get(y).addUnit(u);
                     UnitManager.getInstance().addUnit(u);
                 }
@@ -381,7 +382,7 @@ public class LocationManager {
          * Returns the base location for the given team.
          * @param team true for blue, false for red
          */
-        public static Location getBase(boolean team) {
+    public static Location getBase(boolean team) {
         return team ? blueBase : redBase;
     }
 

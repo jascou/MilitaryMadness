@@ -31,6 +31,11 @@ public class Unit{
     private int health;
     private Location loc;
 
+    // New per-turn movement capability: allow certain units (e.g., Rabbit) to move twice and/or move after attack
+    private int maxMovesPerTurn = 1; // default: one move per turn
+    private int movesUsedThisTurn = 0;
+    private boolean canMoveAfterAttack = false;
+
     public Unit(String name, String type, boolean isRange, boolean isAir, boolean team, int landAttack, int airAttack, int range, int defense, int shift) {
         this.name = name;
         this.type = type;
@@ -55,17 +60,27 @@ public class Unit{
         this.loc.removeUnit();
         newLoc.addUnit(this);
         this.loc = newLoc;
-        shiftDone = true;
+        // increment move count; mark shiftDone only if we've used all allowed moves
+        movesUsedThisTurn++;
+        if (movesUsedThisTurn >= maxMovesPerTurn) {
+            shiftDone = true;
+        }
     }
     
     public void attack(){
         attackDone = true;
-        shiftDone = true;
+        // If this unit can move after attacking, don't force shiftDone unless already out of moves
+        if (!canMoveAfterAttack) {
+            shiftDone = true;
+        } else {
+            shiftDone = (movesUsedThisTurn >= maxMovesPerTurn);
+        }
     }
     
     public void reset(){
         shiftDone = false;
         attackDone = false;
+        movesUsedThisTurn = 0;
     }
 
     public boolean isShiftDone() {
@@ -79,6 +94,13 @@ public class Unit{
     public int getShift() {
         return shift;
     }
+
+    // Capability configuration and queries
+    public void setMaxMovesPerTurn(int maxMovesPerTurn) { if (maxMovesPerTurn < 1) maxMovesPerTurn = 1; this.maxMovesPerTurn = maxMovesPerTurn; }
+    public int getMaxMovesPerTurn() { return maxMovesPerTurn; }
+    public int getMovesUsedThisTurn() { return movesUsedThisTurn; }
+    public void setCanMoveAfterAttack(boolean value) { this.canMoveAfterAttack = value; }
+    public boolean canMoveAfterAttack() { return canMoveAfterAttack; }
 
     public String getType() {
         return type;

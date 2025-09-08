@@ -410,18 +410,20 @@ public class Game implements Runnable {
                         JOptionPane.showMessageDialog(gui, "Cannot Attack Here");
                         return;
                     }
-                    gui.displayCombat(new CombatStats(LocationManager.getLoc(unitLoc).getUnit(),
-                            LocationManager.getLoc(cursor).getUnit()));
-                    LocationManager.getLoc(unitLoc).getUnit().attack();
+                    Unit attacker = LocationManager.getLoc(unitLoc).getUnit();
+                    Unit defender = LocationManager.getLoc(cursor).getUnit();
+                    gui.displayCombat(new CombatStats(attacker, defender));
+                    if (attacker != null) attacker.attack();
                     attacking = false;
                     selectLocs.clear();
-                    if (LocationManager.getLoc(cursor).getUnit().getHealth() <= 0) {
-                        UnitManager.getInstance().removeUnit(LocationManager.getLoc(cursor).getUnit());
+                    if (defender != null && defender.getHealth() <= 0) {
+                        UnitManager.getInstance().removeUnit(defender);
                         LocationManager.getLoc(cursor).removeUnit();
                     }
-                    if (LocationManager.getLoc(unitLoc).getUnit().getHealth() <= 0) {
-                        UnitManager.getInstance().removeUnit(LocationManager.getLoc(unitLoc).getUnit());
+                    if (attacker != null && attacker.getHealth() <= 0) {
+                        UnitManager.getInstance().removeUnit(attacker);
                         LocationManager.getLoc(unitLoc).removeUnit();
+                        attacker = null;
                     }
                     if (unitRepo.getUnits(military.engine.Team.RED).isEmpty()) {
                         JOptionPane.showMessageDialog(gui, "Player 1 Wins!");
@@ -432,6 +434,17 @@ public class Game implements Runnable {
                         JOptionPane.showMessageDialog(gui, "Player 2 Wins!");
                         gui.dispose();
                         return;
+                    }
+                    // If attacker is eligible to move after attacking, re-enter shifting mode
+                    if (attacker != null && attacker.canMoveAfterAttack() && !attacker.isShiftDone()) {
+                        shifting = true;
+                        unitLoc = new Point(attacker.getLoc().getLoc());
+                        cursor = new Point(unitLoc);
+                        java.util.List<Point> moves = military.engine.PathfindingService.computeMovesBfs(unitLoc, attacker, turn);
+                        selectLocs.clear();
+                        selectLocs.addAll(moves);
+                        controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+                        try { gui.forceGridRepaint(); } catch (Exception ex) { }
                     }
                     InputEvent evt = GUIMiddleMan.getInstance().getEvent();
                     while ((evt instanceof KeyEvent) && ((KeyEvent) evt).getKeyCode() != 10) {
@@ -788,23 +801,24 @@ public class Game implements Runnable {
                         javax.swing.JOptionPane.showMessageDialog(gui, "Cannot Attack Here");
                         return;
                     }
-                    gui.displayCombat(military.engine.CombatResolver.resolve(
+                    military.engine.CombatStats stats = military.engine.CombatResolver.resolve(
                             LocationManager.getLoc(unitLoc).getUnit(),
                             LocationManager.getLoc(cursor).getUnit(),
-                            LocationManager.getLoc(cursor)));
-                    if (!military.engine.TurnRules.ALLOW_MOVE_AFTER_ATTACK) {
-                        // Enforcement is already via attack() marking flags; this documents the rule usage
-                    }
-                    LocationManager.getLoc(unitLoc).getUnit().attack();
+                            LocationManager.getLoc(cursor));
+                    gui.displayCombat(stats);
+                    Unit attacker = LocationManager.getLoc(unitLoc).getUnit();
+                    Unit defender = LocationManager.getLoc(cursor).getUnit();
+                    if (attacker != null) attacker.attack();
                     attacking = false;
                     selectLocs.clear();
-                    if (LocationManager.getLoc(cursor).getUnit().getHealth() <= 0) {
-                        UnitManager.getInstance().removeUnit(LocationManager.getLoc(cursor).getUnit());
+                    if (defender != null && defender.getHealth() <= 0) {
+                        UnitManager.getInstance().removeUnit(defender);
                         LocationManager.getLoc(cursor).removeUnit();
                     }
-                    if (LocationManager.getLoc(unitLoc).getUnit().getHealth() <= 0) {
-                        UnitManager.getInstance().removeUnit(LocationManager.getLoc(unitLoc).getUnit());
+                    if (attacker != null && attacker.getHealth() <= 0) {
+                        UnitManager.getInstance().removeUnit(attacker);
                         LocationManager.getLoc(unitLoc).removeUnit();
+                        attacker = null;
                     }
                     if (UnitManager.getInstance().getUnits(false).isEmpty()) {
                         javax.swing.JOptionPane.showMessageDialog(gui, "Player 1 Wins!");
@@ -815,6 +829,17 @@ public class Game implements Runnable {
                         javax.swing.JOptionPane.showMessageDialog(gui, "Player 2 Wins!");
                         gui.dispose();
                         return;
+                    }
+                    // Rabbit-like capability: re-enter shifting after attack if allowed
+                    if (attacker != null && attacker.canMoveAfterAttack() && !attacker.isShiftDone()) {
+                        shifting = true;
+                        unitLoc = new Point(attacker.getLoc().getLoc());
+                        cursor = new Point(unitLoc);
+                        java.util.List<Point> moves = military.engine.PathfindingService.computeMovesBfs(unitLoc, attacker, turn);
+                        selectLocs.clear();
+                        selectLocs.addAll(moves);
+                        controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+                        try { gui.forceGridRepaint(); } catch (Exception ex) { }
                     }
                     try {
                         while ((GUIMiddleMan.getInstance().getEvent() instanceof java.awt.event.KeyEvent)
@@ -922,6 +947,72 @@ public class Game implements Runnable {
     private void info() {
         java.util.logging.Logger logger = military.util.Logs.getLogger(Game.class);
         logger.info("Info requested");
+        try {
+            if (java.awt.GraphicsEnvironment.isHeadless()) {
+                return; // avoid dialogs in headless mode
+            }
+            if (LocationManager.getLoc(cursor).isEmpty()) {
+                javax.swing.JOptionPane.showMessageDialog(gui, "No Unit Present");
+                return;
+            }
+            Unit u = LocationManager.getLoc(cursor).getUnit();
+            // Build a simple info panel with image and stats
+            javax.swing.JPanel panel = new javax.swing.JPanel();
+            panel.setLayout(new javax.swing.BoxLayout(panel, javax.swing.BoxLayout.X_AXIS));
+
+            // Image on the left
+            try {
+                military.gui.Model model = new military.gui.Model(u.getModelName());
+                java.awt.Image img = model.getImage(u.getTeam());
+                if (img != null) {
+                    // scale to a reasonable size
+                    int w = img.getWidth(null);
+                    int h = img.getHeight(null);
+                    if (w > 0 && h > 0) {
+                        int maxW = 160, maxH = 160;
+                        double scale = Math.min((double) maxW / w, (double) maxH / h);
+                        if (scale < 1.0) {
+                            int nw = (int) Math.max(1, Math.round(w * scale));
+                            int nh = (int) Math.max(1, Math.round(h * scale));
+                            java.awt.Image scaled = img.getScaledInstance(nw, nh, java.awt.Image.SCALE_SMOOTH);
+                            panel.add(new javax.swing.JLabel(new javax.swing.ImageIcon(scaled)));
+                        } else {
+                            panel.add(new javax.swing.JLabel(new javax.swing.ImageIcon(img)));
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                // ignore image issues; text will still show
+            }
+
+            // Text on the right
+            javax.swing.JPanel text = new javax.swing.JPanel();
+            text.setLayout(new javax.swing.BoxLayout(text, javax.swing.BoxLayout.Y_AXIS));
+            String teamStr = u.getTeam() ? "Blue" : "Red";
+            text.add(new javax.swing.JLabel("Name: " + u.getName()));
+            text.add(new javax.swing.JLabel("Type: " + u.getType()));
+            text.add(new javax.swing.JLabel("Team: " + teamStr));
+            text.add(new javax.swing.JLabel("Health: " + u.getHealth()));
+            text.add(new javax.swing.JLabel("EXP: " + u.getExp()));
+            text.add(new javax.swing.JLabel("Land Attack: " + u.getLandAttack()));
+            text.add(new javax.swing.JLabel("Air Attack: " + u.getAirAttack()));
+            text.add(new javax.swing.JLabel("Defense: " + u.getDefense()));
+            text.add(new javax.swing.JLabel("Range: " + u.getRange() + (u.isRanged() ? " (Ranged)" : "")));
+            text.add(new javax.swing.JLabel("Move (Shift): " + u.getShift()));
+            // Capabilities
+            String caps = "";
+            if (u.canMoveAfterAttack()) caps += "Move after attack; ";
+            if (u.getMaxMovesPerTurn() > 1) caps += "Moves per turn: " + u.getMaxMovesPerTurn() + "; ";
+            if (!caps.isEmpty()) {
+                text.add(new javax.swing.JLabel("Special: " + caps));
+            }
+            panel.add(javax.swing.Box.createHorizontalStrut(12));
+            panel.add(text);
+
+            javax.swing.JOptionPane.showMessageDialog(gui, panel, "Unit Info", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception ex) {
+            // Swallow to avoid breaking gameplay if UI fails
+        }
     }
 
     private void displayCombatAndPost(CombatStats stats) {
