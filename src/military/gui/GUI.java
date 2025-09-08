@@ -63,6 +63,7 @@ public class GUI extends JFrame {
     private JLabel mapName;
     private int turnNumber;
     private JLabel turnNumberLabel;
+    private JLabel playerTurnLabel;
     private JLabel player1;
     private JLabel player2;
     private boolean turn;
@@ -92,6 +93,10 @@ public class GUI extends JFrame {
         dbg.fine(dbgMsg);
         displayPanel = hexGridPanel;
         this.turn = state.getTurn();
+        // Update current player turn label
+        if (playerTurnLabel != null) {
+            playerTurnLabel.setText(this.turn ? "Player 1 (Blue)" : "Player 2 (Red)");
+        }
         player1.setText("<html>Player 1<br>Units: " + state.getBlueCount() + "</html>");
         player2.setText("<html>Player 2<br>Units: " + state.getRedCount() + "</html>");
         Point cursor = state.getCursor();
@@ -203,7 +208,7 @@ public class GUI extends JFrame {
     }
 
     // Layout constants
-    private static final int BUTTONS_PANEL_WIDTH = 110;
+    private static final int BUTTONS_PANEL_WIDTH = 160;
     private static final int FONT_SIZE = 16;
 
     private void initButtons() {
@@ -317,6 +322,12 @@ public class GUI extends JFrame {
         turnNumberLabel.setForeground(Color.LIGHT_GRAY);
         turnNumberLabel.setFont(new Font("Consolas", 0, 16));
 
+        playerTurnLabel = new JLabel();
+        playerTurnLabel.setBackground(new Color(0, 0, 255));
+        playerTurnLabel.setForeground(Color.LIGHT_GRAY);
+        playerTurnLabel.setFont(new Font("Consolas", 0, 16));
+        playerTurnLabel.setText("Player 1 (Blue)");
+
         player1 = new JLabel();
         player1.setBackground(new Color(0, 0, 255));
         player1.setForeground(Color.LIGHT_GRAY);
@@ -361,6 +372,7 @@ public class GUI extends JFrame {
                 .addComponent(end, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(mapName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(turnNumberLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(playerTurnLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(player1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(player2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         vGroup
@@ -372,6 +384,8 @@ public class GUI extends JFrame {
                 .addComponent(mapName)
                 .addGap(30)
                 .addComponent(turnNumberLabel)
+                .addGap(10)
+                .addComponent(playerTurnLabel)
                 .addGap(30)
                 .addComponent(player1)
                 .addGap(30)

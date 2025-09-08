@@ -93,6 +93,8 @@ public class Game implements Runnable {
         state.setTurn(turn);
         state.setCursor(new Point(cursor));
         controller = new military.engine.GameController(state);
+        // Announce the initial active player at game start
+        announceTurn(turn);
     }
 
     @Override
@@ -894,7 +896,51 @@ public class Game implements Runnable {
         military.engine.events.EventBus.getInstance().post(new military.engine.events.CombatResolved(stats));
     }
 
+    private void announceTurn(boolean whoseTurn) {
+        try {
+            if (java.awt.GraphicsEnvironment.isHeadless()) {
+                return; // do nothing in headless environments (tests/CI)
+            }
+            String playerLabel = whoseTurn ? "Player 1" : "Player 2";
+            String teamLabel = whoseTurn ? "Blue" : "Red";
+            javax.swing.JOptionPane.showMessageDialog(
+                    gui,
+                    playerLabel + " (" + teamLabel + ") turn",
+                    "Turn Started",
+                    javax.swing.JOptionPane.INFORMATION_MESSAGE
+            );
+        } catch (Exception ex) {
+            // Swallow any UI exceptions to avoid blocking gameplay
+        }
+    }
+
+    private boolean confirmEndTurn() {
+        try {
+            if (java.awt.GraphicsEnvironment.isHeadless()) {
+                return true; // auto-confirm in headless environments (e.g., tests/CI)
+            }
+            Object[] options = {"Yes", "Cancel"};
+            int choice = javax.swing.JOptionPane.showOptionDialog(
+                    gui,
+                    "Are you sure you want to end your turn?",
+                    "End Turn",
+                    javax.swing.JOptionPane.YES_NO_OPTION,
+                    javax.swing.JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    options,
+                    options[1]
+            );
+            return choice == 0; // 0 -> "Yes"
+        } catch (Exception ex) {
+            // Fail-open to avoid blocking gameplay if dialog can't be shown
+            return true;
+        }
+    }
+
     private void end() {
+        if (!confirmEndTurn()) {
+            return;
+        }
         turn = !turn;
         unitRepo.resetUnits();
         buttonCursor.y = -1;
@@ -903,6 +949,8 @@ public class Game implements Runnable {
         }
         // Post domain event for turn switch
         military.engine.events.EventBus.getInstance().post(new military.engine.events.TurnStarted(turn ? military.engine.Team.BLUE : military.engine.Team.RED));
+        // Announce the new active player
+        announceTurn(turn);
         controller.render(gui, turn, selectLocs, cursor);
     }
 }
