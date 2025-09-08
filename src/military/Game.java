@@ -226,6 +226,17 @@ public class Game implements Runnable {
                         }
 
                     } else if (attacking) {
+                        // Clicking/confirming on own hex: treat as move completion, clear highlights
+                        if (cursor.equals(unitLoc)) {
+                            attacking = false;
+                            selectLocs.clear();
+                            controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+                            try { gui.forceGridRepaint(); } catch (Exception ex) {
+                                java.util.logging.Logger log = military.util.Logs.getLogger(Game.class);
+                                log.fine("forceGridRepaint threw: " + ex.toString());
+                            }
+                            continue;
+                        }
                         boolean validAttack = false;
                         for (Point p : selectLocs) {
                             if (cursor.x == p.x && cursor.y == p.y) {
@@ -378,6 +389,17 @@ public class Game implements Runnable {
                         return;
                     }
                 } else if (attacking) {
+                    // New behavior: clicking the unit's current location acts as "complete move" and clears highlights
+                    if (cursor.equals(unitLoc)) {
+                        attacking = false;
+                        selectLocs.clear();
+                        controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+                        try { gui.forceGridRepaint(); } catch (Exception ex) {
+                            java.util.logging.Logger log = military.util.Logs.getLogger(Game.class);
+                            log.fine("forceGridRepaint threw: " + ex.toString());
+                        }
+                        return;
+                    }
                     boolean validAttack = false;
                     for (Point p : selectLocs) {
                         if (cursor.x == p.x && cursor.y == p.y) {
@@ -605,6 +627,17 @@ public class Game implements Runnable {
                     }
 
                 } else if (attacking) {
+                    // Clicking on own hex: treat as move completion, clear highlights
+                    if (cursor.equals(unitLoc)) {
+                        attacking = false;
+                        selectLocs.clear();
+                        controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+                        try { gui.forceGridRepaint(); } catch (Exception ex) {
+                            java.util.logging.Logger log = military.util.Logs.getLogger(Game.class);
+                            log.fine("forceGridRepaint threw: " + ex.toString());
+                        }
+                        return;
+                    }
                     boolean validAttack = false;
                     for (Point p : selectLocs) {
                         if (cursor.x == p.x && cursor.y == p.y) {
