@@ -503,11 +503,17 @@ public class Game implements Runnable {
             JOptionPane.showMessageDialog(gui, "Unit already moved this turn");
             return;
         }
+        // Special rule: units that can move after attack (e.g., Rabbit) cannot take the second move until they have attacked
+        Unit unit = LocationManager.getLoc(cursor).getUnit();
+        if (unit.getMaxMovesPerTurn() > 1 && unit.canMoveAfterAttack() && unit.getMovesUsedThisTurn() >= 1 && !unit.isAttackDone()) {
+            // Block second move until an attack has been performed
+            JOptionPane.showMessageDialog(gui, "Must attack before moving again");
+            return;
+        }
         shifting = true;
         buttonCursor.y = -1;
         unitLoc = new Point(cursor.x, cursor.y);
 
-        Unit unit = LocationManager.getLoc(cursor).getUnit();
         java.util.List<Point> moves = military.engine.PathfindingService.computeMovesBfs(cursor, unit, turn);
         selectLocs.clear();
         selectLocs.addAll(moves);
@@ -894,7 +900,7 @@ public class Game implements Runnable {
             return;
         }
         if (LocationManager.getLoc(cursor).getUnit().isAttackDone()) {
-            JOptionPane.showMessageDialog(gui, "Unit already attacked this turn");
+            // Already attacked this turn: do not enter attack mode (silently ignore)
             return;
         }
         buttonCursor.y = -1;

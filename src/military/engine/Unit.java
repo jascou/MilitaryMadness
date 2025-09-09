@@ -35,6 +35,8 @@ public class Unit{
     private int maxMovesPerTurn = 1; // default: one move per turn
     private int movesUsedThisTurn = 0;
     private boolean canMoveAfterAttack = false;
+    // Tracks movement points (terrain cost) spent this turn to enforce "remaining shift points" rule
+    private int movePointsSpentThisTurn = 0;
 
     public Unit(String name, String type, boolean isRange, boolean isAir, boolean team, int landAttack, int airAttack, int range, int defense, int shift) {
         this.name = name;
@@ -57,12 +59,20 @@ public class Unit{
     }
     
     public void move(Location newLoc){
+        // compute movement cost for entering newLoc (align with PathfindingService)
+        int terrain = newLoc.getTerrain() / 10;
+        if (terrain == 0 || this.isAir()) {
+            terrain = 1;
+        }
+        // apply movement
         this.loc.removeUnit();
         newLoc.addUnit(this);
         this.loc = newLoc;
-        // increment move count; mark shiftDone only if we've used all allowed moves
+        // increment move counts and points; mark shiftDone based on caps
         movesUsedThisTurn++;
-        if (movesUsedThisTurn >= maxMovesPerTurn) {
+        movePointsSpentThisTurn += Math.max(0, terrain);
+        // shiftDone if we've exhausted move points or hit the per-turn move action cap
+        if (movePointsSpentThisTurn >= this.shift || movesUsedThisTurn >= maxMovesPerTurn) {
             shiftDone = true;
         }
     }
