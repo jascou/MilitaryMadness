@@ -60,7 +60,11 @@ public class BottomPanel extends JPanel{
                     } catch (Throwable t) {
                         // older builds may not support the getter; ignore
                     }
-                    g2.drawString("MP left: " + mpLeft, 380, 50);
+                    // Shift left by two character widths to avoid overlapping with "Terrain" label
+                    java.awt.FontMetrics fm = g2.getFontMetrics();
+                    int charW = fm.charWidth('M'); // Consolas is monospaced; any character width works
+                    int mpX = 380 - 2 * charW;
+                    g2.drawString("MP left: " + mpLeft, mpX, 50);
                 }
                 if (loc.getTerrain() != -1) {
                     g2.drawString("Terrain: " + loc.getTerrain() + "%", 500, 50);
