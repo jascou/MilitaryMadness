@@ -67,6 +67,7 @@ public class GUI extends JFrame {
     private JLabel player1;
     private JLabel player2;
     private boolean turn;
+    private MiniMapPanel miniMapPanel;
 
     public GUI(String map) {
         turnNumber = 1;
@@ -118,6 +119,13 @@ public class GUI extends JFrame {
         if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
             hexGridPanel.render(new ArrayList<>(state.getSelect()), new Point(cursor.x, cursor.y));
             bottomPanel.render(cursor);
+            if (miniMapPanel != null) {
+                try {
+                    miniMapPanel.render(hexGridPanel.getViewportCorner(), cursor, hexGridPanel.getViewWidth(), hexGridPanel.getViewHeight());
+                } catch (Throwable t) {
+                    // ignore
+                }
+            }
         } else {
             java.util.logging.Logger logger = military.util.Logs.getLogger(GUI.class);
             logger.fine("Cursor exceeds map bounds");
@@ -142,6 +150,13 @@ public class GUI extends JFrame {
                 e.printStackTrace();
             }
             bottomPanel.render(cursor);
+            if (miniMapPanel != null) {
+                try {
+                    miniMapPanel.render(hexGridPanel.getViewportCorner(), cursor, hexGridPanel.getViewWidth(), hexGridPanel.getViewHeight());
+                } catch (Throwable t) {
+                    // ignore
+                }
+            }
         }
         if (displayPanel == factoryPanel) {
             factoryPanel.drawCursor(new Point(cursor.x, cursor.y));
@@ -337,6 +352,10 @@ public class GUI extends JFrame {
         player2.setBackground(new Color(0, 0, 255));
         player2.setForeground(Color.LIGHT_GRAY);
         player2.setFont(new Font("Consolas", 0, 16));
+
+        // Mini map panel (bottom-right outside playfield)
+        miniMapPanel = new MiniMapPanel();
+        miniMapPanel.setPreferredSize(new Dimension(BUTTONS_PANEL_WIDTH - 20, BUTTONS_PANEL_WIDTH - 20));
     }
 
     private void layoutComponents() {     
@@ -374,7 +393,8 @@ public class GUI extends JFrame {
                 .addComponent(turnNumberLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(playerTurnLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(player1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(player2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+                .addComponent(player2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(miniMapPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         vGroup
                 .addComponent(shift)
                 .addComponent(attack)
@@ -390,6 +410,8 @@ public class GUI extends JFrame {
                 .addComponent(player1)
                 .addGap(30)
                 .addComponent(player2)
+                .addGap(20)
+                .addComponent(miniMapPanel)
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         layout.setHorizontalGroup(hGroup);
         layout.setVerticalGroup(vGroup);
