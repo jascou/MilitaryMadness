@@ -24,7 +24,15 @@ public final class PathfindingService {
                 movesLeft[i][j] = -1;
             }
         }
-        movesLeft[start.x][start.y] = unit.getShift();
+        int remaining = unit.getShift();
+        try {
+            // Subtract movement points already spent this turn (e.g., first move before attack)
+            remaining -= unit.getMovePointsSpentThisTurn();
+        } catch (Throwable t) {
+            // Older units may not track points; ignore
+        }
+        if (remaining < 0) remaining = 0;
+        movesLeft[start.x][start.y] = remaining;
         ArrayDeque<Point> queue = new ArrayDeque<>();
         queue.add(new Point(start));
         while (!queue.isEmpty()) {

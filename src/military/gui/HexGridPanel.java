@@ -105,6 +105,53 @@ public class HexGridPanel extends JPanel {
         if (inCombat) {
             paintCombat(g2);
         }
+        // Mini map overlay at bottom-right
+        drawMiniMap(g2, corner);
+    }
+
+    private void drawMiniMap(Graphics2D g2, Point topLeftCorner) {
+        try {
+            Point mapSize = LocationManager.getSize();
+            int mapW = Math.max(1, mapSize.x);
+            int mapH = Math.max(1, mapSize.y);
+            // Compute scale so the minimap fits in a 220x220 box (padding included)
+            int maxBox = 200;
+            int scale = Math.max(1, Math.min(maxBox / mapW, maxBox / mapH));
+            int pad = 10;
+            int mmW = mapW * scale;
+            int mmH = mapH * scale;
+            int x0 = getWidth() - pad - mmW;
+            int y0 = getHeight() - pad - mmH;
+            // Background panel for visibility
+            g2.setColor(new Color(30, 30, 30));
+            g2.fillRect(x0 - 2, y0 - 2, mmW + 4, mmH + 4);
+            // Draw terrain as colored pixels/blocks
+            for (int x = 0; x < mapW; x++) {
+                for (int y = 0; y < mapH; y++) {
+                    java.awt.Color c = LocationManager.getLoc(x, y).getColor();
+                    g2.setColor(c);
+                    g2.fillRect(x0 + x * scale, y0 + y * scale, scale, scale);
+                }
+            }
+            // Draw viewport rectangle
+            g2.setColor(Color.WHITE);
+            int vw = VIEW_WIDTH * scale;
+            int vh = VIEW_HEIGHT * scale;
+            int vx = x0 + topLeftCorner.x * scale;
+            int vy = y0 + topLeftCorner.y * scale;
+            // Use 2px stroke if possible for visibility
+            java.awt.Stroke prev = g2.getStroke();
+            g2.setStroke(new BasicStroke(Math.max(1, scale >= 3 ? 2 : 1)));
+            g2.drawRect(vx, vy, vw, vh);
+            g2.setStroke(prev);
+            // Draw cursor as a small dot
+            g2.setColor(Color.RED);
+            int cx = x0 + cursorLoc.x * scale;
+            int cy = y0 + cursorLoc.y * scale;
+            g2.fillRect(cx, cy, Math.max(1, scale), Math.max(1, scale));
+        } catch (Throwable t) {
+            // Fail-safe: ignore any issues to avoid breaking main render
+        }
     }
 
     public void drawCursor(Point cursor, boolean turn) {

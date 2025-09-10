@@ -91,6 +91,7 @@ public class Unit{
         shiftDone = false;
         attackDone = false;
         movesUsedThisTurn = 0;
+        movePointsSpentThisTurn = 0;
     }
 
     public boolean isShiftDone() {
@@ -111,6 +112,7 @@ public class Unit{
     public int getMovesUsedThisTurn() { return movesUsedThisTurn; }
     public void setCanMoveAfterAttack(boolean value) { this.canMoveAfterAttack = value; }
     public boolean canMoveAfterAttack() { return canMoveAfterAttack; }
+    public int getMovePointsSpentThisTurn() { return movePointsSpentThisTurn; }
 
     public String getType() {
         return type;

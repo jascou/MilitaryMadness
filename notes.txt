@@ -1,4 +1,6 @@
 1. RunGame configuration:  Create new configuration, Gradle, and in Run section, add 'run'.  Save the configuration.
 2. Bug: After completing a move, the highlighted available move hexes remain highlighted; have to press the Shift key to
 clear.
-3. Turn swap between players often fails.
+3. BUG: Turn swap between players often fails.  FIXED.
+4. BUG: The highlighting of hexes for the Rabbit unit type, post attack, doesn't reflect expended movement points up to that point. Expenditures are cumulative and shall be reflected at the start of the second movement.
+5. BUG: Octopus is able to fire after movement.

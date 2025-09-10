@@ -40,12 +40,27 @@ public class BottomPanel extends JPanel{
             if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
                 Location loc = LocationManager.getLoc(cursor);
                 if (!loc.isEmpty()) {
+                    Unit u = loc.getUnit();
                     g2.drawImage(ModelManager.getModel(
-                                            loc.getUnit().getModelName()).
-                                    getImage(loc.getUnit().getTeam())
+                                            u.getModelName()).
+                                    getImage(u.getTeam())
                             , 30, 15, 50, 50, this);
-                    g2.drawString(loc.getUnit().getName() + " x" + loc.getUnit().getHealth(), 90, 50);
-                    g2.drawString("Exp: " + loc.getUnit().getExp(), 250, 50);
+                    g2.drawString(u.getName() + " x" + u.getHealth(), 90, 50);
+                    g2.drawString("Exp: " + u.getExp(), 250, 50);
+                    // Remaining movement points (MP) this turn
+                    int spent = 0;
+                    int mpLeft = u.getShift();
+                    try {
+                        spent = u.getMovePointsSpentThisTurn();
+                        mpLeft = Math.max(0, u.getShift() - spent);
+                        // If unit has already used all move actions allowed per turn, show 0
+                        if (u.getMovesUsedThisTurn() >= u.getMaxMovesPerTurn()) {
+                            mpLeft = 0;
+                        }
+                    } catch (Throwable t) {
+                        // older builds may not support the getter; ignore
+                    }
+                    g2.drawString("MP left: " + mpLeft, 380, 50);
                 }
                 if (loc.getTerrain() != -1) {
                     g2.drawString("Terrain: " + loc.getTerrain() + "%", 500, 50);
