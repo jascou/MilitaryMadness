@@ -356,6 +356,16 @@ public class GUI extends JFrame {
         // Mini map panel (bottom-right outside playfield)
         miniMapPanel = new MiniMapPanel();
         miniMapPanel.setPreferredSize(new Dimension(BUTTONS_PANEL_WIDTH - 20, BUTTONS_PANEL_WIDTH - 20));
+        // Clicking on the minimap repositions the main viewport
+        miniMapPanel.setClickListener(mapCoord -> {
+            try {
+                hexGridPanel.centerViewportOn(mapCoord);
+                // Refresh minimap with new viewport; keep previous cursor
+                miniMapPanel.render(hexGridPanel.getViewportCorner(), null, hexGridPanel.getViewWidth(), hexGridPanel.getViewHeight());
+            } catch (Throwable t) {
+                // ignore
+            }
+        });
     }
 
     private void layoutComponents() {     

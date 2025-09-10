@@ -4,6 +4,8 @@ import military.engine.LocationManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * Mini map widget rendered outside of the playfield.
@@ -12,16 +14,39 @@ import java.awt.*;
  * This panel is headless-safe (it only draws when realized) and does not perform any IO.
  */
 public class MiniMapPanel extends JPanel {
+    public interface ClickListener {
+        void onMiniMapClick(Point mapCoord);
+    }
+
     private Point viewCorner = new Point(0, 0);
     private Point cursor = new Point(0, 0);
     private int viewWidth = 15;
     private int viewHeight = 10;
+    private ClickListener clickListener;
 
     public MiniMapPanel() {
         setBackground(Color.BLACK);
         // Reasonable default size that fits the right-side buttons panel
         setPreferredSize(new Dimension(140, 140));
         setMinimumSize(new Dimension(100, 100));
+
+        MouseAdapter mouse = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                navigate(e.getPoint());
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                navigate(e.getPoint());
+            }
+        };
+        addMouseListener(mouse);
+        addMouseMotionListener(mouse);
+    }
+
+    public void setClickListener(ClickListener listener) {
+        this.clickListener = listener;
     }
 
     public void render(Point viewCorner, Point cursor, int viewWidth, int viewHeight) {
@@ -31,6 +56,32 @@ public class MiniMapPanel extends JPanel {
         if (viewHeight > 0) this.viewHeight = viewHeight;
         SwingUtilities.invokeLater(this::repaint);
     }
+
+    private void navigate(Point panelPt) {
+        if (clickListener == null || panelPt == null) return;
+        try {
+            Point mapSize = LocationManager.getSize();
+            int mapW = Math.max(1, mapSize.x);
+            int mapH = Math.max(1, mapSize.y);
+            int pad = 6;
+            int availW = Math.max(1, getWidth() - pad * 2);
+            int availH = Math.max(1, getHeight() - pad * 2);
+            int scale = Math.max(1, Math.min(availW / mapW, availH / mapH));
+            int mmW = mapW * scale;
+            int mmH = mapH * scale;
+            int x0 = (getWidth() - mmW) / 2;
+            int y0 = (getHeight() - mmH) / 2;
+            int relX = panelPt.x - x0;
+            int relY = panelPt.y - y0;
+            int mx = clamp(relX / scale, 0, mapW - 1);
+            int my = clamp(relY / scale, 0, mapH - 1);
+            clickListener.onMiniMapClick(new Point(mx, my));
+        } catch (Throwable t) {
+            // ignore conversion errors
+        }
+    }
+
+    private static int clamp(int v, int min, int max) { return Math.max(min, Math.min(max, v)); }
 
     @Override
     protected void paintComponent(Graphics g) {

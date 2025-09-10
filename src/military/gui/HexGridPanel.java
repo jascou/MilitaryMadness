@@ -118,6 +118,25 @@ public class HexGridPanel extends JPanel {
     public int getViewWidth() { return VIEW_WIDTH; }
     public int getViewHeight() { return VIEW_HEIGHT; }
 
+    /**
+     * Centers the viewport on the given map coordinate (clamped to bounds).
+     */
+    public void centerViewportOn(Point mapCoord) {
+        if (mapCoord == null) return;
+        Point desiredTopLeft = new Point(mapCoord.x - VIEW_WIDTH / 2, mapCoord.y - VIEW_HEIGHT / 2);
+        viewport.setCorner(desiredTopLeft, military.engine.LocationManager.getSize().x, military.engine.LocationManager.getSize().y);
+        repaint();
+    }
+
+    /**
+     * Sets the viewport top-left corner directly (clamped to bounds).
+     */
+    public void setViewportCorner(Point topLeft) {
+        if (topLeft == null) return;
+        viewport.setCorner(new Point(topLeft), military.engine.LocationManager.getSize().x, military.engine.LocationManager.getSize().y);
+        repaint();
+    }
+
     public void updateCursor(Point cursor, boolean turn) {
         cursorLoc = (cursor != null) ? new Point(cursor) : new Point(0, 0);
         // Adjust viewport to keep cursor near edges according to thresholds
