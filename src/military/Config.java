@@ -21,4 +21,11 @@ public final class Config {
     public static Path soundsDir() {
         return Paths.get("sounds");
     }
+
+    /**
+     * Directory for saved games. Created on demand by save/load services.
+     */
+    public static Path savesDir() {
+        return Paths.get("Saves");
+    }
 }

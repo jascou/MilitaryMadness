@@ -68,6 +68,7 @@ public class Game implements Runnable {
     private boolean shifting;
     private boolean attacking;
     private boolean factory;
+    private String currentMapName;
 
     // Initial step toward decoupling UI and game state
     private final military.engine.GameState state;
@@ -75,6 +76,7 @@ public class Game implements Runnable {
 
     public Game(String levelName) {
         new military.engine.DefaultMapService().loadMap(levelName);
+        this.currentMapName = levelName;
         gui = new GUI(levelName);
         // Provide GUI with controller actions (dependency inversion)
         gui.setActions(new military.gui.GUI.GameActions() {
@@ -95,6 +97,26 @@ public class Game implements Runnable {
         controller = new military.engine.GameController(state);
         // Announce the initial active player at game start
         announceTurn(turn);
+    }
+
+    // Convenience API: save the current game state. Persists map and metadata.
+    public void saveGame(String saveName) {
+        military.engine.SaveLoadService.save(saveName, this.currentMapName, this.state);
+    }
+
+    // Convenience API: load a game state and update in-memory fields.
+    public void loadGame(String saveName) {
+        military.engine.SaveGame data = military.engine.SaveLoadService.load(saveName);
+        this.currentMapName = data.getMapName();
+        this.turn = data.isTurn();
+        this.cursor = data.getCursor();
+        this.buttonCursor = new java.awt.Point(-1, -1);
+        this.selectLocs.clear();
+        // propagate to shared state for rendering
+        this.state.setTurn(this.turn);
+        this.state.setCursor(new java.awt.Point(this.cursor));
+        // Optional: announce current turn after load
+        announceTurn(this.turn);
     }
 
     @Override

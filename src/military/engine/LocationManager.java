@@ -203,11 +203,15 @@ public class LocationManager {
                 entries.add(column);
             }
 
-            // Units section (optional)
+            // Units section (optional). Be lenient: only parse if a full record is present.
             while (reader.hasNext()) {
+                if (!reader.hasNextInt()) { break; }
                 int x = reader.nextInt();
+                if (!reader.hasNextInt()) { break; }
                 int y = reader.nextInt();
+                if (!reader.hasNext()) { break; }
                 String name = reader.next();
+                if (!reader.hasNextBoolean()) { break; }
                 boolean team = reader.nextBoolean();
                 if (!isInBounds(x, y)) {
                     LOGGER.severe("Unit position out of bounds: (" + x + "," + y + ")");
