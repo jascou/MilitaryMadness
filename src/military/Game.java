@@ -84,6 +84,12 @@ public class Game implements Runnable {
             @Override public void onAttack() { attack(); }
             @Override public void onInfo() { info(); }
             @Override public void onEndTurn() { end(); }
+            @Override public void onSave(String name) { saveGame(name); }
+            @Override public void onLoad(String name) { loadGame(name); }
+            @Override public void onExit() {
+                try { if (gui != null) gui.dispose(); } catch (Throwable ignored) {}
+                System.exit(0);
+            }
         });
         turn = true;
         cursor = new Point(1, 0);

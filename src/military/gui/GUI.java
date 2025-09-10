@@ -45,6 +45,10 @@ public class GUI extends JFrame {
         void onAttack();
         void onInfo();
         void onEndTurn();
+        // New menu actions
+        void onSave(String name);
+        void onLoad(String name);
+        void onExit();
     }
 
     private GameActions actions; 
@@ -69,9 +73,89 @@ public class GUI extends JFrame {
     private boolean turn;
     private MiniMapPanel miniMapPanel;
 
+    // Create the application menu bar with Save, Load, Exit actions
+    private void installMenuBar() {
+        JMenuBar bar = new JMenuBar();
+        JMenu gameMenu = new JMenu("Game");
+        JMenuItem saveItem = new JMenuItem("Save...");
+        JMenuItem loadItem = new JMenuItem("Load...");
+        JMenuItem exitItem = new JMenuItem("Exit");
+
+        saveItem.addActionListener(e -> {
+            if (actions == null) return;
+            String name = JOptionPane.showInputDialog(this, "Enter save name:", "Save Game", JOptionPane.QUESTION_MESSAGE);
+            if (name != null) {
+                name = name.trim();
+                if (!name.isEmpty()) {
+                    try {
+                        actions.onSave(name);
+                        JOptionPane.showMessageDialog(this, "Game saved as '" + name + "'", "Save", JOptionPane.INFORMATION_MESSAGE);
+                    } catch (Throwable t) {
+                        JOptionPane.showMessageDialog(this, "Failed to save: " + t.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        loadItem.addActionListener(e -> {
+            if (actions == null) return;
+            String name = promptForExistingSave();
+            if (name == null) {
+                name = JOptionPane.showInputDialog(this, "Enter save name to load:", "Load Game", JOptionPane.QUESTION_MESSAGE);
+                if (name != null) name = name.trim();
+            }
+            if (name != null && !name.isEmpty()) {
+                try {
+                    actions.onLoad(name);
+                    JOptionPane.showMessageDialog(this, "Loaded save '" + name + "'", "Load", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Throwable t) {
+                    JOptionPane.showMessageDialog(this, "Failed to load: " + t.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        exitItem.addActionListener(e -> {
+            if (actions != null) {
+                actions.onExit();
+            } else {
+                dispose();
+                System.exit(0);
+            }
+        });
+
+        gameMenu.add(saveItem);
+        gameMenu.add(loadItem);
+        gameMenu.addSeparator();
+        gameMenu.add(exitItem);
+        bar.add(gameMenu);
+        setJMenuBar(bar);
+    }
+
+    private String promptForExistingSave() {
+        try {
+            java.nio.file.Path dir = military.Config.savesDir();
+            java.nio.file.Files.createDirectories(dir);
+            java.util.List<String> names = new java.util.ArrayList<>();
+            try (java.util.stream.Stream<java.nio.file.Path> s = java.nio.file.Files.list(dir)) {
+                s.filter(p -> p.getFileName().toString().endsWith(".mmsave"))
+                 .forEach(p -> {
+                     String fn = p.getFileName().toString();
+                     names.add(fn.substring(0, fn.length() - ".mmsave".length()));
+                 });
+            }
+            if (names.isEmpty()) return null;
+            Object choice = JOptionPane.showInputDialog(this, "Choose a save:", "Load Game",
+                    JOptionPane.QUESTION_MESSAGE, null, names.toArray(), names.get(0));
+            return choice == null ? null : choice.toString();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
     public GUI(String map) {
         turnNumber = 1;
         initComponents();
+        installMenuBar();
         mapName.setText("<html>Map:<br>" + map + "</html>");
         turnNumberLabel.setText("Turn " + turnNumber);
         hexGridPanel.grabFocus();
