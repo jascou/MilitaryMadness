@@ -87,14 +87,21 @@ public class MilitaryMadness {
         }
 
         boolean hasMaps = loadMapList();
-        // Build choices dynamically based on map availability
-        String[] choices = hasMaps ? new String[]{"Play Game", "Create Level", "Exit"}
-                                   : new String[]{"Create Level", "Exit"};
+        boolean hasSaves = hasSaveFiles();
+        // Build choices dynamically based on availability
+        java.util.List<String> choiceList = new java.util.ArrayList<>();
+        if (hasMaps) choiceList.add("Play Game");
+        if (hasSaves) choiceList.add("Load Game");
+        choiceList.add("Create Level");
+        choiceList.add("Exit");
+        String[] choices = choiceList.toArray(new String[0]);
 
         int n = -1;
         do {
-            n = showOptionDialogEDT("What Would you Like to Do?", choices, choices[choices.length - 1]);
-            if (hasMaps && n == 0) {
+            n = showOptionDialogEDT("What Would you Like to Do?", choices, "Exit");
+            if (n < 0) break;
+            String selection = choices[n];
+            if ("Play Game".equals(selection)) {
                 // Use improved map selection dialog with metadata
                 String chosen = military.gui.MapSelectionDialog.showDialog(null);
                 if (chosen == null || chosen.trim().isEmpty()) {
@@ -110,7 +117,29 @@ public class MilitaryMadness {
                 } catch (Exception e) {
                     showMessageEDT("Failed to start the game: " + e.getMessage());
                 }
-            } else if ((hasMaps && n == 1) || (!hasMaps && n == 0)) {
+            } else if ("Load Game".equals(selection)) {
+                String saveName = showInputDialogEDT("Enter save name to load:");
+                if (saveName == null || saveName.trim().isEmpty()) {
+                    continue;
+                }
+                saveName = saveName.trim();
+                java.nio.file.Path saveFile = military.Config.savesDir().resolve(saveName + ".mmsave");
+                if (!java.nio.file.Files.exists(saveFile)) {
+                    showMessageEDT("Save not found: " + saveName);
+                    continue;
+                }
+                new Thread(SoundUtility.getInstance()).start();
+                try {
+                    // Load save (also loads the map)
+                    military.engine.SaveGame data = military.engine.SaveLoadService.load(saveName);
+                    Game game = new Game(data.getMapName());
+                    // Restore transient fields (turn, cursor)
+                    game.loadGame(saveName);
+                    new military.engine.GameLoop(game).run();
+                } catch (Exception e) {
+                    showMessageEDT("Failed to load save: " + e.getMessage());
+                }
+            } else if ("Create Level".equals(selection)) {
                 String[] choices2 = {"New Level", "Old Level"};
                 int m = showOptionDialogEDT("What Would you Like to Do?", choices2, choices2[0]);
                 if (m == 0) {
@@ -127,18 +156,16 @@ public class MilitaryMadness {
                     width = wv.getAsInt();
                     height = hv.getAsInt();
                     DesignGUI dgui = new DesignGUI(width, height);
-                    // Removed busy-wait; the designer window manages its own lifecycle
                 } else if (m == 1) {
                     String levelToLoad = showInputDialogEDT("What level would you like to load?");
                     if (military.util.Validator.isValidMapName(levelToLoad)) {
                         DesignGUI dgui = new DesignGUI(levelToLoad);
-                        // Removed busy-wait
                     } else if (levelToLoad != null) {
                         showMessageEDT("Invalid map name. Use letters, numbers, dash or underscore.");
                     }
                 }
             }
-        } while (!((hasMaps && n == 2) || (!hasMaps && n == 1)));
+        } while (!"Exit".equals(choices[n]));
 
         // Graceful shutdown without System.exit
         SoundUtility.getInstance().shutdown();
@@ -286,6 +313,18 @@ public class MilitaryMadness {
         } catch (Exception e) {
             java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
             logger.severe("Failed to show component dialog: " + e.getMessage());
+        }
+    }
+
+    static boolean hasSaveFiles() {
+        try {
+            java.nio.file.Path dir = military.Config.savesDir();
+            if (!java.nio.file.Files.isDirectory(dir)) return false;
+            try (java.util.stream.Stream<java.nio.file.Path> s = java.nio.file.Files.list(dir)) {
+                return s.anyMatch(p -> p.getFileName().toString().endsWith(".mmsave"));
+            }
+        } catch (Exception e) {
+            return false;
         }
     }
 }
