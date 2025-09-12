@@ -2,18 +2,26 @@ package military.engine;
 
 import java.awt.Point;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Serializable save-game metadata capturing minimal game progress required to resume play.
  * The actual map (tiles and units) is persisted as a standard map file via MapService.saveMap().
  */
 public class SaveGame implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L; // increment for new fields
 
     private String mapName;       // map filename (without extension) where current map state was saved
     private boolean turn;         // true = Player1 (Blue), false = Player2 (Red)
     private int cursorX;          // cursor location X
     private int cursorY;          // cursor location Y
+
+    /**
+     * Optional per-unit transient state captured at save time (may be null for older saves).
+     */
+    private List<UnitTurnState> unitStates;
 
     public SaveGame() {}
 
@@ -28,4 +36,46 @@ public class SaveGame implements Serializable {
     public String getMapName() { return mapName; }
     public boolean isTurn() { return turn; }
     public Point getCursor() { return new Point(cursorX, cursorY); }
+
+    public List<UnitTurnState> getUnitStates() {
+        if (unitStates == null) return Collections.emptyList();
+        return Collections.unmodifiableList(unitStates);
+    }
+
+    public void setUnitStates(List<UnitTurnState> states) {
+        if (states == null) {
+            this.unitStates = null;
+        } else {
+            this.unitStates = new ArrayList<>(states);
+        }
+    }
+
+    /**
+     * Serializable snapshot of a single unit's per-turn movement/attack state.
+     */
+    public static class UnitTurnState implements Serializable {
+        private static final long serialVersionUID = 1L;
+        public String name;
+        public boolean team;
+        public int x;
+        public int y;
+        public int movePointsSpent;
+        public int movesUsed;
+        public boolean shiftDone;
+        public boolean attackDone;
+
+        public UnitTurnState() {}
+
+        public UnitTurnState(String name, boolean team, int x, int y,
+                              int movePointsSpent, int movesUsed, boolean shiftDone, boolean attackDone) {
+            this.name = name;
+            this.team = team;
+            this.x = x;
+            this.y = y;
+            this.movePointsSpent = movePointsSpent;
+            this.movesUsed = movesUsed;
+            this.shiftDone = shiftDone;
+            this.attackDone = attackDone;
+        }
+    }
 }

@@ -8,7 +8,7 @@ import java.nio.file.Path;
 /**
  * Service to save and load game state. Persists the current map (tiles and units)
  * using the existing MapService/LocationManager infrastructure, and writes a small
- * serialized SaveGame metadata file containing the turn and cursor.
+ * serialized SaveGame metadata file containing the turn, cursor, and per-unit movement state.
  */
 public final class SaveLoadService {
     private SaveLoadService() {}
@@ -39,6 +39,27 @@ public final class SaveLoadService {
         } catch (Exception ignored) {}
         Path file = dir.resolve(saveName + ".mmsave");
         SaveGame data = new SaveGame(mapName, state.isTurn(), state.getCursor());
+        // Capture per-unit movement state
+        java.util.List<SaveGame.UnitTurnState> unitStates = new java.util.ArrayList<>();
+        for (Unit u : UnitManager.getInstance().getUnits(true)) {
+            if (u.getLoc() == null) continue;
+            SaveGame.UnitTurnState uts = new SaveGame.UnitTurnState(
+                    u.getName(), true,
+                    u.getLoc().getLoc().x, u.getLoc().getLoc().y,
+                    u.getMovePointsSpentThisTurn(), u.getMovesUsedThisTurn(),
+                    u.isShiftDone(), u.isAttackDone());
+            unitStates.add(uts);
+        }
+        for (Unit u : UnitManager.getInstance().getUnits(false)) {
+            if (u.getLoc() == null) continue;
+            SaveGame.UnitTurnState uts = new SaveGame.UnitTurnState(
+                    u.getName(), false,
+                    u.getLoc().getLoc().x, u.getLoc().getLoc().y,
+                    u.getMovePointsSpentThisTurn(), u.getMovesUsedThisTurn(),
+                    u.isShiftDone(), u.isAttackDone());
+            unitStates.add(uts);
+        }
+        data.setUnitStates(unitStates);
         try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(file))) {
             oos.writeObject(data);
         } catch (Exception e) {
@@ -65,6 +86,30 @@ public final class SaveLoadService {
         }
         // Delegate map load to the adapter
         new DefaultMapService().loadMap(data.getMapName());
+        // Apply per-unit movement state if available
+        try {
+            java.util.List<SaveGame.UnitTurnState> list = data.getUnitStates();
+            if (list != null && !list.isEmpty()) {
+                // Build a quick index by key
+                java.util.Map<String, SaveGame.UnitTurnState> idx = new java.util.HashMap<>();
+                for (SaveGame.UnitTurnState uts : list) {
+                    String key = uts.name + "|" + uts.team + "|" + uts.x + "," + uts.y;
+                    idx.put(key, uts);
+                }
+                java.util.function.Consumer<Unit> apply = (Unit u) -> {
+                    if (u.getLoc() == null) return;
+                    String k = u.getName() + "|" + u.getTeam() + "|" + u.getLoc().getLoc().x + "," + u.getLoc().getLoc().y;
+                    SaveGame.UnitTurnState s = idx.get(k);
+                    if (s != null) {
+                        u.setTurnMoveState(s.movePointsSpent, s.movesUsed, s.shiftDone, s.attackDone);
+                    }
+                };
+                for (Unit u : UnitManager.getInstance().getUnits(true)) apply.accept(u);
+                for (Unit u : UnitManager.getInstance().getUnits(false)) apply.accept(u);
+            }
+        } catch (Throwable ignored) {
+            // Be robust to older saves or partial data
+        }
         return data;
     }
 }

@@ -113,6 +113,17 @@ public class Unit{
     public void setCanMoveAfterAttack(boolean value) { this.canMoveAfterAttack = value; }
     public boolean canMoveAfterAttack() { return canMoveAfterAttack; }
     public int getMovePointsSpentThisTurn() { return movePointsSpentThisTurn; }
+    /**
+     * Restore per-turn movement/attack state (used when loading a save).
+     */
+    public void setTurnMoveState(int movePointsSpent, int movesUsed, boolean shiftDone, boolean attackDone) {
+        if (movePointsSpent < 0) movePointsSpent = 0;
+        if (movesUsed < 0) movesUsed = 0;
+        this.movePointsSpentThisTurn = movePointsSpent;
+        this.movesUsedThisTurn = movesUsed;
+        this.shiftDone = shiftDone;
+        this.attackDone = attackDone;
+    }
 
     public String getType() {
         return type;
