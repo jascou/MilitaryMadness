@@ -272,7 +272,10 @@ public class GUI extends JFrame {
     private void initComponents() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         hexGridPanel = new HexGridPanel();
-        hexGridPanel.setPreferredSize(new Dimension(18 + 15 * 53, 25 + 10 * 50));
+        // Add ~30px padding around the game view (total +60 in both dimensions)
+        Dimension gridPref = new Dimension(18 + 15 * 53 + 60, 25 + 10 * 50 + 60);
+        hexGridPanel.setPreferredSize(gridPref);
+        hexGridPanel.setMinimumSize(gridPref);
         hexGridPanel.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
                 GUIMiddleMan.getInstance().putEvent(evt);
@@ -287,10 +290,12 @@ public class GUI extends JFrame {
         displayPanel = hexGridPanel;
 
         bottomPanel = new BottomPanel();
-        bottomPanel.setPreferredSize(new Dimension(hexGridPanel.getWidth(), 75));
+        // Use the hex grid's preferred width (not current width which is 0 at init)
+        bottomPanel.setPreferredSize(new Dimension(hexGridPanel.getPreferredSize().width, 100));
         bottomPanel.setBackground(Color.red);
         factoryPanel = new FactoryPanel();
-        factoryPanel.setPreferredSize(new Dimension(18 + 15 * 53, 25 + 10 * 50));
+        // Match the same padding for factory view
+        factoryPanel.setPreferredSize(new Dimension(18 + 15 * 53 + 60, 25 + 10 * 50 + 60));
         factoryPanel.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
                 GUIMiddleMan.getInstance().putEvent(evt);
@@ -300,6 +305,30 @@ public class GUI extends JFrame {
         layoutComponents();
         layoutButtons();
         pack();
+        // Ensure the initial window is large enough to show both the map and the sidebar
+        enforceInitialFrameSize();
+    }
+
+    /**
+     * Ensure the initial frame size accommodates both the map view and the right sidebar,
+     * preventing the map from being hidden until a manual resize occurs.
+     */
+    private void enforceInitialFrameSize() {
+        try {
+            Dimension map = (hexGridPanel != null) ? hexGridPanel.getPreferredSize() : new Dimension(800, 600);
+            Dimension sidebar = (buttonsPanel != null) ? buttonsPanel.getPreferredSize() : new Dimension(160, 600);
+            Dimension bottom = (bottomPanel != null) ? bottomPanel.getPreferredSize() : new Dimension(map.width, 75);
+            int padW = 40; // a little breathing room to account for borders/scrollbars
+            int padH = 60;
+            int width = Math.max(600, map.width + sidebar.width + padW);
+            int height = Math.max(400, map.height + bottom.height + padH);
+            Dimension target = new Dimension(width, height);
+            setMinimumSize(target);
+            setSize(target);
+            setLocationByPlatform(true);
+        } catch (Throwable ignored) {
+            // Best-effort sizing; ignore failures on headless or during tests
+        }
     }
 
     // Layout constants
@@ -451,21 +480,34 @@ public class GUI extends JFrame {
     private void layoutComponents() {     
         Container pane = getContentPane();
         pane.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-        
-        c.gridx = 0;
-        c.gridy = 0;
-        pane.add(displayPanel, c);
-        
-        c.gridx = 0;
-        c.gridy = 1;
-        pane.add(bottomPanel, c);
-        
-        c.gridx = 1;
-        c.gridy = 0;
-        c.gridheight = 2;
-        pane.add(buttonsPanel, c);
+
+        // Left: main display (hex grid or factory)
+        GridBagConstraints left = new GridBagConstraints();
+        left.gridx = 0;
+        left.gridy = 0;
+        left.weightx = 1.0;
+        left.weighty = 1.0;
+        left.fill = GridBagConstraints.BOTH;
+        pane.add(displayPanel, left);
+
+        // Bottom: status area under the main display
+        GridBagConstraints bottom = new GridBagConstraints();
+        bottom.gridx = 0;
+        bottom.gridy = 1;
+        bottom.weightx = 1.0;
+        bottom.weighty = 0.0;
+        bottom.fill = GridBagConstraints.HORIZONTAL;
+        pane.add(bottomPanel, bottom);
+
+        // Right: buttons/sidebar occupying both rows
+        GridBagConstraints right = new GridBagConstraints();
+        right.gridx = 1;
+        right.gridy = 0;
+        right.gridheight = 2;
+        right.weightx = 0.0;
+        right.weighty = 1.0;
+        right.fill = GridBagConstraints.VERTICAL; // allow vertical growth, keep fixed width
+        pane.add(buttonsPanel, right);
     }
 
     private void layoutButtons() {

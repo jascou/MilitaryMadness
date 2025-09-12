@@ -55,8 +55,12 @@ public class MilitaryMadness {
                     new Thread(SoundUtility.getInstance()).start();
                     // Persist last played map
                     try { military.util.PreferencesManager.setLastMapName(map); } catch (Exception ex) { /* best-effort */ }
-                    Game game = new Game(map);
-                    new military.engine.GameLoop(game).run();
+                    final Game[] holder = new Game[1];
+                    javax.swing.SwingUtilities.invokeAndWait(() -> holder[0] = new Game(map));
+                    Thread gameThread = new Thread(new military.engine.GameLoop(holder[0]), "GameLoop");
+                    gameThread.start();
+                    // Wait for game to end (loop exits when base captured)
+                    try { gameThread.join(); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
                     SoundUtility.getInstance().shutdown();
                     return;
                 } else if ("--design".equalsIgnoreCase(args[0]) && args.length >= 2) {
@@ -112,8 +116,11 @@ public class MilitaryMadness {
                 try { military.util.PreferencesManager.setLastMapName(levelName); } catch (Exception ex) { /* best-effort */ }
                 new Thread(SoundUtility.getInstance()).start();
                 try {
-                    Game game = new Game(levelName);
-                    new military.engine.GameLoop(game).run();
+                    final Game[] holder = new Game[1];
+                    javax.swing.SwingUtilities.invokeAndWait(() -> holder[0] = new Game(levelName));
+                    Thread gameThread = new Thread(new military.engine.GameLoop(holder[0]), "GameLoop");
+                    gameThread.start();
+                    gameThread.join();
                 } catch (Exception e) {
                     showMessageEDT("Failed to start the game: " + e.getMessage());
                 }
@@ -127,10 +134,13 @@ public class MilitaryMadness {
                 try {
                     // Load save (also loads the map)
                     military.engine.SaveGame data = military.engine.SaveLoadService.load(saveName);
-                    Game game = new Game(data.getMapName());
+                    final Game[] holder = new Game[1];
+                    javax.swing.SwingUtilities.invokeAndWait(() -> holder[0] = new Game(data.getMapName()));
                     // Restore transient fields (turn, cursor)
-                    game.loadGame(saveName);
-                    new military.engine.GameLoop(game).run();
+                    holder[0].loadGame(saveName);
+                    Thread gameThread = new Thread(new military.engine.GameLoop(holder[0]), "GameLoop");
+                    gameThread.start();
+                    gameThread.join();
                 } catch (Exception e) {
                     showMessageEDT("Failed to load save: " + e.getMessage());
                 }
