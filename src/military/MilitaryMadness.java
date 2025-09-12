@@ -46,6 +46,35 @@ public class MilitaryMadness {
         // --design <mapName>
         if (args != null && args.length > 0) {
             try {
+                // First pass: parse global flags like --ai and --ai-seed in any position
+                military.engine.Team aiTeamParsed = null;
+                Long aiSeedParsed = null;
+                for (int i = 0; i < args.length; i++) {
+                    String a = args[i];
+                    if ("--ai".equalsIgnoreCase(a)) {
+                        if (i + 1 < args.length) {
+                            String v = args[++i].toLowerCase();
+                            if ("red".equals(v)) aiTeamParsed = military.engine.Team.RED;
+                            else if ("blue".equals(v)) aiTeamParsed = military.engine.Team.BLUE;
+                            else if ("none".equals(v)) aiTeamParsed = null; // explicit none
+                        }
+                    } else if ("--ai-seed".equalsIgnoreCase(a)) {
+                        if (i + 1 < args.length) {
+                            try { aiSeedParsed = Long.parseLong(args[++i]); } catch (NumberFormatException nfe) { /* ignore invalid */ }
+                        }
+                    }
+                }
+                if (aiTeamParsed != null) {
+                    military.engine.ai.AiConfig.setEnabled(true);
+                    military.engine.ai.AiConfig.setAiTeam(aiTeamParsed);
+                    if (aiSeedParsed != null) military.engine.ai.AiConfig.setSeed(aiSeedParsed);
+                    java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+                    logger.info("AI enabled for team=" + aiTeamParsed + (aiSeedParsed!=null? (", seed="+aiSeedParsed):""));
+                } else {
+                    // Default to disabled unless explicitly set
+                    military.engine.ai.AiConfig.setEnabled(false);
+                }
+
                 if ("--play".equalsIgnoreCase(args[0]) && args.length >= 2) {
                     String map = args[1];
                     if (!military.util.Validator.isValidMapName(map)) {
