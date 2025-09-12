@@ -99,15 +99,11 @@ public class GUI extends JFrame {
 
         loadItem.addActionListener(e -> {
             if (actions == null) return;
-            String name = promptForExistingSave();
-            if (name == null) {
-                name = JOptionPane.showInputDialog(this, "Enter save name to load:", "Load Game", JOptionPane.QUESTION_MESSAGE);
-                if (name != null) name = name.trim();
-            }
-            if (name != null && !name.isEmpty()) {
+            String name = military.gui.SaveSelectionDialog.showDialog(this);
+            if (name != null && !name.trim().isEmpty()) {
                 try {
-                    actions.onLoad(name);
-                    JOptionPane.showMessageDialog(this, "Loaded save '" + name + "'", "Load", JOptionPane.INFORMATION_MESSAGE);
+                    actions.onLoad(name.trim());
+                    JOptionPane.showMessageDialog(this, "Loaded save '" + name.trim() + "'", "Load", JOptionPane.INFORMATION_MESSAGE);
                 } catch (Throwable t) {
                     JOptionPane.showMessageDialog(this, "Failed to load: " + t.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }

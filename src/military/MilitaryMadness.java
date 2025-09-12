@@ -118,16 +118,11 @@ public class MilitaryMadness {
                     showMessageEDT("Failed to start the game: " + e.getMessage());
                 }
             } else if ("Load Game".equals(selection)) {
-                String saveName = showInputDialogEDT("Enter save name to load:");
+                String saveName = military.gui.SaveSelectionDialog.showDialog(null);
                 if (saveName == null || saveName.trim().isEmpty()) {
                     continue;
                 }
                 saveName = saveName.trim();
-                java.nio.file.Path saveFile = military.Config.savesDir().resolve(saveName + ".mmsave");
-                if (!java.nio.file.Files.exists(saveFile)) {
-                    showMessageEDT("Save not found: " + saveName);
-                    continue;
-                }
                 new Thread(SoundUtility.getInstance()).start();
                 try {
                     // Load save (also loads the map)
