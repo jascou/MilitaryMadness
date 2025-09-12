@@ -26,8 +26,13 @@ public class BottomPanel extends JPanel{
     
     
     public void render(Point p){
-        cursor = p;
-        paintComponent(this.getGraphics());
+        cursor = (p != null) ? new Point(p) : new Point(0,0);
+        // Schedule a repaint on the EDT instead of painting directly to getGraphics()
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            repaint();
+        } else {
+            javax.swing.SwingUtilities.invokeLater(this::repaint);
+        }
     }
     
     public void paintComponent(Graphics g) {
@@ -36,7 +41,7 @@ public class BottomPanel extends JPanel{
         Graphics2D g2 = (Graphics2D) g;
         g2.setFont(new Font("Consolas", 0, 24));
         g2.setColor(Color.LIGHT_GRAY);
-        if ( cursor.x > 0 && cursor.y > 0) {
+        if ( cursor.x >= 0 && cursor.y >= 0) {
             if (LocationManager.getSize().x > cursor.x && LocationManager.getSize().y > cursor.y) {
                 Location loc = LocationManager.getLoc(cursor);
                 if (!loc.isEmpty()) {

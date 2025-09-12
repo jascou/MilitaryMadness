@@ -292,6 +292,8 @@ public class GUI extends JFrame {
         bottomPanel = new BottomPanel();
         // Use the hex grid's preferred width (not current width which is 0 at init)
         bottomPanel.setPreferredSize(new Dimension(hexGridPanel.getPreferredSize().width, 100));
+        // Prevent zero-height collapse at startup under GridBagLayout
+        bottomPanel.setMinimumSize(new Dimension(100, 80));
         bottomPanel.setBackground(Color.red);
         factoryPanel = new FactoryPanel();
         // Match the same padding for factory view
