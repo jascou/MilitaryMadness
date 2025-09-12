@@ -1111,4 +1111,12 @@ public class Game implements Runnable {
         announceTurn(turn);
         controller.render(gui, turn, selectLocs, cursor);
     }
+
+    /**
+     * Programmatic end-turn entry point for automation/AI.
+     * Safe to call from non-EDT threads; rendering will be scheduled appropriately by controller.
+     */
+    public void endTurnForAutomation() {
+        end();
+    }
 }

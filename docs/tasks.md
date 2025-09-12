@@ -194,7 +194,7 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
     - [x] Add Action types: MoveAction, AttackAction, EndTurnAction, SelectAction (optional), WaitAction (optional).
     - [x] Define AIPlayer interface: planTurn(ImmutableGameState view, ReadOnlyServices svc, Rng rng) -> List<Action>.
     - [x] Add ReadOnlyServices facade exposing read-only queries (units by team, locations, ranges, combat preview).
-77. [ ] Add AIController with takeTurn(Game game, Team aiTeam, Rng rng) that executes a provided List<Action>; stub SimpleHeuristicAI to emit EndTurnAction only. (phase 1)
+77. [x] Add AIController with takeTurn(Game game, Team aiTeam, Rng rng) that executes a provided List<Action>; stub SimpleHeuristicAI to emit EndTurnAction only. (phase 1)
 78. [ ] Wire CLI/config flag: --ai red|blue|none and --ai-seed <long>; default to none to preserve current behavior. (phase 1)
 79. [ ] Integrate AI turn trigger with GameLoop: when it becomes AI team’s turn, invoke AIController on a background thread; ensure GUI rendering happens on EDT. (phase 1/4)
 80. [ ] Add deterministic headless unit test: on Sample_small.txt, AIController with stub AI immediately ends its turn without errors. (phase 1)
