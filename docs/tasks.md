@@ -190,10 +190,10 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 
 <!-- AI Player (Human vs AI) Tasklist aligned with ADR-0004 -->
 
-76. [ ] Create AI scaffolding package military.engine.ai with interfaces and action types. (ADR-0004 phase 1)
-    - [ ] Add Action types: MoveAction, AttackAction, EndTurnAction, SelectAction (optional), WaitAction (optional).
-    - [ ] Define AIPlayer interface: planTurn(ImmutableGameState view, ReadOnlyServices svc, Rng rng) -> List<Action>.
-    - [ ] Add ReadOnlyServices facade exposing read-only queries (units by team, locations, ranges, combat preview).
+76. [x] Create AI scaffolding package military.engine.ai with interfaces and action types. (ADR-0004 phase 1)
+    - [x] Add Action types: MoveAction, AttackAction, EndTurnAction, SelectAction (optional), WaitAction (optional).
+    - [x] Define AIPlayer interface: planTurn(ImmutableGameState view, ReadOnlyServices svc, Rng rng) -> List<Action>.
+    - [x] Add ReadOnlyServices facade exposing read-only queries (units by team, locations, ranges, combat preview).
 77. [ ] Add AIController with takeTurn(Game game, Team aiTeam, Rng rng) that executes a provided List<Action>; stub SimpleHeuristicAI to emit EndTurnAction only. (phase 1)
 78. [ ] Wire CLI/config flag: --ai red|blue|none and --ai-seed <long>; default to none to preserve current behavior. (phase 1)
 79. [ ] Integrate AI turn trigger with GameLoop: when it becomes AI team’s turn, invoke AIController on a background thread; ensure GUI rendering happens on EDT. (phase 1/4)
