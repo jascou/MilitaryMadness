@@ -196,7 +196,7 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
     - [x] Add ReadOnlyServices facade exposing read-only queries (units by team, locations, ranges, combat preview).
 77. [x] Add AIController with takeTurn(Game game, Team aiTeam, Rng rng) that executes a provided List<Action>; stub SimpleHeuristicAI to emit EndTurnAction only. (phase 1)
 78. [x] Wire CLI/config flag: --ai red|blue|none and --ai-seed <long>; default to none to preserve current behavior. (phase 1)
-79. [ ] Integrate AI turn trigger with GameLoop: when it becomes AI team’s turn, invoke AIController on a background thread; ensure GUI rendering happens on EDT. (phase 1/4)
+79. [x] Integrate AI turn trigger with GameLoop: when it becomes AI team’s turn, invoke AIController on a background thread; ensure GUI rendering happens on EDT. (phase 1/4)
 80. [ ] Add deterministic headless unit test: on Sample_small.txt, AIController with stub AI immediately ends its turn without errors. (phase 1)
 81. [ ] Implement movement basics in SimpleHeuristicAI: compute reachable tiles and pick greedy move toward nearest enemy/base; at most one move per unit. (phase 2)
 82. [ ] Add/verify pathfinding helper (deterministic), with unit tests for movement costs and obstacles used by AI. (phase 2)
