@@ -13,8 +13,9 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Simple greedy movement heuristic: for the current team, move at most one unit toward the nearest
- * enemy unit or enemy base, then end the turn. Attacking is not handled yet.
+ * Simple heuristic: first try to perform one strong attack (prefer kills, else max expected damage)
+ * from current positions. If no attack is available, move at most one unit greedily toward the
+ * nearest enemy unit or enemy base. Always end the turn after at most one action sequence.
  */
 public class SimpleHeuristicAI implements AIPlayer {
     @Override
@@ -24,6 +25,45 @@ public class SimpleHeuristicAI implements AIPlayer {
             Team myTeam = view.getTurn() ? Team.BLUE : Team.RED;
             Team enemyTeam = (myTeam == Team.BLUE) ? Team.RED : Team.BLUE;
 
+            // 1) Try to find a good immediate attack from current positions
+            List<military.engine.Unit> myUnits = svc.getUnits(myTeam);
+            Point bestAtkFrom = null;
+            Point bestAtkTarget = null;
+            int bestKill = -1; // 1 if kill, 0 otherwise
+            int bestDamage = -1; // expected defender HP lost
+            for (military.engine.Unit u : myUnits) {
+                if (u == null) continue;
+                if (u.isAttackDone()) continue; // cannot attack again this turn
+                Point from = findUnitPosition(svc, u);
+                if (from == null) continue;
+                List<Point> targets = svc.getAttackableFrom(u, from);
+                if (targets == null || targets.isEmpty()) continue;
+                for (Point tgt : targets) {
+                    military.engine.Location tLoc = svc.getLocation(tgt);
+                    if (tLoc == null || tLoc.isEmpty()) continue;
+                    military.engine.Unit defender = tLoc.getUnit();
+                    if (defender.getTeam() == u.getTeam()) continue;
+                    military.engine.CombatStats stats = svc.previewCombat(u, defender, from, tgt);
+                    if (stats == null) continue;
+                    int defBefore = defender.getHealth();
+                    int defAfter = stats.getDefender().getHealth();
+                    int damage = Math.max(0, defBefore - defAfter);
+                    int kill = (defAfter <= 0) ? 1 : 0;
+                    if (kill > bestKill || (kill == bestKill && (damage > bestDamage || (damage == bestDamage && rng.nextDouble() < 0.5)))) {
+                        bestKill = kill;
+                        bestDamage = damage;
+                        bestAtkFrom = from;
+                        bestAtkTarget = tgt;
+                    }
+                }
+            }
+            if (bestAtkFrom != null && bestAtkTarget != null) {
+                plan.add(new AttackAction(bestAtkFrom, bestAtkTarget));
+                plan.add(new EndTurnAction());
+                return plan; // perform only one primary action per simple heuristic
+            }
+
+            // 2) Otherwise, move one unit greedily toward the nearest enemy unit or base
             // Collect enemy targets (units and bases)
             List<Point> enemyTargets = new ArrayList<>();
             // Find enemy units by scanning locations
@@ -31,8 +71,6 @@ public class SimpleHeuristicAI implements AIPlayer {
             // Find enemy bases
             enemyTargets.addAll(findTeamBasePositions(enemyTeam));
 
-            // Pick one of my units to move
-            List<military.engine.Unit> myUnits = svc.getUnits(myTeam);
             Point bestFrom = null;
             Point bestTo = null;
             int bestDistance = Integer.MAX_VALUE;

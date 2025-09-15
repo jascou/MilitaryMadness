@@ -106,8 +106,78 @@ public class AIController {
             if (pos == null) return java.util.Collections.emptyList();
             return military.engine.PathfindingService.computeMovesBfs(pos, u, u.getTeam());
         }
-        @Override public java.util.List<Point> getAttackableFrom(military.engine.Unit u, Point from) { throw new UnsupportedOperationException("Not implemented yet"); }
-        @Override public military.engine.CombatStats previewCombat(military.engine.Unit attacker, military.engine.Unit defender, Point attackerPos, Point defenderPos) { throw new UnsupportedOperationException("Not implemented yet"); }
+        @Override public java.util.List<Point> getAttackableFrom(military.engine.Unit u, Point from) {
+            java.util.ArrayList<Point> out = new java.util.ArrayList<>();
+            if (u == null || from == null) return out;
+            java.awt.Point size = military.engine.LocationManager.getSize();
+            // Bounds check
+            if (from.x < 0 || from.y < 0 || from.x >= size.x || from.y >= size.y) return out;
+            boolean turn = u.getTeam();
+            military.engine.Location origin = military.engine.LocationManager.getLoc(from);
+            if (origin == null) return out;
+            if (u.isRanged()) {
+                // BFS up to range across adjacency, collecting enemy-occupied tiles
+                class Node { military.engine.Location loc; int depth; Node(military.engine.Location l, int d){loc=l;depth=d;} }
+                java.util.ArrayDeque<Node> stack = new java.util.ArrayDeque<>();
+                // Start from adjacent tiles with depth range-1 (to match Game.rangedIterative semantics)
+                for (military.engine.Location adj : origin.getAdjacent()) {
+                    stack.push(new Node(adj, Math.max(0, u.getRange() - 1)));
+                }
+                while (!stack.isEmpty()) {
+                    Node node = stack.pop();
+                    for (military.engine.Location loc : node.loc.getAdjacent()) {
+                        if (!loc.isEmpty()) {
+                            military.engine.Unit defender = loc.getUnit();
+                            if (defender.getTeam() != turn) {
+                                java.awt.Point p = loc.getLoc();
+                                // Avoid duplicates
+                                boolean exists = false;
+                                for (java.awt.Point q : out) { if (q.equals(p)) { exists = true; break; } }
+                                if (!exists) out.add(new java.awt.Point(p));
+                            }
+                        }
+                        if (node.depth > 1) {
+                            stack.push(new Node(loc, node.depth - 1));
+                        }
+                    }
+                }
+            } else {
+                // Melee: adjacent enemy units only
+                for (military.engine.Location loc : origin.getAdjacent()) {
+                    if (!loc.isEmpty()) {
+                        military.engine.Unit defender = loc.getUnit();
+                        if (defender.getTeam() != turn) {
+                            out.add(new java.awt.Point(loc.getLoc()));
+                        }
+                    }
+                }
+            }
+            return out;
+        }
+        @Override public military.engine.CombatStats previewCombat(military.engine.Unit attacker, military.engine.Unit defender, Point attackerPos, Point defenderPos) {
+            if (attacker == null || defender == null) return null;
+            // Build lightweight clones so that CombatStats mutation does not affect real units
+            military.engine.Unit atk = new military.engine.Unit(attacker.getName(), attacker.getType(), attacker.isRanged(), attacker.isAir(), attacker.getTeam(), attacker.getLandAttack(), attacker.getAirAttack(), attacker.getRange(), attacker.getDefense(), attacker.getShift());
+            military.engine.Unit def = new military.engine.Unit(defender.getName(), defender.getType(), defender.isRanged(), defender.isAir(), defender.getTeam(), defender.getLandAttack(), defender.getAirAttack(), defender.getRange(), defender.getDefense(), defender.getShift());
+            // Copy dynamic state
+            atk.setHealth(attacker.getHealth());
+            def.setHealth(defender.getHealth());
+            atk.addExp(attacker.getExp());
+            def.addExp(defender.getExp());
+            // Create ephemeral Locations with terrain from map to approximate terrain effects
+            military.engine.Location atkLoc = military.engine.LocationManager.getLoc(attackerPos != null ? attackerPos : attacker.getLoc().getLoc());
+            military.engine.Location defLoc = military.engine.LocationManager.getLoc(defenderPos != null ? defenderPos : defender.getLoc().getLoc());
+            if (atkLoc == null || defLoc == null) return null;
+            // Attach clones to ephemeral locations: create wrappers duplicating terrain/adjacency so support/surround roughly apply
+            // We will reuse real Location objects but place cloned units there temporarily; since addUnit checks null, use setLoc directly
+            atk.setLoc(atkLoc);
+            def.setLoc(defLoc);
+            try {
+                return new military.engine.CombatStats(atk, def);
+            } catch (Throwable t) {
+                return null;
+            }
+        }
 
         private Point findUnit(military.engine.Unit target) {
             java.awt.Point size = military.engine.LocationManager.getSize();
