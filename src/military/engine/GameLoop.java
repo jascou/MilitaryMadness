@@ -56,14 +56,41 @@ public class GameLoop implements Runnable {
             if (aiEnabled) {
                 Team current = game.getTurn() ? Team.BLUE : Team.RED;
                 if (current == aiTeam) {
+                    // Show AI thinking indicator and disable user input on EDT
+                    try {
+                        javax.swing.SwingUtilities.invokeAndWait(() -> {
+                            try {
+                                game.getGui().showAiThinking(true);
+                                game.getGui().setUserInputEnabled(false);
+                            } catch (Throwable ignore) { }
+                        });
+                    } catch (Exception ignore) { }
+
                     Thread aiThread = new Thread(() -> aiController.takeTurn(game, aiTeam, aiRng), "AI-Turn");
                     aiThread.setDaemon(true);
                     aiThread.start();
                     try {
                         aiThread.join(); // wait for AI to complete its (short) turn
+                        // Optional UX delay between actions (single chunk here)
+                        int delay = military.engine.ai.AiConfig.getDelayMs();
+                        if (delay > 0) {
+                            try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                        }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
+
+                    // Hide indicator, re-enable input, and render latest state
+                    try {
+                        javax.swing.SwingUtilities.invokeAndWait(() -> {
+                            try {
+                                game.getGui().showAiThinking(false);
+                                game.getGui().setUserInputEnabled(true);
+                                game.getController().render(game.getGui(), game.getTurn(), game.getSelectLocs(), game.getRenderCursor());
+                            } catch (Throwable ignore) { }
+                        });
+                    } catch (Exception ignore) { }
+
                     // Continue loop; the turn likely switched inside AI controller
                     continue;
                 }

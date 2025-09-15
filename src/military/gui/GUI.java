@@ -72,6 +72,7 @@ public class GUI extends JFrame {
     private JLabel player2;
     private boolean turn;
     private MiniMapPanel miniMapPanel;
+    private JLabel aiThinkingLabel;
 
     // Create the application menu bar with Save, Load, Exit actions
     private void installMenuBar() {
@@ -267,6 +268,38 @@ public class GUI extends JFrame {
             java.util.logging.Logger log = military.util.Logs.getLogger(GUI.class);
             log.fine("forceGridRepaint failed: " + ex.toString());
         }
+    }
+
+    // Non-modal AI thinking indicator toggle
+    public void showAiThinking(boolean show) {
+        if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+            javax.swing.SwingUtilities.invokeLater(() -> showAiThinking(show));
+            return;
+        }
+        if (aiThinkingLabel != null) {
+            aiThinkingLabel.setVisible(show);
+            aiThinkingLabel.repaint();
+        }
+    }
+
+    // Enable/disable user inputs during AI turn
+    public void setUserInputEnabled(boolean enabled) {
+        if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+            javax.swing.SwingUtilities.invokeLater(() -> setUserInputEnabled(enabled));
+            return;
+        }
+        try {
+            if (shift != null) shift.setEnabled(enabled);
+            if (attack != null) attack.setEnabled(enabled);
+            if (info != null) info.setEnabled(enabled);
+            if (end != null) end.setEnabled(enabled);
+            if (hexGridPanel != null) hexGridPanel.setEnabled(enabled);
+        } catch (Throwable t) {
+            // ignore
+        }
+        try {
+            GUIMiddleMan.getInstance().setInputsEnabled(enabled);
+        } catch (Throwable ignore) {}
     }
 
     private void initComponents() {
@@ -477,6 +510,12 @@ public class GUI extends JFrame {
                 // ignore
             }
         });
+
+        // AI thinking indicator (non-modal label)
+        aiThinkingLabel = new JLabel("AI thinking…");
+        aiThinkingLabel.setForeground(Color.ORANGE);
+        aiThinkingLabel.setFont(new Font("Consolas", Font.ITALIC, 14));
+        aiThinkingLabel.setVisible(false);
     }
 
     private void layoutComponents() {     
@@ -528,7 +567,8 @@ public class GUI extends JFrame {
                 .addComponent(playerTurnLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(player1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(player2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(miniMapPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+                .addComponent(miniMapPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(aiThinkingLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         vGroup
                 .addComponent(shift)
                 .addComponent(attack)
@@ -546,6 +586,8 @@ public class GUI extends JFrame {
                 .addComponent(player2)
                 .addGap(20)
                 .addComponent(miniMapPanel)
+                .addGap(10)
+                .addComponent(aiThinkingLabel)
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         layout.setHorizontalGroup(hGroup);
         layout.setVerticalGroup(vGroup);

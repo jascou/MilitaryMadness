@@ -53,11 +53,21 @@ public class AIController {
         for (AiAction a : actions) {
             if (a instanceof EndTurnAction) {
                 LOG.fine("Executing EndTurnAction");
+                // Provide a small delay to allow GUI to show indicator if configured
+                int delay = military.engine.ai.AiConfig.getDelayMs();
+                if (delay > 0) {
+                    try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                }
                 adapter.endTurn();
                 return; // End turn ends execution for phase 1
             } else if (a instanceof MoveAction || a instanceof AttackAction || a instanceof SelectAction || a instanceof WaitAction) {
                 // Not implemented in phase 1
                 LOG.fine("Ignoring action (not yet implemented in phase 1): " + a);
+                // Allow UI to render between actions
+                int delay = military.engine.ai.AiConfig.getDelayMs();
+                if (delay > 0) {
+                    try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                }
             } else {
                 LOG.fine("Unknown action: " + a);
             }

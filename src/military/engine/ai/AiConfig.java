@@ -10,6 +10,8 @@ public final class AiConfig {
     private static volatile boolean enabled = false;
     private static volatile Team aiTeam = Team.RED; // default if enabled
     private static volatile Long seed = null; // null -> engine picks default RNG
+    // Delay in milliseconds between AI actions for UX; 0 for tests/headless
+    private static volatile int delayMs = 300;
 
     private AiConfig() {}
 
@@ -40,5 +42,18 @@ public final class AiConfig {
 
     public static void setSeed(Long s) {
         seed = s;
+    }
+
+    /**
+     * Configurable delay in milliseconds between AI actions for visualization.
+     * Set to 0 in tests for deterministic speed.
+     */
+    public static int getDelayMs() {
+        return delayMs;
+    }
+
+    public static void setDelayMs(int ms) {
+        if (ms < 0) ms = 0;
+        delayMs = ms;
     }
 }

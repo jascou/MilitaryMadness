@@ -62,6 +62,10 @@ public class MilitaryMadness {
                         if (i + 1 < args.length) {
                             try { aiSeedParsed = Long.parseLong(args[++i]); } catch (NumberFormatException nfe) { /* ignore invalid */ }
                         }
+                    } else if ("--ai-delay".equalsIgnoreCase(a)) {
+                        if (i + 1 < args.length) {
+                            try { military.engine.ai.AiConfig.setDelayMs(Integer.parseInt(args[++i])); } catch (NumberFormatException nfe) { /* ignore invalid */ }
+                        }
                     }
                 }
                 if (aiTeamParsed != null) {
@@ -69,7 +73,7 @@ public class MilitaryMadness {
                     military.engine.ai.AiConfig.setAiTeam(aiTeamParsed);
                     if (aiSeedParsed != null) military.engine.ai.AiConfig.setSeed(aiSeedParsed);
                     java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
-                    logger.info("AI enabled for team=" + aiTeamParsed + (aiSeedParsed!=null? (", seed="+aiSeedParsed):""));
+                    logger.info("AI enabled for team=" + aiTeamParsed + (aiSeedParsed!=null? (", seed="+aiSeedParsed):"") + ", delayMs=" + military.engine.ai.AiConfig.getDelayMs());
                 } else {
                     // Default to disabled unless explicitly set
                     military.engine.ai.AiConfig.setEnabled(false);

@@ -16,6 +16,7 @@ public class GUIMiddleMan {
     private InputEvent event;
     private boolean ready;
     private static GUIMiddleMan instance;
+    private volatile boolean inputsEnabled = true;
     
     public static GUIMiddleMan getInstance(){
         if(instance == null){
@@ -26,6 +27,10 @@ public class GUIMiddleMan {
     
     private GUIMiddleMan() {
         ready = false;
+    }
+
+    public void setInputsEnabled(boolean enabled) {
+        this.inputsEnabled = enabled;
     }
 
     public synchronized InputEvent getEvent() {         //used by consumer: engine
@@ -42,6 +47,9 @@ public class GUIMiddleMan {
     }
 
     public synchronized void putEvent(InputEvent event) { //used by producer: GUI
+        if (!inputsEnabled) {
+            return; // ignore user input while disabled (e.g., during AI turn)
+        }
         if (ready) {
             try {
                 wait();
