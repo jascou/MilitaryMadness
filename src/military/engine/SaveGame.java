@@ -11,7 +11,7 @@ import java.util.List;
  * The actual map (tiles and units) is persisted as a standard map file via MapService.saveMap().
  */
 public class SaveGame implements Serializable {
-    private static final long serialVersionUID = 2L; // increment for new fields
+    private static final long serialVersionUID = 2L; // keep for backward compatibility; added fields are optional
 
     private String mapName;       // map filename (without extension) where current map state was saved
     private boolean turn;         // true = Player1 (Blue), false = Player2 (Red)
@@ -22,6 +22,14 @@ public class SaveGame implements Serializable {
      * Optional per-unit transient state captured at save time (may be null for older saves).
      */
     private List<UnitTurnState> unitStates;
+
+    // --- AI settings (optional; may be null/unused for older saves) ---
+    private Boolean aiEnabled;               // null means unknown (older save)
+    private Team aiTeam;                     // which team is controlled by AI when enabled
+    private Long aiSeed;                     // deterministic RNG seed; may be null
+    private Double aiAggressiveness;         // difficulty/strategy knobs
+    private Double aiCaution;
+    private Double aiCapturePriority;
 
     public SaveGame() {}
 
@@ -49,6 +57,25 @@ public class SaveGame implements Serializable {
             this.unitStates = new ArrayList<>(states);
         }
     }
+
+    // --- AI settings accessors ---
+    public Boolean getAiEnabled() { return aiEnabled; }
+    public void setAiEnabled(Boolean aiEnabled) { this.aiEnabled = aiEnabled; }
+
+    public Team getAiTeam() { return aiTeam; }
+    public void setAiTeam(Team aiTeam) { this.aiTeam = aiTeam; }
+
+    public Long getAiSeed() { return aiSeed; }
+    public void setAiSeed(Long aiSeed) { this.aiSeed = aiSeed; }
+
+    public Double getAiAggressiveness() { return aiAggressiveness; }
+    public void setAiAggressiveness(Double v) { this.aiAggressiveness = v; }
+
+    public Double getAiCaution() { return aiCaution; }
+    public void setAiCaution(Double v) { this.aiCaution = v; }
+
+    public Double getAiCapturePriority() { return aiCapturePriority; }
+    public void setAiCapturePriority(Double v) { this.aiCapturePriority = v; }
 
     /**
      * Serializable snapshot of a single unit's per-turn movement/attack state.

@@ -39,6 +39,16 @@ public final class SaveLoadService {
         } catch (Exception ignored) {}
         Path file = dir.resolve(saveName + ".mmsave");
         SaveGame data = new SaveGame(mapName, state.isTurn(), state.getCursor());
+        // Persist AI settings for continuity (optional)
+        try {
+            military.engine.ai.AiConfig cfg = null; // static holder
+            data.setAiEnabled(military.engine.ai.AiConfig.isEnabled());
+            data.setAiTeam(military.engine.ai.AiConfig.getAiTeam());
+            data.setAiSeed(military.engine.ai.AiConfig.getSeed());
+            data.setAiAggressiveness(military.engine.ai.AiConfig.getAggressiveness());
+            data.setAiCaution(military.engine.ai.AiConfig.getCaution());
+            data.setAiCapturePriority(military.engine.ai.AiConfig.getCapturePriority());
+        } catch (Throwable ignored) { }
         // Capture per-unit movement state
         java.util.List<SaveGame.UnitTurnState> unitStates = new java.util.ArrayList<>();
         for (Unit u : UnitManager.getInstance().getUnits(true)) {
@@ -86,6 +96,21 @@ public final class SaveLoadService {
         }
         // Delegate map load to the adapter
         new DefaultMapService().loadMap(data.getMapName());
+        // Restore AI settings if present (backward compatible)
+        try {
+            Boolean en = data.getAiEnabled();
+            military.engine.Team team = data.getAiTeam();
+            Long seed = data.getAiSeed();
+            Double agg = data.getAiAggressiveness();
+            Double cau = data.getAiCaution();
+            Double cap = data.getAiCapturePriority();
+            if (en != null) military.engine.ai.AiConfig.setEnabled(en);
+            if (team != null) military.engine.ai.AiConfig.setAiTeam(team);
+            if (seed != null) military.engine.ai.AiConfig.setSeed(seed);
+            if (agg != null) military.engine.ai.AiConfig.setAggressiveness(agg);
+            if (cau != null) military.engine.ai.AiConfig.setCaution(cau);
+            if (cap != null) military.engine.ai.AiConfig.setCapturePriority(cap);
+        } catch (Throwable ignored) { }
         // Apply per-unit movement state if available
         try {
             java.util.List<SaveGame.UnitTurnState> list = data.getUnitStates();
