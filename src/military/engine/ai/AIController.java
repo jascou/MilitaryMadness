@@ -11,7 +11,17 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Executes AIPlayer plans against the Game. Phase 1 stub that supports EndTurnAction only.
+ * Executes {@link AIPlayer} plans against the running game via a thin adapter.
+ * Responsibilities:
+ * - Obtain a snapshot {@link military.engine.ImmutableGameState} and a read-only service facade
+ *   to let the AI plan without mutating engine state.
+ * - Run the produced {@link AiAction} list in order while respecting UX concerns (optional delay)
+ *   and without blocking the Event Dispatch Thread (EDT). Callers should invoke this off the EDT.
+ * - Be defensive: if planning fails or a plan omits an {@link EndTurnAction}, end the turn anyway.
+ *
+ * Threading: Instances are thread-safe if used from a single game loop thread. Rendering and
+ * UI updates are performed elsewhere (see GameLoop). The internal EngineServices implementation
+ * only performs read-only queries.
  */
 public class AIController {
     private static final Logger LOG = military.util.Logs.getLogger(AIController.class);
@@ -23,8 +33,12 @@ public class AIController {
     }
 
     /**
-     * Plan and execute the AI turn for the given team. Phase 1: only EndTurnAction is executed.
-     * This method is synchronous and expected to be called off the EDT.
+     * Plan and execute the AI turn for the given team.
+     * Wrapper that adapts the concrete {@link military.Game} into a {@link GameAdapter}.
+     *
+     * Contract:
+     * - Synchronous; call from a background thread (GameLoop already does this).
+     * - Safe to call in headless mode; rendering is triggered separately by GameLoop.
      */
     public void takeTurn(Game game, Team aiTeam, Rng rng) {
         // Delegate to adapter-based method to allow headless tests
