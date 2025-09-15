@@ -12,6 +12,13 @@ public final class AiConfig {
     private static volatile Long seed = null; // null -> engine picks default RNG
     // Delay in milliseconds between AI actions for UX; 0 for tests/headless
     private static volatile int delayMs = 300;
+    // Strategy parameters (phase 5):
+    // aggressiveness: how strongly to prefer attacks and closing distance (>=0)
+    private static volatile double aggressiveness = 1.0;
+    // caution: how much to avoid ending adjacent to enemies (>=0; 0 means fearless)
+    private static volatile double caution = 1.0;
+    // capturePriority: weight for moving toward enemy bases versus enemy units (>=0)
+    private static volatile double capturePriority = 1.0;
 
     private AiConfig() {}
 
@@ -55,5 +62,22 @@ public final class AiConfig {
     public static void setDelayMs(int ms) {
         if (ms < 0) ms = 0;
         delayMs = ms;
+    }
+
+    // Strategy params getters/setters
+    public static double getAggressiveness() { return aggressiveness; }
+    public static void setAggressiveness(double v) { aggressiveness = sanitizeNonNegative(v, 0.0, 10.0); }
+
+    public static double getCaution() { return caution; }
+    public static void setCaution(double v) { caution = sanitizeNonNegative(v, 0.0, 10.0); }
+
+    public static double getCapturePriority() { return capturePriority; }
+    public static void setCapturePriority(double v) { capturePriority = sanitizeNonNegative(v, 0.0, 10.0); }
+
+    private static double sanitizeNonNegative(double v, double min, double max) {
+        if (Double.isNaN(v) || Double.isInfinite(v)) return 1.0;
+        if (v < min) return min;
+        if (v > max) return max;
+        return v;
     }
 }

@@ -203,7 +203,7 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 83. [x] Extend AI to perform attacks: choose best legal attack by expected damage/kill using CombatStats. (phase 3)
 84. [x] Ensure action execution sequencing renders between actions and respects turn rules; add zero-delay option for tests. (phase 3/4)
 85. [x] UX polish: show non-modal "AI thinking…" indicator and disable human input during AI turn; make delay configurable. (phase 4)
-86. [ ] Difficulty/strategy parameters on SimpleHeuristicAI (aggressiveness, caution, capture priority) and expose via CLI/settings. (phase 5)
+86. [x] Difficulty/strategy parameters on SimpleHeuristicAI (aggressiveness, caution, capture priority) and expose via CLI/settings. (phase 5)
 87. [ ] Persistence: include AI settings (team, seed, difficulty) in SaveGame and SaveLoadService with backward compatibility. (phase 6)
 88. [ ] Add headless integration test: one full human+AI round completes deterministically given a seed. (phase 4)
 89. [ ] Documentation: Javadoc AI interfaces/actions; add docs/ai/README.md with architecture and tuning notes; update guidelines for headless AI tests. (phase 7)

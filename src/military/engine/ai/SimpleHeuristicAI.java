@@ -24,13 +24,15 @@ public class SimpleHeuristicAI implements AIPlayer {
         try {
             Team myTeam = view.getTurn() ? Team.BLUE : Team.RED;
             Team enemyTeam = (myTeam == Team.BLUE) ? Team.RED : Team.BLUE;
+            double agg = AiConfig.getAggressiveness();
+            double caution = AiConfig.getCaution();
+            double cap = AiConfig.getCapturePriority();
 
             // 1) Try to find a good immediate attack from current positions
             List<military.engine.Unit> myUnits = svc.getUnits(myTeam);
             Point bestAtkFrom = null;
             Point bestAtkTarget = null;
-            int bestKill = -1; // 1 if kill, 0 otherwise
-            int bestDamage = -1; // expected defender HP lost
+            double bestAtkScore = Double.NEGATIVE_INFINITY;
             for (military.engine.Unit u : myUnits) {
                 if (u == null) continue;
                 if (u.isAttackDone()) continue; // cannot attack again this turn
@@ -49,9 +51,12 @@ public class SimpleHeuristicAI implements AIPlayer {
                     int defAfter = stats.getDefender().getHealth();
                     int damage = Math.max(0, defBefore - defAfter);
                     int kill = (defAfter <= 0) ? 1 : 0;
-                    if (kill > bestKill || (kill == bestKill && (damage > bestDamage || (damage == bestDamage && rng.nextDouble() < 0.5)))) {
-                        bestKill = kill;
-                        bestDamage = damage;
+                    // Score: prioritize kills heavily, scaled by aggressiveness; modest random tie-breaker
+                    double score = agg * (kill * 1000.0 + damage);
+                    // Prefer attacking weaker defenders slightly if equal other factors
+                    score += (rng.nextDouble() * 0.01);
+                    if (score > bestAtkScore) {
+                        bestAtkScore = score;
                         bestAtkFrom = from;
                         bestAtkTarget = tgt;
                     }
@@ -63,17 +68,13 @@ public class SimpleHeuristicAI implements AIPlayer {
                 return plan; // perform only one primary action per simple heuristic
             }
 
-            // 2) Otherwise, move one unit greedily toward the nearest enemy unit or base
-            // Collect enemy targets (units and bases)
-            List<Point> enemyTargets = new ArrayList<>();
-            // Find enemy units by scanning locations
-            enemyTargets.addAll(findTeamUnitPositions(svc, enemyTeam));
-            // Find enemy bases
-            enemyTargets.addAll(findTeamBasePositions(enemyTeam));
+            // 2) Otherwise, move one unit greedily toward the nearest enemy unit or base (weighted)
+            List<Point> enemyUnits = findTeamUnitPositions(svc, enemyTeam);
+            List<Point> enemyBases = findTeamBasePositions(enemyTeam);
 
             Point bestFrom = null;
             Point bestTo = null;
-            int bestDistance = Integer.MAX_VALUE;
+            double bestScore = Double.NEGATIVE_INFINITY;
             for (military.engine.Unit u : myUnits) {
                 Point from = findUnitPosition(svc, u);
                 if (from == null) continue;
@@ -85,9 +86,23 @@ public class SimpleHeuristicAI implements AIPlayer {
                     reachable.add(new Point(from));
                 }
                 for (Point r : reachable) {
-                    int d = distanceToNearest(r, enemyTargets);
-                    if (d < bestDistance || (d == bestDistance && rng.nextDouble() < 0.5)) {
-                        bestDistance = d;
+                    // Base desire: get closer to enemies (scaled by aggressiveness)
+                    int dEnemy = distanceToNearest(r, enemyUnits);
+                    int dBase = enemyBases.isEmpty() ? dEnemy : distanceToNearest(r, enemyBases);
+                    double score = 0.0;
+                    score += agg * (100 - Math.min(100, dEnemy));
+                    score += cap * (100 - Math.min(100, dBase));
+                    // Caution penalty: avoid ending adjacent to enemies when caution > 0
+                    if (caution > 0 && r != null) {
+                        int adjacentEnemies = countAdjacentEnemies(svc, r, myTeam);
+                        score -= caution * (adjacentEnemies * 5.0);
+                    }
+                    // Mild preference to move at all
+                    if (!r.equals(from)) score += 0.1;
+                    // Random tie-breaker
+                    score += rng.nextDouble() * 0.001;
+                    if (score > bestScore) {
+                        bestScore = score;
                         bestFrom = from;
                         bestTo = r;
                     }
@@ -101,6 +116,18 @@ public class SimpleHeuristicAI implements AIPlayer {
         }
         plan.add(new EndTurnAction());
         return plan;
+    }
+
+    private static int countAdjacentEnemies(ReadOnlyServices svc, Point p, Team myTeam) {
+        Location loc = svc.getLocation(p);
+        if (loc == null) return 0;
+        int cnt = 0;
+        for (Location adj : loc.getAdjacent()) {
+            if (!adj.isEmpty() && adj.getUnit().getTeam() != (myTeam == Team.BLUE)) {
+                cnt++;
+            }
+        }
+        return cnt;
     }
 
     private static int distance(Point a, Point b) {

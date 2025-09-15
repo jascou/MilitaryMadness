@@ -66,6 +66,18 @@ public class MilitaryMadness {
                         if (i + 1 < args.length) {
                             try { military.engine.ai.AiConfig.setDelayMs(Integer.parseInt(args[++i])); } catch (NumberFormatException nfe) { /* ignore invalid */ }
                         }
+                    } else if ("--ai-agg".equalsIgnoreCase(a) || "--ai-aggressiveness".equalsIgnoreCase(a)) {
+                        if (i + 1 < args.length) {
+                            try { military.engine.ai.AiConfig.setAggressiveness(Double.parseDouble(args[++i])); } catch (NumberFormatException nfe) { /* ignore invalid */ }
+                        }
+                    } else if ("--ai-caution".equalsIgnoreCase(a)) {
+                        if (i + 1 < args.length) {
+                            try { military.engine.ai.AiConfig.setCaution(Double.parseDouble(args[++i])); } catch (NumberFormatException nfe) { /* ignore invalid */ }
+                        }
+                    } else if ("--ai-capture".equalsIgnoreCase(a) || "--ai-cap-priority".equalsIgnoreCase(a)) {
+                        if (i + 1 < args.length) {
+                            try { military.engine.ai.AiConfig.setCapturePriority(Double.parseDouble(args[++i])); } catch (NumberFormatException nfe) { /* ignore invalid */ }
+                        }
                     }
                 }
                 if (aiTeamParsed != null) {
@@ -73,7 +85,10 @@ public class MilitaryMadness {
                     military.engine.ai.AiConfig.setAiTeam(aiTeamParsed);
                     if (aiSeedParsed != null) military.engine.ai.AiConfig.setSeed(aiSeedParsed);
                     java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
-                    logger.info("AI enabled for team=" + aiTeamParsed + (aiSeedParsed!=null? (", seed="+aiSeedParsed):"") + ", delayMs=" + military.engine.ai.AiConfig.getDelayMs());
+                    logger.info("AI enabled for team=" + aiTeamParsed + (aiSeedParsed!=null? (", seed="+aiSeedParsed):"") + ", delayMs=" + military.engine.ai.AiConfig.getDelayMs()
+                            + ", agg=" + military.engine.ai.AiConfig.getAggressiveness()
+                            + ", caution=" + military.engine.ai.AiConfig.getCaution()
+                            + ", capture=" + military.engine.ai.AiConfig.getCapturePriority());
                 } else {
                     // Default to disabled unless explicitly set
                     military.engine.ai.AiConfig.setEnabled(false);
