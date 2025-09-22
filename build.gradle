@@ -21,6 +21,22 @@ application {
     mainClass = 'military.MilitaryMadness'
 }
 
+// Allow passing application arguments via a project property to be Gradle 9 friendly
+// Usage:
+//   - Gradle 9+: ./gradlew.bat run --args="--play Sample_small --ai red"
+//   - Alternative (all Gradle versions): ./gradlew.bat run -PappArgs="--play Sample_small --ai red"
+// This block maps -PappArgs to the run task's args if provided.
+tasks.named('run', JavaExec) {
+    if (project.hasProperty('appArgs')) {
+        def raw = project.property('appArgs')?.toString() ?: ''
+        if (!raw.trim().isEmpty()) {
+            // Split on whitespace while respecting simple quotes
+            // For simplicity, split by spaces; users can avoid spaces inside individual args
+            args raw.split('\\s+')
+        }
+    }
+}
+
 repositories { mavenCentral() }
 
 dependencies {

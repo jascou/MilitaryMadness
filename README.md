@@ -78,12 +78,15 @@ See `docs/tasks.md` for the improvement backlog and `docs/map-format.md` for the
 You can start an AI-controlled game from the command line using the `--ai` flag together with `--play`:
 
 - One side as AI (Red AI vs Blue human):
-  - Windows PowerShell/cmd:
-    - `./gradlew.bat run --args "--play Sample_small --ai red"`
+  - Windows PowerShell/cmd (Gradle 9+):
+    - `./gradlew.bat run --args="--play Sample_small --ai red"`
+  - Alternative (all Gradle versions): `./gradlew.bat run -PappArgs="--play Sample_small --ai red"`
 - Blue AI vs Red human:
-  - `./gradlew.bat run --args "--play Sample_small --ai blue"`
+  - `./gradlew.bat run --args="--play Sample_small --ai blue"`
+  - Alternative: `./gradlew.bat run -PappArgs="--play Sample_small --ai blue"`
 - AI vs AI (both sides automated):
-  - `./gradlew.bat run --args "--play Sample_small --ai both"`
+  - `./gradlew.bat run --args="--play Sample_small --ai both"`
+  - Alternative: `./gradlew.bat run -PappArgs="--play Sample_small --ai both"`
 
 Optional flags:
 - `--ai-seed <n>` make AI decisions deterministic for reproducible tests (e.g., `--ai-seed 42`).
