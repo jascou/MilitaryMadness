@@ -89,8 +89,8 @@ public class HexMech {
             if (x > 0 && y > 0) {
                 if (LocationManager.getSize().x > i && LocationManager.getSize().y > j) {
 //            if (LocationManager.isInBounds(x, y)) {
-                    g2.setColor(LocationManager.getLoc(i, j).getColor());
-                    g2.fillPolygon(poly);
+                    // Enhanced terrain rendering: use procedural texture painter
+                    military.gui.TilePainter.fillTerrainHex(g2, poly, LocationManager.getLoc(i, j));
                     g2.setColor(Color.black);
                     g2.drawPolygon(poly);
                 }

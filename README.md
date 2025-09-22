@@ -25,6 +25,11 @@ Run a single test class or method:
   - `--play <mapName>` to launch directly into a scenario (e.g., `--play Sample_small`)
   - `--design <w> <h>` to open the designer with a new map of size w x h
   - `--design <mapName>` to open an existing map in the designer
+  - AI options for testing the built-in AI from the CLI:
+    - `--ai red|blue|both` choose which side(s) are automated by AI (e.g., `--ai both` for AI vs AI)
+    - `--ai-seed <n>` set a deterministic seed for reproducible AI behavior
+    - `--ai-delay <ms>` add a delay between AI actions for visualization (0 for fastest)
+    - Strategy params (experimental): `--ai-agg <v>`, `--ai-caution <v>`, `--ai-capture <v>`
 
 Headless note: Some GUI tests require a display and may throw `java.awt.HeadlessException`. Non-GUI engine tests are safe in headless environments.
 

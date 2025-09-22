@@ -207,7 +207,7 @@ A prioritized, actionable checklist to improve architecture, code quality, perfo
 87. [x] Persistence: include AI settings (team, seed, difficulty) in SaveGame and SaveLoadService with backward compatibility. (phase 6)
 88. [x] Add headless integration test: one full human+AI round completes deterministically given a seed. (phase 4)
 89. [x] Documentation: Javadoc AI interfaces/actions; add docs/ai/README.md with architecture and tuning notes; update guidelines for headless AI tests. (phase 7)
-90. [ ] Acceptance pass: verify --ai red plays turns on shipped maps; moves/attacks reasonably; no GUI freezes; tests pass. (phase 7)
+90. [x] Acceptance pass: verify --ai red plays turns on shipped maps; moves/attacks reasonably; no GUI freezes; tests pass. (phase 7)
 
 <!-- Legacy checklist content retained below for historical reference -->
 
@@ -288,3 +288,65 @@ Below is an ordered, actionable checklist of improvements spanning architecture,
 73. [x] Audit toString/debug printing for sensitive or excessive output; standardize formatting with StringBuilder. (Standardized Location.toString with StringBuilder; other major classes already use StringBuilder; no sensitive data printed)
 74. [x] Add a lightweight plugin point to register new unit types without changing core engine code. (Implemented: UnitPluginRegistry with tests; integrated in LocationManager.addUnit and DebugStateIO)
 75. [x] Provide a basic telemetry/log file (opt-in) for bug reports (Java Preferences + logs directory). (Implemented: Telemetry.initIfEnabled in main; added TelemetryTest validating log file creation)
+
+
+## Next Phase Roadmap (Q4 2025 and beyond)
+
+Notes (2025-09-22):
+- Rendering: Terrain tiles now use procedural textures (TilePainter) instead of flat colors for better visual distinction while keeping performance acceptable. This is a non-breaking visual enhancement.
+- AI: You can now launch AI-controlled games from the CLI. Use `--ai red|blue|both` with `--play <map>` to automate one or both teams (AI vs AI). Optional: `--ai-seed`, `--ai-delay`, and strategy params (`--ai-agg`, `--ai-caution`, `--ai-capture`).
+
+This section captures the highest‑impact next steps now that the foundational refactors, tests, and CI are in place. Each item is scoped to be deliverable in a focused PR or small series and should become a GitHub issue with acceptance criteria.
+
+1. AI improvements and difficulty scaling
+   - Replace SimpleHeuristicAI with pluggable evaluators and search depth configuration (AiConfig). Metrics: beat baseline on test maps; deterministic outcomes under fixed seeds.
+   - Add unit tests for AI decision quality on tactical scenarios (e.g., prioritize captures, avoid overextending). Guard runtime with headless mode.
+
+2. Balance and content externalization
+   - Externalize unit/terrain stats to JSON or YAML in Resources (alongside Units.txt legacy), load via ResourceLoader. Provide migration and validation.
+   - Add a balance test harness with golden expectations (DPS, TTK, movement budgets) to prevent regressions.
+
+3. Campaign/save system (beyond DebugStateIO)
+   - Define SAVEv2 with compression and metadata (map id, turn, teams). Add round‑trip tests and backward compatibility with GSTATEv1 when feasible.
+   - Basic campaign sequence: list of maps with carry‑over rules; preferences key for last campaign node.
+
+4. Designer quality of life
+   - Grid snapping, undo/redo, and validation overlays in DesignGUI. Headless‑safe tests for model/controller.
+   - Export preview thumbnails for MapSelectionDialog; cache in Resources/maps/.thumbnails.
+
+5. Performance on large maps
+   - Profile PathfindingService and rendering on 60x60 maps. Introduce tile visibility culling and adjacency caches persisted per map load.
+   - Add perf budget tests (microbenchmarks or timing thresholds in CI with generous ceilings and [DEBUG_LOG]).
+
+6. Accessibility and UX polish
+   - Keyboard‑only navigation completeness; high‑contrast mode toggle; larger text option.
+   - Auditory cues off by default in headless; respect PreferencesManager.
+
+7. Localization readiness
+   - Externalize user‑visible strings to resource bundles; default en_US. Verify classpath resolution from jar.
+   - Add locale smoke test loading a sample bundle (test/resources/i18n/messages.properties).
+
+8. Packaging and distribution
+   - Produce OS‑agnostic release artifacts: fat jar (existing), plus platform zips with launch scripts. Verify ResourceLoader works inside jar.
+   - Attach artifacts in CI workflow; include checksums and versioning derived from Git tags.
+
+9. Multiplayer/Hotseat groundwork
+   - Formalize command model (MoveCommand, AttackCommand) and a turn event log. This enables hotseat and future networking without UI coupling.
+   - Add serialization tests of commands; ensure determinism with Rng.
+
+10. Observability and telemetry (opt‑in)
+   - Expand Telemetry: session id, basic hardware info, anonymized error summaries. Respect preferences and include clear privacy note.
+   - Add rotating logs and log level override via CLI.
+
+11. Test coverage and CI hardening
+   - Raise JaCoCo minimums for engine/map logic; keep GUI thresholds modest. Fail CI on substantial drops.
+   - Quarantine GUI tests that require a display; keep headless suite green. Validate Checkstyle/SpotBugs gates in matrix.
+
+12. Documentation and ADRs
+   - Author ADRs for AI redesign, SAVEv2, command model, and i18n adoption.
+   - Update docs/map-format.md for versioning and examples; expand docs/units.md for externalized format.
+
+How to work these items:
+- Create a GitHub issue per bullet with “Type: Feature/TechDebt/Docs” labels and clear acceptance criteria.
+- Keep PRs small and focused; include tests and updates to docs.
+- Prefer classpath‑first resource loading and headless‑safe tests per repo guidelines.

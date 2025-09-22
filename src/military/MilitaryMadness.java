@@ -80,12 +80,29 @@ public class MilitaryMadness {
                         }
                     }
                 }
+            boolean aiBoth = false;
                 if (aiTeamParsed != null) {
                     military.engine.ai.AiConfig.setEnabled(true);
                     military.engine.ai.AiConfig.setAiTeam(aiTeamParsed);
                     if (aiSeedParsed != null) military.engine.ai.AiConfig.setSeed(aiSeedParsed);
-                    java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
-                    logger.info("AI enabled for team=" + aiTeamParsed + (aiSeedParsed!=null? (", seed="+aiSeedParsed):"") + ", delayMs=" + military.engine.ai.AiConfig.getDelayMs()
+                }
+                // Second pass for explicit both control (overrides single team)
+                for (int i = 0; i < args.length; i++) {
+                    if ("--ai".equalsIgnoreCase(args[i]) && i + 1 < args.length) {
+                        String v = args[i + 1].toLowerCase();
+                        if ("both".equals(v)) { aiBoth = true; break; }
+                    }
+                }
+                if (aiBoth) {
+                    military.engine.ai.AiConfig.setEnabled(true);
+                    military.engine.ai.AiConfig.setControlBoth(true);
+                } else {
+                    military.engine.ai.AiConfig.setControlBoth(false);
+                }
+                java.util.logging.Logger logger = military.util.Logs.getLogger(MilitaryMadness.class);
+                if (military.engine.ai.AiConfig.isEnabled()) {
+                    logger.info("AI enabled for team=" + (military.engine.ai.AiConfig.isControlBoth()?"BOTH":aiTeamParsed)
+                            + (aiSeedParsed!=null? (", seed="+aiSeedParsed):"") + ", delayMs=" + military.engine.ai.AiConfig.getDelayMs()
                             + ", agg=" + military.engine.ai.AiConfig.getAggressiveness()
                             + ", caution=" + military.engine.ai.AiConfig.getCaution()
                             + ", capture=" + military.engine.ai.AiConfig.getCapturePriority());
@@ -107,8 +124,16 @@ public class MilitaryMadness {
                     javax.swing.SwingUtilities.invokeAndWait(() -> holder[0] = new Game(map));
                     Thread gameThread = new Thread(new military.engine.GameLoop(holder[0]), "GameLoop");
                     gameThread.start();
+                    // If AI is enabled, start a runner to automate AI turns (one or both teams)
+                    military.engine.ai.AiTurnRunner runner = null;
+                    if (military.engine.ai.AiConfig.isEnabled()) {
+                        runner = new military.engine.ai.AiTurnRunner(holder[0]);
+                        runner.triggerIfStartingTurnIsAI();
+                    }
                     // Wait for game to end (loop exits when base captured)
                     try { gameThread.join(); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                    // Cleanup AI runner
+                    if (runner != null) { try { runner.close(); } catch (Exception ignore) {} }
                     SoundUtility.getInstance().shutdown();
                     return;
                 } else if ("--design".equalsIgnoreCase(args[0]) && args.length >= 2) {

@@ -9,6 +9,7 @@ import military.engine.Team;
 public final class AiConfig {
     private static volatile boolean enabled = false;
     private static volatile Team aiTeam = Team.RED; // default if enabled
+    private static volatile boolean controlBoth = false; // when true, AI controls both teams
     private static volatile Long seed = null; // null -> engine picks default RNG
     // Delay in milliseconds between AI actions for UX; 0 for tests/headless
     private static volatile int delayMs = 300;
@@ -39,6 +40,9 @@ public final class AiConfig {
             aiTeam = team;
         }
     }
+
+    public static boolean isControlBoth() { return controlBoth; }
+    public static void setControlBoth(boolean both) { controlBoth = both; }
 
     /**
      * Optional deterministic seed for AI decisions. If null, default RNG is used.
