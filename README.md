@@ -70,3 +70,29 @@ Please read `CONTRIBUTING.md` for guidelines on code style, branching, PRs, and 
 
 ## Next Steps
 See `docs/tasks.md` for the improvement backlog and `docs/map-format.md` for the map file schema. 
+
+
+
+## How can a player start the AI player to play?
+
+You can start an AI-controlled game from the command line using the `--ai` flag together with `--play`:
+
+- One side as AI (Red AI vs Blue human):
+  - Windows PowerShell/cmd:
+    - `./gradlew.bat run --args "--play Sample_small --ai red"`
+- Blue AI vs Red human:
+  - `./gradlew.bat run --args "--play Sample_small --ai blue"`
+- AI vs AI (both sides automated):
+  - `./gradlew.bat run --args "--play Sample_small --ai both"`
+
+Optional flags:
+- `--ai-seed <n>` make AI decisions deterministic for reproducible tests (e.g., `--ai-seed 42`).
+- `--ai-delay <ms>` add a pause between AI actions for visibility (use `0` for fastest execution).
+- Strategy (experimental): `--ai-agg <v>`, `--ai-caution <v>`, `--ai-capture <v>`.
+
+Jar usage (after building `build\libs\*.jar`):
+- `java -jar build\libs\MilitaryMadness.jar --play Sample_small --ai both --ai-seed 1 --ai-delay 0`
+
+Notes:
+- Make sure the map you name exists in the `Maps/` folder or packaged resources (e.g., `Sample_small`).
+- There is no in-UI toggle yet; starting AI is done via the CLI options above.
