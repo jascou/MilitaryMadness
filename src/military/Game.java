@@ -1119,4 +1119,110 @@ public class Game implements Runnable {
     public void endTurnForAutomation() {
         end();
     }
+
+    /**
+     * Programmatic movement for AI/automation. Validates legality similarly to user input flow
+     * but without dialogs. Returns true if the move was applied.
+     */
+    public boolean moveUnitForAutomation(java.awt.Point from, java.awt.Point to) {
+        try {
+            if (from == null || to == null) return false;
+            if (!LocationManager.isInBounds(from.x, from.y) || !LocationManager.isInBounds(to.x, to.y)) return false;
+            if (LocationManager.getLoc(from).isEmpty()) return false;
+            Unit u = LocationManager.getLoc(from).getUnit();
+            if (u.getTeam() != turn) return false; // not this unit's turn
+            if (u.isShiftDone()) return false; // already moved
+            // Validate reachable
+            java.util.List<java.awt.Point> moves = military.engine.PathfindingService.computeMovesBfs(from, u, turn);
+            boolean ok = false;
+            for (java.awt.Point p : moves) { if (p.equals(to)) { ok = true; break; } }
+            if (!ok) return false;
+            // Destination must be unoccupied (PathfindingService should ensure, but double-check)
+            if (!LocationManager.getLoc(to).isEmpty()) return false;
+            // Apply move
+            LocationManager.getLoc(from).getUnit().move(LocationManager.getLoc(to));
+            // Clear selections and re-render
+            selectLocs.clear();
+            cursor = new java.awt.Point(to);
+            controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+            try { gui.forceGridRepaint(); } catch (Exception ex) { }
+            // If moved onto enemy base, announce win and dispose
+            if (LocationManager.getLoc(to) instanceof Base && ((Base) LocationManager.getLoc(to)).getTeam() != turn) {
+                try { javax.swing.JOptionPane.showMessageDialog(gui, "Player " + (turn ? "1" : "2") + " Wins!"); } catch (Exception ignore) {}
+                try { gui.dispose(); } catch (Exception ignore) {}
+            }
+            // Mirror user flow: after moving, unit cannot attack (legacy rule)
+            u.attack();
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
+     * Programmatic attack for AI/automation. Validates basic legality and resolves combat
+     * without showing blocking dialogs. Returns true if an attack was executed.
+     */
+    public boolean attackForAutomation(java.awt.Point attackerAt, java.awt.Point targetAt) {
+        try {
+            if (attackerAt == null || targetAt == null) return false;
+            if (!LocationManager.isInBounds(attackerAt.x, attackerAt.y) || !LocationManager.isInBounds(targetAt.x, targetAt.y)) return false;
+            if (LocationManager.getLoc(attackerAt).isEmpty()) return false;
+            Unit attacker = LocationManager.getLoc(attackerAt).getUnit();
+            if (attacker.getTeam() != turn) return false;
+            if (attacker.isAttackDone()) return false;
+            // Build list of valid targets as in attack()
+            java.util.ArrayList<java.awt.Point> valid = new java.util.ArrayList<>();
+            if (attacker.isRanged()) {
+                for (Location loc : LocationManager.getLoc(attackerAt).getAdjacent()) {
+                    rangedIterative(loc, attacker.getRange() - 1);
+                }
+                valid.addAll(selectLocs);
+            } else {
+                for (Location loc : LocationManager.getLoc(attackerAt).getAdjacent()) {
+                    if (!loc.isEmpty() && loc.getUnit().getTeam() != turn) {
+                        valid.add(new java.awt.Point(loc.getLoc()));
+                    }
+                }
+            }
+            boolean ok = false;
+            for (java.awt.Point p : valid) { if (p.equals(targetAt)) { ok = true; break; } }
+            if (!ok) return false;
+            // Resolve combat
+            military.engine.CombatStats stats = military.engine.CombatResolver.resolve(
+                    attacker, LocationManager.getLoc(targetAt).getUnit(), LocationManager.getLoc(targetAt));
+            displayCombatAndPost(stats);
+            attacker.attack();
+            // Remove dead units
+            if (LocationManager.getLoc(targetAt).getUnit().getHealth() <= 0) {
+                UnitManager.getInstance().removeUnit(LocationManager.getLoc(targetAt).getUnit());
+                LocationManager.getLoc(targetAt).removeUnit();
+            }
+            if (LocationManager.getLoc(attackerAt).isEmpty() || LocationManager.getLoc(attackerAt).getUnit().getHealth() <= 0) {
+                if (!LocationManager.getLoc(attackerAt).isEmpty()) {
+                    UnitManager.getInstance().removeUnit(LocationManager.getLoc(attackerAt).getUnit());
+                    LocationManager.getLoc(attackerAt).removeUnit();
+                }
+            }
+            // Clear selections and re-render
+            selectLocs.clear();
+            controller.render(gui, turn, selectLocs, (buttonCursor.y == -1) ? cursor : buttonCursor);
+            try { gui.forceGridRepaint(); } catch (Exception ex) { }
+            // Victory checks
+            if (unitRepo.getUnits(military.engine.Team.RED).isEmpty()) {
+                try { javax.swing.JOptionPane.showMessageDialog(gui, "Player 1 Wins!"); } catch (Exception ignore) {}
+                try { gui.dispose(); } catch (Exception ignore) {}
+            }
+            if (unitRepo.getUnits(military.engine.Team.BLUE).isEmpty()) {
+                try { javax.swing.JOptionPane.showMessageDialog(gui, "Player 2 Wins!"); } catch (Exception ignore) {}
+                try { gui.dispose(); } catch (Exception ignore) {}
+            }
+            return true;
+        } catch (Throwable t) {
+            return false;
+        } finally {
+            // Reset any temporary selectLocs built by rangedIterative
+            selectLocs.clear();
+        }
+    }
 }

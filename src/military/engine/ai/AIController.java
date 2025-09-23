@@ -65,23 +65,26 @@ public class AIController {
     private void execute(GameAdapter adapter, List<AiAction> actions) {
         if (actions == null) return;
         for (AiAction a : actions) {
+            int delay = military.engine.ai.AiConfig.getDelayMs();
             if (a instanceof EndTurnAction) {
                 LOG.fine("Executing EndTurnAction");
-                // Provide a small delay to allow GUI to show indicator if configured
-                int delay = military.engine.ai.AiConfig.getDelayMs();
-                if (delay > 0) {
-                    try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
-                }
+                if (delay > 0) { try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); } }
                 adapter.endTurn();
-                return; // End turn ends execution for phase 1
-            } else if (a instanceof MoveAction || a instanceof AttackAction || a instanceof SelectAction || a instanceof WaitAction) {
-                // Not implemented in phase 1
-                LOG.fine("Ignoring action (not yet implemented in phase 1): " + a);
-                // Allow UI to render between actions
-                int delay = military.engine.ai.AiConfig.getDelayMs();
-                if (delay > 0) {
-                    try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
-                }
+                return; // End turn ends execution
+            } else if (a instanceof MoveAction) {
+                MoveAction m = (MoveAction) a;
+                LOG.fine("Executing MoveAction: " + m);
+                try { adapter.move(m.getFrom(), m.getTo()); } catch (Throwable t) { LOG.fine("Move failed: " + t.toString()); }
+                if (delay > 0) { try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); } }
+            } else if (a instanceof AttackAction) {
+                AttackAction atk = (AttackAction) a;
+                LOG.fine("Executing AttackAction: " + atk);
+                try { adapter.attack(atk.getAttackerAt(), atk.getTargetAt()); } catch (Throwable t) { LOG.fine("Attack failed: " + t.toString()); }
+                if (delay > 0) { try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); } }
+            } else if (a instanceof SelectAction || a instanceof WaitAction) {
+                // No-ops for now but keep the pacing delay for visualization
+                LOG.fine("Skipping no-op action: " + a);
+                if (delay > 0) { try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); } }
             } else {
                 LOG.fine("Unknown action: " + a);
             }
@@ -110,6 +113,8 @@ public class AIController {
             @Override public ArrayList<Point> getSelectLocs() { return game.getSelectLocs(); }
             @Override public Point getRenderCursor() { return game.getRenderCursor(); }
             @Override public void endTurn() { game.endTurnForAutomation(); }
+            @Override public boolean move(Point from, Point to) { return game.moveUnitForAutomation(from, to); }
+            @Override public boolean attack(Point attackerAt, Point targetAt) { return game.attackForAutomation(attackerAt, targetAt); }
         };
     }
 

@@ -13,4 +13,8 @@ public interface GameAdapter {
     ArrayList<Point> getSelectLocs();
     Point getRenderCursor();
     void endTurn();
+    /** Execute a movement from -> to; engine validates legality. */
+    boolean move(Point from, Point to);
+    /** Execute an attack from attackerAt -> targetAt; engine validates legality. */
+    boolean attack(Point attackerAt, Point targetAt);
 }

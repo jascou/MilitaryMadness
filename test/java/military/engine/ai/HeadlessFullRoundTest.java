@@ -53,6 +53,8 @@ public class HeadlessFullRoundTest {
             @Override public ArrayList<Point> getSelectLocs() { return new ArrayList<>(); }
             @Override public Point getRenderCursor() { return new Point(0,0); }
             @Override public void endTurn() { endCalls++; turn = !turn; }
+            @Override public boolean move(Point from, Point to) { return false; }
+            @Override public boolean attack(Point attackerAt, Point targetAt) { return false; }
         }
         FakeAdapter adapter = new FakeAdapter();
 
