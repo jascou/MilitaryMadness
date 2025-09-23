@@ -55,7 +55,9 @@ public class GameLoop implements Runnable {
             // If it's the AI team's turn, execute AI on a background thread and skip human input
             if (aiEnabled) {
                 Team current = game.getTurn() ? Team.BLUE : Team.RED;
-                if (current == aiTeam) {
+                if (military.engine.ai.AiConfig.isControlBoth() || current == aiTeam) {
+                    // Determine which team the AI should play this turn
+                    final Team aiThisTurn = military.engine.ai.AiConfig.isControlBoth() ? current : aiTeam;
                     // Show AI thinking indicator and disable user input on EDT
                     try {
                         javax.swing.SwingUtilities.invokeAndWait(() -> {

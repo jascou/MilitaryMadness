@@ -101,6 +101,11 @@ public class Game implements Runnable {
         state.setTurn(turn);
         state.setCursor(new Point(cursor));
         controller = new military.engine.GameController(state);
+        // Post domain event for the very first turn so automation/listeners can react immediately
+        try {
+            military.engine.events.EventBus.getInstance().post(
+                    new military.engine.events.TurnStarted(turn ? military.engine.Team.BLUE : military.engine.Team.RED));
+        } catch (Throwable ignore) { }
         // Announce the initial active player at game start
         announceTurn(turn);
     }
@@ -121,6 +126,11 @@ public class Game implements Runnable {
         // propagate to shared state for rendering
         this.state.setTurn(this.turn);
         this.state.setCursor(new java.awt.Point(this.cursor));
+        // Post event so automation/listeners can react to the loaded turn immediately
+        try {
+            military.engine.events.EventBus.getInstance().post(
+                    new military.engine.events.TurnStarted(this.turn ? military.engine.Team.BLUE : military.engine.Team.RED));
+        } catch (Throwable ignore) { }
         // Optional: announce current turn after load
         announceTurn(this.turn);
     }
