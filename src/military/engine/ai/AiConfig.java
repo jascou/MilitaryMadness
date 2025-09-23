@@ -10,6 +10,8 @@ public final class AiConfig {
     private static volatile boolean enabled = false;
     private static volatile Team aiTeam = Team.RED; // default if enabled
     private static volatile boolean controlBoth = false; // when true, AI controls both teams
+    /** When true, AI turns execute synchronously on the posting thread (debugger-friendly). */
+    private static volatile boolean debugSync = false;
     private static volatile Long seed = null; // null -> engine picks default RNG
     // Delay in milliseconds between AI actions for UX; 0 for tests/headless
     private static volatile int delayMs = 300;
@@ -43,6 +45,13 @@ public final class AiConfig {
 
     public static boolean isControlBoth() { return controlBoth; }
     public static void setControlBoth(boolean both) { controlBoth = both; }
+
+    /**
+     * When enabled, AI turns execute synchronously on the current thread. Useful when debugging
+     * so that breakpoints pause the whole game instead of only a background AI thread.
+     */
+    public static boolean isDebugSync() { return debugSync; }
+    public static void setDebugSync(boolean debug) { debugSync = debug; }
 
     /**
      * Optional deterministic seed for AI decisions. If null, default RNG is used.

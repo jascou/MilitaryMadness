@@ -69,19 +69,31 @@ public final class AiTurnRunner implements Consumer<GameEvent>, AutoCloseable {
     private void submitTurn(final Team team) {
         // Ensure we don't queue multiple turns simultaneously
         if (!started.compareAndSet(false, true)) return;
-        executor.submit(new Runnable() {
-            @Override public void run() {
-                try {
-                    Rng rng = (AiConfig.getSeed() == null) ? new DefaultRng() : new DefaultRng(new java.util.Random(AiConfig.getSeed()));
-                    controller.takeTurn(game, team, rng);
-                } catch (Throwable t) {
-                    LOG.fine("AI turn failed: " + t.toString());
-                } finally {
-                    // Allow next turn to be queued
-                    started.set(false);
-                }
+        if (AiConfig.isDebugSync()) {
+            // Run synchronously on the current thread for debugger-friendly breakpoints
+            try {
+                Rng rng = (AiConfig.getSeed() == null) ? new DefaultRng() : new DefaultRng(new java.util.Random(AiConfig.getSeed()));
+                controller.takeTurn(game, team, rng);
+            } catch (Throwable t) {
+                LOG.fine("AI turn failed: " + t.toString());
+            } finally {
+                started.set(false);
             }
-        });
+        } else {
+            executor.submit(new Runnable() {
+                @Override public void run() {
+                    try {
+                        Rng rng = (AiConfig.getSeed() == null) ? new DefaultRng() : new DefaultRng(new java.util.Random(AiConfig.getSeed()));
+                        controller.takeTurn(game, team, rng);
+                    } catch (Throwable t) {
+                        LOG.fine("AI turn failed: " + t.toString());
+                    } finally {
+                        // Allow next turn to be queued
+                        started.set(false);
+                    }
+                }
+            });
+        }
     }
 
     @Override

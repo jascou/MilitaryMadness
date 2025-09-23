@@ -29,6 +29,7 @@ Run a single test class or method:
     - `--ai red|blue|both` choose which side(s) are automated by AI (e.g., `--ai both` for AI vs AI)
     - `--ai-seed <n>` set a deterministic seed for reproducible AI behavior
     - `--ai-delay <ms>` add a delay between AI actions for visualization (0 for fastest)
+    - `--ai-debug` (alias: `--ai-sync`) run AI turns synchronously on the game thread for easier debugging/breakpoints
     - Strategy params (experimental): `--ai-agg <v>`, `--ai-caution <v>`, `--ai-capture <v>`
 
 Headless note: Some GUI tests require a display and may throw `java.awt.HeadlessException`. Non-GUI engine tests are safe in headless environments.
@@ -91,7 +92,12 @@ You can start an AI-controlled game from the command line using the `--ai` flag 
 Optional flags:
 - `--ai-seed <n>` make AI decisions deterministic for reproducible tests (e.g., `--ai-seed 42`).
 - `--ai-delay <ms>` add a pause between AI actions for visibility (use `0` for fastest execution).
+- `--ai-debug` (alias: `--ai-sync`) executes AI turns synchronously on the game thread so breakpoints pause the whole program. Combine with `--ai-delay` for step-by-step debugging.
 - Strategy (experimental): `--ai-agg <v>`, `--ai-caution <v>`, `--ai-capture <v>`.
+
+Debug examples:
+- Gradle 9+: `./gradlew.bat run --args="--play Sample_small --ai red --ai-debug --ai-delay 1000"`
+- All Gradle versions: `./gradlew.bat run -PappArgs="--play Sample_small --ai both --ai-debug --ai-delay 750"`
 
 Jar usage (after building `build\libs\*.jar`):
 - `java -jar build\libs\MilitaryMadness.jar --play Sample_small --ai both --ai-seed 1 --ai-delay 0`

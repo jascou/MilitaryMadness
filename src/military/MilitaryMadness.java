@@ -78,6 +78,9 @@ public class MilitaryMadness {
                         if (i + 1 < args.length) {
                             try { military.engine.ai.AiConfig.setCapturePriority(Double.parseDouble(args[++i])); } catch (NumberFormatException nfe) { /* ignore invalid */ }
                         }
+                    } else if ("--ai-debug".equalsIgnoreCase(a) || "--ai-sync".equalsIgnoreCase(a)) {
+                        // Enable synchronous (debugger-friendly) AI execution
+                        military.engine.ai.AiConfig.setDebugSync(true);
                     }
                 }
             boolean aiBoth = false;
@@ -103,6 +106,7 @@ public class MilitaryMadness {
                 if (military.engine.ai.AiConfig.isEnabled()) {
                     logger.info("AI enabled for team=" + (military.engine.ai.AiConfig.isControlBoth()?"BOTH":aiTeamParsed)
                             + (aiSeedParsed!=null? (", seed="+aiSeedParsed):"") + ", delayMs=" + military.engine.ai.AiConfig.getDelayMs()
+                            + ", debugSync=" + military.engine.ai.AiConfig.isDebugSync()
                             + ", agg=" + military.engine.ai.AiConfig.getAggressiveness()
                             + ", caution=" + military.engine.ai.AiConfig.getCaution()
                             + ", capture=" + military.engine.ai.AiConfig.getCapturePriority());
